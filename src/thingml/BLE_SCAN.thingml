@@ -1,0 +1,242 @@
+import "lib/Datatypes.thingml"
+import "lib/ExitHandler.thingml"
+import "lib/ble/HCISocketImpl.thingml"
+
+thing Scanner includes HCISocket, ExitHandlerMsgs
+{
+  required port Signals {
+    receives Interrupt
+    sends Quit
+  }
+
+  function PrintAdvertisementData(Length : Byte, Data : BLEAdvertiseData)
+  do
+    '
+      printf("\tData:\n");
+      uint8_t index = 0;
+      while (index < '&Length&') {
+        uint8_t len = '&Data&'.bytes[index];
+        uint8_t type = '&Data&'.bytes[index+1];
+        uint8_t n = 0;
+
+
+        switch (type) {
+          case 0x01:
+            printf("\t\t Flags: ");
+            if ('&Data&'.bytes[index+2] & 0x01) printf("[LE limited discoverable] ");
+            if ('&Data&'.bytes[index+2] & 0x02) printf("[LE general discoverable] ");
+            if ('&Data&'.bytes[index+2] & 0x04) printf("[BR/EDR not supported] ");
+            if ('&Data&'.bytes[index+2] & 0x08) printf("[Simultanous LE+BR/EDR to same controller] ");
+            if ('&Data&'.bytes[index+2] & 0x10) printf("[Simultanous LE+BR/EDR to same host] ");
+            printf("\n");
+            break;
+
+          case 0x08:
+          case 0x09:
+            printf("\t\t Local Name: %.*s\n", len-1, &('&Data&'.bytes[index+2]));
+            break;
+
+          case 0x02:
+          case 0x03:
+            printf("\t\t Services (16-bit): ");
+            while (n < (len-1)) {
+              printf("[%2.2X%2.2X] ",'&Data&'.bytes[index+2+n+1],'&Data&'.bytes[index+2+n+0]);
+              n += 2;
+            }
+            printf("\n");
+            break;
+
+          case 0x04:
+          case 0x05:
+            printf("\t\t Services (32-bit): ");
+            while (n < (len-1)) {
+              printf("[%2.2X%2.2X%2.2X%2.2X] ",'&Data&'.bytes[index+2+n+3],'&Data&'.bytes[index+2+n+2],'&Data&'.bytes[index+2+n+1],'&Data&'.bytes[index+2+n+0]);
+              n += 4;
+            }
+            printf("\n");
+            break;
+
+          case 0x06:
+          case 0x07:
+            printf("\t\t Services (128-bit): ");
+            while (n < (len-1)) {
+              printf("[%2.2X%2.2X%2.2X%2.2X%2.2X%2.2X%2.2X%2.2X%2.2X%2.2X%2.2X%2.2X%2.2X%2.2X%2.2X%2.2X] ",
+                  '&Data&'.bytes[index+2+n+15],'&Data&'.bytes[index+2+n+14],'&Data&'.bytes[index+2+n+13],'&Data&'.bytes[index+2+n+12],
+                  '&Data&'.bytes[index+2+n+11],'&Data&'.bytes[index+2+n+10],'&Data&'.bytes[index+2+n+ 9],'&Data&'.bytes[index+2+n+ 8],
+                  '&Data&'.bytes[index+2+n+ 7],'&Data&'.bytes[index+2+n+ 6],'&Data&'.bytes[index+2+n+ 5],'&Data&'.bytes[index+2+n+ 4],
+                  '&Data&'.bytes[index+2+n+ 3],'&Data&'.bytes[index+2+n+ 2],'&Data&'.bytes[index+2+n+ 1],'&Data&'.bytes[index+2+n+ 0]);
+              n += 16;
+            }
+            printf("\n");
+            break;
+
+          default:
+            printf("\t\t Type %2.2X [%d]\n", type, len);
+        }
+
+
+        index += 1+len;
+      }
+    '
+  end
+
+  function PrintAdvertisementReport(Type : BLEAdvertisementReportType, AddressType : BLEAddressType, Address : BTAddress, Length : Byte, Data : BLEAdvertiseData)
+  do
+    '
+      printf("Advertisement report:\n");
+
+      printf("\tType: ");
+      switch ('&Type&') {
+        case 0x00:
+          printf("connectable unidirected advertising\n");
+          break;
+        case 0x01:
+          printf("connactable directed advertising\n");
+          break;
+        case 0x02:
+          printf("scannable unidirected advertising\n");
+          break;
+        case 0x03:
+          printf("non-connectable unidirected advertising\n");
+          break;
+        case 0x04:
+          printf("scan response\n");
+          break;
+      }
+
+      printf("\tAddress type: ");
+      switch ('&AddressType&') {
+        case 0x00:
+          printf("public device address\n");
+          break;
+        case 0x01:
+          printf("random device address\n");
+          break;
+        case 0x02:
+          printf("public identity address\n");
+          break;
+        case 0x03:
+          printf("random (static) device address\n");
+          break;
+      }
+
+      printf("\tAddress: %2.2X:%2.2X:%2.2X:%2.2X:%2.2X:%2.2X\n", '&Address&'.b[5],'&Address&'.b[4],'&Address&'.b[3],'&Address&'.b[2],'&Address&'.b[1],'&Address&'.b[0]);
+    '
+    PrintAdvertisementData(Length, Data)
+  end
+
+  statechart States init Open
+  {
+    state Open
+    {
+      on entry do
+        print "[INFO]: Opening HCI socket...\n"
+        Socket!Open()
+      end
+
+      transition -> Initialise event Socket?Opened
+      transition -> Quit event Socket?Closed
+    }
+
+    state Initialise
+    {
+      on entry do
+        print "[INFO]: Initialising BLE Controller...\n"
+        HCICommands!Reset()
+      end
+
+      internal event e:HCIEvents?ResetCompleted guard (e.Status == 0) action HCICommands!SetEventMaskAll()
+      transition -> Failure event e:HCIEvents?ResetCompleted guard (e.Status > 0)
+
+      internal event e:HCIEvents?SetEventMaskCompleted guard (e.Status == 0) action HCICommands!SetLEEventMaskAll()
+      transition -> Failure event e:HCIEvents?SetEventMaskCompleted guard (e.Status > 0)
+
+      transition -> SetScanningParameters event e:HCIEvents?SetLEEventMaskCompleted guard (e.Status == 0)
+      transition -> Failure event e:HCIEvents?SetLEEventMaskCompleted guard (e.Status > 0)
+
+      transition -> Close event Signals?Interrupt
+    }
+
+    state SetScanningParameters
+    {
+      on entry do
+        print "[INFO]: Setting scan parameters...\n"
+
+        var Type : BLEScanType = BLEScanType:ACTIVE
+        var Interval : Int = '0x0010'
+        var Window : Int = '0x0010'
+        var OwnAddressType : BLEAddressType = BLEAddressType:PUBLIC 
+        var FilterPolicy : BLEScanFilterPolicy = BLEScanFilterPolicy:ALL
+
+        HCICommands!SetLEScanParameters(Type, Interval, Window, OwnAddressType, FilterPolicy)
+      end
+
+      internal event e:HCIEvents?SetLEScanParametersCompleted guard (e.Status == 0) action HCICommands!SetLEScanEnable('0x01', '0x00')
+      transition -> Failure event e:HCIEvents?SetLEScanParametersCompleted guard (e.Status > 0)
+
+      transition -> Scanning event e:HCIEvents?SetLEScanEnableCompleted guard (e.Status == 0)
+      transition -> Failure event e:HCIEvents?SetLEScanEnableCompleted guard (e.Status > 0)
+    }
+
+    state Scanning
+    {
+      on entry print "[INFO]: Scanning :)\n"
+
+      internal event e:HCIEvents?LEAdvertisementReport action do
+        print "[INFO]: Got advertisement report!\n"
+        PrintAdvertisementReport(e.Type, e.AddressType, e.Address, e.Length, e.Data)
+      end
+
+      internal event Signals?Interrupt action HCICommands!SetLEScanEnable('0x00', '0x00')
+
+      transition -> Close event e:HCIEvents?SetLEScanEnableCompleted guard (e.Status == 0)
+      transition -> Failure event e:HCIEvents?SetLEScanEnableCompleted guard (e.Status > 0)
+    }
+
+    state Failure
+    {
+      on entry do
+        print "[ERROR]: Something went wrong :(\n"
+        Socket!Close()
+      end
+
+      transition -> Quit event Socket?Closed
+      transition -> Quit event Signals?Interrupt
+    }
+
+    state Close
+    {
+      on entry do
+        print "[INFO]: Closing HCI socket...\n"
+        Socket!Close()
+      end
+
+      transition -> Quit event Socket?Closed
+      transition -> Quit event Signals?Interrupt
+    }
+
+    state Quit
+    {
+      on entry Signals!Quit(0)
+    }
+  }
+}
+
+configuration BLE_SCAN
+@add_c_libraries "bluetooth"
+{
+  instance handler : ExitHandler
+  instance hci     : HCISocketProxyImpl
+  instance scanner : Scanner
+
+  connector scanner.Signals => handler.Signals
+  connector scanner.Socket => hci.Socket
+  connector scanner.HCICommands => hci.Commands
+  connector scanner.HCIEvents => hci.Events
+  connector scanner.ATT => hci.ATT
+  connector scanner.SMP => hci.SMP
+
+	set hci.Device = "hci0"
+  //set hci.Device = "B8:27:EB:03:FA:CD"
+  //set hci.Device = "B8:27:EB:F1:1D:FF"
+}
