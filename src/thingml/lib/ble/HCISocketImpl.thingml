@@ -54,14 +54,17 @@ thing HCISocketProxyImpl includes HCISocketProxy
   end
 
   /* Check if socket is open */
-  function SocketIsOpen() : Byte
+  function SocketIsOpen(): Byte
   @SuppressWarnings "Call"
+  
   do
     return DevHandle >= 0
   end
 
   /* Get the address of the controller currently connected to */
-  function GetBTAddress() : BTAddress @SuppressWarnings "Call"
+  function GetBTAddress(): BTAddress
+  @SuppressWarnings "Call"
+  
   do
     var Address : BTAddress = '{0x00, 0x00, 0x00, 0x00, 0x00, 0x00}'
     if (DevHandle >= 0) do
@@ -118,6 +121,43 @@ thing HCISocketProxyImpl includes HCISocketProxy
         }
 
       '
+      /* 
+       * THIS METHOD DIDN'T WORK FOR SOME REASON, DID I DO SOMETHING WRONG??
+       *
+      '
+        uint8_t type = HCI_ACLDATA_PKT;
+        hci_acl_hdr ha;
+        struct iovec iv[6];
+        int ivn;
+
+        ha.handle = '&Handle&' & 0x0FFF;
+        ha.dlen = '&Length&' + 4;
+
+        iv[0].iov_base = &type;
+        iv[0].iov_len  = 1;
+        iv[1].iov_base = &ha;
+        iv[1].iov_len  = HCI_ACL_HDR_SIZE;
+        iv[3].iov_base = &'&Length&';
+        iv[3].iov_len  = 2;
+        iv[4].iov_base = &'&CID&';
+        iv[4].iov_len  = 2;
+        ivn = 5;
+
+        if ('&Length&') {
+          iv[5].iov_base = '&Data&';
+          iv[5].iov_len  = '&Length&';
+          ivn = 6;
+        }
+
+        while (writev('&DevHandle&', iv, ivn) < 0) {
+          if (errno == EAGAIN || errno == EINTR)
+            continue;
+
+          hci_close_dev('&DevHandle&');
+          '&DevHandle&' = -1;
+        }
+      '
+      */
     end
   end
 
@@ -181,7 +221,7 @@ thing HCISocketProxyImpl includes HCISocketProxy
             case 0xff: // Vendor Package
               printf("[WARNING]: Unhandled incoming vendor package!\n");
               break;
-          } 
+          }
         }
       '
     end

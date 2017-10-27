@@ -7,6 +7,7 @@ import "lib/ble/BLE_connecter.thingml"
 import "lib/ble/BLE_encryption.thingml"
 
 thing Main includes BLEInitialiser, BLEConnecter, ExitHandlerMsgs, BLEEncryption, HCISocket
+/* 
 @c_global "
   void print_bytes(uint8_t *data, int16_t length) {
     printf(\"'{ \");
@@ -17,11 +18,24 @@ thing Main includes BLEInitialiser, BLEConnecter, ExitHandlerMsgs, BLEEncryption
     printf(\"}'\\n\");
   }
 "
+*/
+
 {
   required port Signals {
     receives Interrupt
     sends Quit
   }
+  
+  function printBytes() 
+  @c_prototype "void print_bytes(uint8_t *data, int16_t length)"
+  do
+  	'printf("\'{ ");
+
+    int16_t i;
+    for (i = 0; i < length; i++) printf("0x%2.2X, ",data[i]);
+
+    printf("}\'\\n");'
+  end
 
   property ConnectedAddressType : BLEAddressType
   property ConnectedAddress : BTAddress
@@ -365,24 +379,32 @@ configuration BLE_PAIR
   connector main.Socket => hci.Socket
   connector main.HCICommands => hci.Commands
   connector main.HCIEvents => hci.Events
+  connector main.ATT => hci.ATT
+  connector main.SMP => hci.SMP
 
   connector initialiser.Socket => hci.Socket
   connector initialiser.HCICommands => hci.Commands
   connector initialiser.HCIEvents => hci.Events
+  connector initialiser.ATT => hci.ATT
+  connector initialiser.SMP => hci.SMP
 
   connector connecter.Socket => hci.Socket
   connector connecter.HCICommands => hci.Commands
   connector connecter.HCIEvents => hci.Events
+  connector connecter.ATT => hci.ATT
+  connector connecter.SMP => hci.SMP
 
   connector encrypter.Socket => hci.Socket
   connector encrypter.HCICommands => hci.Commands
   connector encrypter.HCIEvents => hci.Events
+  connector encrypter.ATT => hci.ATT
+  connector encrypter.SMP => hci.SMP
 
 
 
-  set hci.Device = "B8:27:EB:03:FA:CD"
+  set hci.Device = "hci0"
   //set hci.Device = "B8:27:EB:F1:1D:FF"
   
   set connecter.ConnectAddressType = BLEAddressType:PUBLIC
-  set connecter.ConnectAddress = "5C:31:3E:03:54:2F"
+  set connecter.ConnectAddress = "5C:31:3E:00:4B:6B"
 }

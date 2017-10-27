@@ -1,5 +1,5 @@
 import "../Datatypes.thingml"
-import "HCIProxy.thingml"
+import "HCIMessages.thingml"
 import "SMPProxy.thingml"
 import "ATTProxy.thingml"
 
@@ -12,16 +12,58 @@ thing fragment HCISocketMsgs
   message Closed();
 }
 
-thing fragment HCISocket includes HCISocketMsgs, HCIController, SMP, ATT
+thing fragment HCISocket includes HCISocketMsgs, HCIControllerMsgs, SMP, ATT
 {
   required port Socket
   {
     sends Open, Close
     receives Opened, Closed
   }
+
+  required port HCICommands
+  {
+    sends Reset
+    sends SetEventMask,SetEventMaskAll
+    sends SetLocalName
+    sends Disconnect
+    sends SetLEEventMask,SetLEEventMaskAll
+    sends SetLEAdvertisementParameters
+    sends SetLEAdvertiseEnable
+    sends SetLEAdvertisingData
+    sends SetLEScanResponseData
+    sends SetLEScanParameters
+    sends SetLEScanEnable
+    sends LECreateConnection, LECreateConnectionCancel
+    sends LERand
+    sends LEEncrypt
+    sends LEStartEncryption
+  }
+
+  required port HCIEvents
+  {
+    receives ResetCompleted
+    receives SetEventMaskCompleted
+    receives SetLocalNameCompleted
+    receives DisconnectStatus
+    receives DisconnectionCompleted
+    receives SetLEEventMaskCompleted
+    receives SetLEAdvertisementParametersCompleted
+    receives SetLEAdvertiseEnableCompleted
+    receives SetLEAdvertisingDataCompleted
+    receives SetLEScanResponseDataCompleted
+    receives SetLEScanParametersCompleted
+    receives SetLEScanEnableCompleted
+    receives LEAdvertisementReport
+    receives LECreateConnectionStatus, LECreateConnectionCancelCompleted
+    receives LEConnectionComplete, LEEnhancedConnectionComplete
+    receives LERandCompleted
+    receives LEEncryptCompleted
+    receives EncryptionChanged
+    receives LEStartEncryptionStatus
+  }
 }
 
-thing fragment HCISocketProxy includes HCISocketMsgs, HCIControllerProxy, SMPProxy, ATTProxy
+thing fragment HCISocketProxy includes HCISocketMsgs, HCIControllerMsgs, SMPProxy, ATTProxy
 {
   property Device : String // Device address or name
 
@@ -31,17 +73,225 @@ thing fragment HCISocketProxy includes HCISocketMsgs, HCIControllerProxy, SMPPro
     sends Opened, Closed
   }
 
+  provided port Commands
+  {
+    receives Reset
+    receives SetEventMask,SetEventMaskAll
+    receives SetLocalName
+    receives Disconnect
+    receives SetLEEventMask,SetLEEventMaskAll
+    receives SetLEAdvertisementParameters
+    receives SetLEAdvertiseEnable
+    receives SetLEAdvertisingData
+    receives SetLEScanResponseData
+    receives SetLEScanParameters
+    receives SetLEScanEnable
+    receives LECreateConnection, LECreateConnectionCancel
+    receives LERand
+    receives LEEncrypt
+    receives LEStartEncryption
+  }
+
+  provided port Events
+  {
+    sends ResetCompleted
+    sends SetEventMaskCompleted
+    sends SetLocalNameCompleted
+    sends DisconnectStatus
+    sends DisconnectionCompleted
+    sends SetLEEventMaskCompleted
+    sends SetLEAdvertisementParametersCompleted
+    sends SetLEAdvertiseEnableCompleted
+    sends SetLEAdvertisingDataCompleted
+    sends SetLEScanResponseDataCompleted
+    sends SetLEScanParametersCompleted
+    sends SetLEScanEnableCompleted
+    sends LEAdvertisementReport
+    sends LECreateConnectionStatus, LECreateConnectionCancelCompleted
+    sends LEConnectionComplete, LEEnhancedConnectionComplete
+    sends LERandCompleted
+    sends LEEncryptCompleted
+    sends EncryptionChanged
+    sends LEStartEncryptionStatus
+  }
+
+  // SMP Ports are included from fragment ...
+  // ATT Ports are included from fragment ...
+
   /* Platform specific functions */
   abstract function OpenSocket() @abstract "true" @SuppressWarnings "Call"
   abstract function CloseSocket() @abstract "true" @SuppressWarnings "Call"
   abstract function SocketIsOpen() : Byte @abstract "true" @SuppressWarnings "Call" 
-  abstract function GetBTAddress() : BTAddress @abstract "true" @SuppressWarnings "Call"  
+  abstract function GetBTAddress() : BTAddress @abstract "true" @SuppressWarnings "Call"
 
   abstract function SendCommand(Group : UInt, Command : UInt, Length : Byte, Data : DataPointer) @abstract "true" @SuppressWarnings "Call" 
   abstract function SendACLData(Handle : UInt, CID : UInt, Length : UInt, Data : DataPointer) @abstract "true" @SuppressWarnings "Call" 
 
+  /* Platform independent functions */
+  function DecodeEvent(Event : Byte, Length : Byte, Data : DataPointer) do
+    /* ------ Received events ------ */
+    if (Event == '0x05') do // Disconnection Complete
+      var Status : Byte = ''&Data&'[0]'
+      var ConnectionHandle : UInt = '(*((uint16_t*)&'&Data&'[1]) & 0x0FFF)'
+      var Reason : BTDisconnectReason = ''&Data&'[3]'
+      Events!DisconnectionCompleted(Status, ConnectionHandle, Reason)
+    end
+    if (Event == '0x08') do // Encryption Change Event
+      var Status : Byte = ''&Data&'[0]'
+      var ConnectionHandle : UInt = '(*((uint16_t*)&'&Data&'[1]) & 0x0FFF)'
+      var Enabled : Byte = ''&Data&'[3]'
+      Events!EncryptionChanged(Status, ConnectionHandle, Enabled)
+    end
+    if (Event == '0x0E') do // Command Completed Event
+      var NumberAllowedCommandPackets : Byte = ''&Data&'[0]'
+      var Group : UInt = '(*((uint16_t*)&'&Data&'[1]) >> 10)'
+      var Command : UInt = '(*((uint16_t*)&'&Data&'[1]) & 0x03FF)'
+      var ReturnData : DataPointer = '&'&Data&'[3]'
+      OnCommandCompletedEvent(NumberAllowedCommandPackets, Group, Command, ReturnData)
+    end
+    if (Event == '0x0F') do // Command Status Event
+      var Status : Byte = ''&Data&'[0]'
+      var NumberAllowedCommandPackets : Byte = ''&Data&'[1]'
+      var Group : UInt = '(*((uint16_t*)&'&Data&'[2]) >> 10)'
+      var Command : UInt = '(*((uint16_t*)&'&Data&'[2]) & 0x03FF)'
+      OnCommandStatusEvent(NumberAllowedCommandPackets, Group, Command, Status)
+    end
+    if (Event == '0x3E') do // LE Meta Event
+      var SubEventCode : Byte = ''&Data&'[0]'
+      var NewLength : Byte = Length - 1
+      var NewData : DataPointer = '&'&Data&'[1]'
+      OnLEMetaEvent(SubEventCode, NewLength, NewData)
+    end
+  end
 
-  /* Receive ACL Data functions */
+  function OnCommandCompletedEvent(NumberAllowedCommandPackets : Byte, Group : UInt, Command : UInt, Data : DataPointer) do
+    /* Controller commands */
+    if (Group == '0x03') do
+      if (Command == '0x0003') do // Reset
+        var Status : Byte = ''&Data&'[0]'
+        Events!ResetCompleted(NumberAllowedCommandPackets, Status)
+      end
+      if (Command == '0x0001') do // Set event mask
+        var Status : Byte = ''&Data&'[0]'
+        Events!SetEventMaskCompleted(NumberAllowedCommandPackets, Status)
+      end
+    end
+    /* LE Controller commands */
+    if (Group == '0x08') do
+      if (Command == '0x0001') do // Set LE event mask
+        var Status : Byte = ''&Data&'[0]'
+        Events!SetLEEventMaskCompleted(NumberAllowedCommandPackets, Status)
+      end
+      if (Command == '0x0006') do // Set LE advertisement parameters
+        var Status : Byte = ''&Data&'[0]'
+        Events!SetLEAdvertisementParametersCompleted(NumberAllowedCommandPackets, Status)
+      end
+      if (Command == '0x0008') do // Set LE advertising data
+        var Status : Byte = ''&Data&'[0]'
+        Events!SetLEAdvertisingDataCompleted(NumberAllowedCommandPackets, Status)
+      end
+      if (Command == '0x0009') do // Set LE scan response data
+        var Status : Byte = ''&Data&'[0]'
+        Events!SetLEScanResponseDataCompleted(NumberAllowedCommandPackets, Status)
+      end
+      if (Command == '0x000A') do // Set LE advertise enable
+        var Status : Byte = ''&Data&'[0]'
+        Events!SetLEAdvertiseEnableCompleted(NumberAllowedCommandPackets, Status)
+      end
+      if (Command == '0x000B') do // Set LE scan parameters
+        var Status : Byte = ''&Data&'[0]'
+        Events!SetLEScanParametersCompleted(NumberAllowedCommandPackets, Status)
+      end
+      if (Command == '0x000C') do // Set LE scan enable
+        var Status : Byte = ''&Data&'[0]'
+        Events!SetLEScanEnableCompleted(NumberAllowedCommandPackets, Status)
+      end
+      if (Command == '0x000E') do // Set LE create connection cancel
+        var Status : Byte = ''&Data&'[0]'
+        Events!LECreateConnectionCancelCompleted(NumberAllowedCommandPackets, Status)
+      end
+      if (Command == '0x0018') do // Rand
+        var Status : Byte = ''&Data&'[0]'
+        var Random : BLERandomPart = '*((ble_random_part_t*)&'&Data&'[1])'
+        Events!LERandCompleted(NumberAllowedCommandPackets, Status, Random)
+      end
+      if (Command == '0x0017') do // Encrypt
+        var Status : Byte = ''&Data&'[0]'
+        var EncryptedData : BLERandomNumber = '*((ble_random_number_t*)&'&Data&'[1])'
+        Events!LEEncryptCompleted(NumberAllowedCommandPackets, Status, EncryptedData)
+      end
+
+    end
+  end
+
+  function OnCommandStatusEvent(NumberAllowedCommandPackets : Byte, Group : UInt, Command : UInt, Status : Byte ) do
+    /* Link Control commands */
+    if (Group == '0x01') do
+      if (Command == '0x0006') do // Disconnect
+        Events!DisconnectStatus(NumberAllowedCommandPackets, Status)
+      end
+    end
+    /* LE Controller commands */
+    if (Group == '0x08') do
+      if (Command == '0x000D') do // LE Create Connection
+        Events!LECreateConnectionStatus(NumberAllowedCommandPackets, Status)
+      end
+      if (Command == '0x000D') do // LE Start Encryption
+        Events!LEStartEncryptionStatus(NumberAllowedCommandPackets, Status)
+      end
+    end
+  end
+
+  function OnLEMetaEvent(SubEventCode : Byte, Length : Byte, Data : DataPointer) do
+    if (SubEventCode == '0x01') do // LE connection complete
+      'evt_le_connection_complete* data = &'&Data&'[0];'
+        var Status : Byte = 'data->status'
+        var ConnectionHandle : UInt = 'data->handle'
+        var Role : BLELinkRole = 'data->role'
+        var PeerAddressType : BLEAddressType = 'data->peer_bdaddr_type'
+        var PeerAddress : BTAddress = 'data->peer_bdaddr'
+        var ConnInterval : UInt = 'data->interval'
+        var ConnLatency : UInt = 'data->latency'
+        var SupervisionTimeout : UInt = 'data->supervision_timeout'
+        var MasterClockAccuracy : Byte = 'data->master_clock_accuracy'
+
+        Events!LEConnectionComplete(Status, ConnectionHandle, Role, PeerAddressType, PeerAddress, ConnInterval, ConnLatency, SupervisionTimeout, MasterClockAccuracy)
+    end
+    if (SubEventCode == '0x02') do // LE advertising report
+      var NumReports : Byte = ''&Data&'[0]'
+      var Count : Byte = 0
+      var Index : Byte = 1
+      while (Count < NumReports) do
+        'le_advertising_info* data = &'&Data&'['&Index&'];'
+        var Type : BLEAdvertisementReportType = 'data->evt_type'
+        var AddressType : BLEAddressType = 'data->bdaddr_type'
+        var Address : BTAddress = 'data->bdaddr'
+        var ReportLength : Byte = 'data->length'
+        var ReportData : BLEAdvertiseData
+        'memcpy(&'&ReportData&', &(data->data), '&ReportLength&');'
+        
+        Events!LEAdvertisementReport(Type, AddressType, Address, ReportLength, ReportData)
+        Index = Index + 9 + ReportLength
+        Count = Count + 1
+      end
+    end
+    if (SubEventCode == '0x0A') do // LE enhanced connection complete
+      var Status : Byte = ''&Data&'[0]'
+      var ConnectionHandle : UInt = '*((uint16_t*)&'&Data&'[1])'
+      var Role : BLELinkRole = ''&Data&'[3]'
+      var PeerAddressType : BLEAddressType = ''&Data&'[4]'
+      var PeerAddress : BTAddress = '*((bdaddr_t*)&'&Data&'[5])'
+      var LocalResolvablePrivateAddress : BTAddress = '*((bdaddr_t*)&'&Data&'[11])'
+      var PeerResolvablePrivateAddress : BTAddress = '*((bdaddr_t*)&'&Data&'[17])'
+      var ConnInterval : UInt = '*((uint16_t*)&'&Data&'[23])'
+      var ConnLatency : UInt = '*((uint16_t*)&'&Data&'[25])'
+      var SupervisionTimeout : UInt = '*((uint16_t*)&'&Data&'[27])'
+      var MasterClockAccuracy : Byte = ''&Data&'[29]'
+
+      Events!LEEnhancedConnectionComplete(Status, ConnectionHandle, Role, PeerAddressType, PeerAddress, LocalResolvablePrivateAddress, PeerResolvablePrivateAddress, ConnInterval, ConnLatency, SupervisionTimeout, MasterClockAccuracy)
+    end
+  end
+
   function HandleACLData(Handle : UInt, PacketBoundary : ACLPacketBoundaryFlag, Broadcast : ACLBroadcastFlag, Length : UInt, Data : DataPointer) do
     if (PacketBoundary != ACLPacketBoundaryFlag:FIRST_FLUSHABLE) do
       print "[ERROR]: Got an ACL packet what was not the first automatically flushable packet. Implement handling of this!\n"
@@ -70,6 +320,210 @@ thing fragment HCISocketProxy includes HCISocketMsgs, HCIControllerProxy, SMPPro
   function OnL2CAPData(Handle : UInt, Length : UInt, Data : DataPointer) do
     print "!!! GOT LE L2CAP DATA !!!\n"
   end
+
+  function OnSMPData(Handle : UInt, Length : UInt, Data : DataPointer) do
+    var Code : Byte = ''&Data&'[0]'
+    if (Code == '0x01') do
+      var IOCapability : SMPIOCapabilities = ''&Data&'[1]'
+      var OOBDataPresent : Boolean = ''&Data&'[2] == 0x01'
+      var Bonding : Boolean = '(('&Data&'[3] & 0x03) == 0x01)'
+      var MITM : Boolean = '(('&Data&'[3] & 0x04) > 0)'
+      var SecureConnection : Boolean = '(('&Data&'[3] & 0x08) > 0)'
+      var Keypress : Boolean = '(('&Data&'[3] & 0x10) > 0)'
+      var MaximumEncryptionKeySize : Byte = ''&Data&'[4]'
+      var InitiatorKeyDistribution : SMPKeyDistribution = ''&Data&'[5]'
+      var ResponderKeyDistribution : SMPKeyDistribution = ''&Data&'[6]'
+
+      SMP!SMPPairingRequest(Handle, IOCapability, OOBDataPresent, Bonding, MITM, SecureConnection, Keypress, MaximumEncryptionKeySize, InitiatorKeyDistribution, ResponderKeyDistribution)
+    end
+    if (Code == '0x02') do
+      var IOCapability : SMPIOCapabilities = ''&Data&'[1]'
+      var OOBDataPresent : Boolean = ''&Data&'[2] == 0x01'
+      var Bonding : Boolean = '(('&Data&'[3] & 0x03) == 0x01)'
+      var MITM : Boolean = '(('&Data&'[3] & 0x04) > 0)'
+      var SecureConnection : Boolean = '(('&Data&'[3] & 0x08) > 0)'
+      var Keypress : Boolean = '(('&Data&'[3] & 0x10) > 0)'
+      var MaximumEncryptionKeySize : Byte = ''&Data&'[4]'
+      var InitiatorKeyDistribution : SMPKeyDistribution = ''&Data&'[5]'
+      var ResponderKeyDistribution : SMPKeyDistribution = ''&Data&'[6]'
+
+      SMP!SMPPairingResponse(Handle, IOCapability, OOBDataPresent, Bonding, MITM, SecureConnection, Keypress, MaximumEncryptionKeySize, InitiatorKeyDistribution, ResponderKeyDistribution)
+    end
+    if (Code == '0x03') do
+      var ConfirmValue : BLERandomNumber = '*((ble_random_number_t*)&'&Data&'[1])'
+
+      SMP!SMPPairingConfirm(Handle, ConfirmValue)
+    end
+    if (Code == '0x04') do
+      var RandomValue : BLERandomNumber= '*((ble_random_number_t*)&'&Data&'[1])'
+
+      SMP!SMPPairingRandom(Handle, RandomValue)
+    end
+    if (Code == '0x05') do
+      var Reason : SMPPairingFailReason = ''&Data&'[1]'
+
+      SMP!SMPPairingFailed(Handle, Reason)
+    end
+    if (Code == '0x06') do
+      var LongTermKey : BLERandomNumber = '*((ble_random_number_t*)&'&Data&'[1])'
+
+      SMP!SMPEncryptionInformation(Handle, LongTermKey)
+    end
+    if (Code == '0x07') do
+      var EDIV : UInt = '*((uint16_t*)&'&Data&'[1])'
+      var Rand : BLERandomPart = '*((ble_random_part_t*)&'&Data&'[3])'
+
+      SMP!SMPMasterIdentification(Handle, EDIV, Rand)
+    end
+    if (Code == '0x08') do
+      var IdentityResolvingKey : BLERandomNumber = '*((ble_random_number_t*)&'&Data&'[1])'
+
+      SMP!SMPIdentityInformation(Handle, IdentityResolvingKey)
+    end
+    if (Code == '0x09') do
+      var AddressType : BLEAddressType = ''&Data&'[1]'
+      var Address : BTAddress = '*((bdaddr_t*)&'&Data&'[2])'
+
+      SMP!SMPIdentityAddressInformation(Handle, AddressType, Address)
+    end
+    if (Code == '0x0A') do
+      var SignatureKey : BLERandomNumber = '*((ble_random_number_t*)&'&Data&'[1])'
+
+      SMP!SMPSigningInformation(Handle, SignatureKey)
+    end
+    if (Code == '0x0B') do
+      var Bonding : Boolean = '(('&Data&'[1] & 0x03) == 0x01)'
+      var MITM : Boolean = '(('&Data&'[1] & 0x04) > 0)'
+      var SecureConnection : Boolean = '(('&Data&'[1] & 0x08) > 0)'
+      var Keypress : Boolean = '(('&Data&'[1] & 0x10) > 0)'
+
+      SMP!SMPSecurityRequest(Handle, Bonding, MITM, SecureConnection, Keypress)
+    end
+    if (Code == '0x0C') do
+      var KeyX : SMPPublicKey = '*((smp_public_key_t*)&'&Data&'[1])'
+      var KeyY : SMPPublicKey = '*((smp_public_key_t*)&'&Data&'[33])'
+
+      SMP!SMPPairingPublicKey(Handle, KeyX, KeyY)
+    end
+    if (Code == '0x0D') do
+      var DHKeyCheck : BLERandomNumber = '*((ble_random_number_t*)&'&Data&'[1])'
+
+      SMP!SMPPairingDHKeyCheck(Handle, DHKeyCheck)
+    end
+    if (Code == '0x0E') do
+      var Type : SMPKeypressNotification = ''&Data&'[1]'
+
+      SMP!SMPKeypressNotification(Handle, Type)
+    end
+  end
+
+
+  function OnATTData(Handle : UInt, Length : UInt, Data : DataPointer) do
+    var OpCode : Byte = ''&Data&'[0]'
+    if (OpCode == '0x01') do
+      var RequestOpCode : Byte = ''&Data&'[1]'
+      var AttributeHandle : UInt = '*((uint16_t*)&'&Data&'[2])'
+      var Error : ATTErrorCode = ''&Data&'[4]'
+      if (RequestOpCode == '0x04') do
+        ATT!ATTFindInformationError(Handle, AttributeHandle, Error)
+      end
+      if (RequestOpCode == '0x08') do
+        ATT!ATTReadByTypeError(Handle, AttributeHandle, Error)
+      end
+      if (RequestOpCode == '0x0A') do
+        ATT!ATTReadError(Handle, AttributeHandle, Error)
+      end
+      if (RequestOpCode == '0x10') do
+        ATT!ATTReadByGroupTypeError(Handle, AttributeHandle, Error)
+      end
+      if (RequestOpCode == '0x12') do
+        ATT!ATTWriteError(Handle, AttributeHandle, Error)
+      end
+    end
+    if (OpCode == '0x04') do
+      var StartingHandle : UInt = '*((uint16_t*)&'&Data&'[1])'
+      var EndingHandle : UInt = '*((uint16_t*)&'&Data&'[3])'
+      ATT!ATTFindInformationRequest(Handle, StartingHandle, EndingHandle)
+    end
+    if (OpCode == '0x05') do
+      var Format : Byte = ''&Data&'[1]'
+      var InformationData : GATTData
+      ''&InformationData&'.length = '&Length&'-2;'
+      'memcpy(&'&InformationData&'.bytes, &'&Data&'[2], '&Length&'-2);'
+      ATT!ATTFindInformationResponse(Handle, Format, InformationData)
+    end
+    if (OpCode == '0x08') do
+      var StartingHandle : UInt = '*((uint16_t*)&'&Data&'[1])'
+      var EndingHandle : UInt = '*((uint16_t*)&'&Data&'[3])'
+      var AttributeType : UUID = ReadUUID(Length-5, '&'&Data&'[5]')
+      ATT!ATTReadByTypeRequest(Handle, StartingHandle, EndingHandle, AttributeType)
+    end
+    if (OpCode == '0x09') do
+      var ALength : Byte = ''&Data&'[1]'
+      var AttributeDataList : GATTData
+      ''&AttributeDataList&'.length = '&Length&'-2;'
+      'memcpy(&'&AttributeDataList&'.bytes, &'&Data&'[2], '&Length&'-2);'
+      ATT!ATTReadByTypeResponse(Handle, ALength, AttributeDataList)
+    end
+    if (OpCode == '0x0A') do
+      var AttributeHandle : UInt = '*((uint16_t*)&'&Data&'[1])'
+      ATT!ATTReadRequest(Handle, AttributeHandle)
+    end
+    if (OpCode == '0x0B') do
+      var AttributeData : GATTData
+      ''&AttributeData&'.length = '&Length&'-1;'
+      'memcpy(&'&AttributeData&'.bytes, &'&Data&'[1], '&Length&'-1);'
+      ATT!ATTReadResponse(Handle, AttributeData)
+    end
+    if (OpCode == '0x10') do
+      var StartingHandle : UInt = '*((uint16_t*)&'&Data&'[1])'
+      var EndingHandle : UInt = '*((uint16_t*)&'&Data&'[3])'
+      var AttributeGroupType : UUID = ReadUUID(Length-5, '&'&Data&'[5]')
+      ATT!ATTReadByGroupTypeRequest(Handle, StartingHandle, EndingHandle, AttributeGroupType)
+    end
+    if (OpCode == '0x11') do
+      var ALength : Byte = ''&Data&'[1]'
+      var AttributeDataList : GATTData
+      ''&AttributeDataList&'.length = '&Length&'-2;'
+      'memcpy(&'&AttributeDataList&'.bytes, &'&Data&'[2], '&Length&'-2);'
+      ATT!ATTReadByGroupTypeResponse(Handle, ALength, AttributeDataList)
+    end
+    if (OpCode == '0x12') do
+      var AttributeHandle : UInt = '*((uint16_t*)&'&Data&'[1])'
+      var AttributeValue : GATTData
+      ''&AttributeValue&'.length = '&Length&'-3;'
+      'memcpy(&'&AttributeValue&'.bytes, &'&Data&'[3], '&Length&'-3);'
+      ATT!ATTWriteRequest(Handle, AttributeHandle, AttributeValue)
+    end
+    if (OpCode == '0x13') do
+      ATT!ATTWriteResponse(Handle)
+    end
+    if (OpCode == '0x52') do
+      var AttributeHandle : UInt = '*((uint16_t*)&'&Data&'[1])'
+      var AttributeValue : GATTData
+      ''&AttributeValue&'.length = '&Length&'-3;'
+      'memcpy(&'&AttributeValue&'.bytes, &'&Data&'[3], '&Length&'-3);'
+      ATT!ATTWriteCommand(Handle, AttributeHandle, AttributeValue)
+    end
+    if (OpCode == '0x1B') do
+      var AttributeHandle : UInt = '*((uint16_t*)&'&Data&'[1])'
+      var AttributeValue : GATTData
+      ''&AttributeValue&'.length = '&Length&'-3;'
+      'memcpy(&'&AttributeValue&'.bytes, &'&Data&'[3], '&Length&'-3);'
+      ATT!ATTHandleValueNotification(Handle, AttributeHandle, AttributeValue)
+    end
+    if (OpCode == '0x1D') do
+      var AttributeHandle : UInt = '*((uint16_t*)&'&Data&'[1])'
+      var AttributeValue : GATTData
+      ''&AttributeValue&'.length = '&Length&'-3;'
+      'memcpy(&'&AttributeValue&'.bytes, &'&Data&'[3], '&Length&'-3);'
+      ATT!ATTHandleValueIndication(Handle, AttributeHandle, AttributeValue)
+    end
+    if (OpCode == '0x1E') do
+      ATT!ATTHandleValueConfirmation(Handle)
+    end
+  end
+
 
 
   /* Statechart (platform independent) */
