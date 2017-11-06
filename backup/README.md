@@ -1,0 +1,3 @@
+This folder contains backups of working setups which have been deployed or sucessfully tested. If possible the TingML source and ThingML compiler should be specified.
+
+* **Heads_TelenorExpo (06/11/2017)** - code deployed for the HEADS review at Telenor expo and still in use on the Telenor Expo Stand. The ThingML source for this version is here https://github.com/HEADS-project/ThingML-BLE/tree/heads-review. It is not completely clear which version of the ThingML compiler v1 was used to generate the code. This code should be replaced by a new version based on ThingML v2 whenever it is possible.

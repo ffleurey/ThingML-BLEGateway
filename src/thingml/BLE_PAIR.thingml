@@ -406,5 +406,7 @@ configuration BLE_PAIR
   //set hci.Device = "B8:27:EB:F1:1D:FF"
   
   set connecter.ConnectAddressType = BLEAddressType:PUBLIC
-  set connecter.ConnectAddress = "5C:31:3E:00:4B:6B"
+//  set connecter.ConnectAddress = "5C:31:3E:00:4B:6B" // Blood Pressure sensor
+  set connecter.ConnectAddress = "B4:99:4C:5A:B1:11" // Scale
+  
 }

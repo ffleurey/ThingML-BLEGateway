@@ -1,0 +1,42 @@
+Pairing procedure for AND-UA651 blood pressure and AND-UC325 scale
+------------------------------------------------------------------
+
+Setting the pairing parameters is a bit easier with ThingML - but since we don't have the compiler on this Raspberry - we can do it manually in the generated code.
+
+
+
+1. Stop the medicalgw.service to free the Bluetooth controller:
+   "sudo systemctl stop medicalgw.service"
+
+2. Start the pairing program:
+   "sudo /home/pi/pairing/BLE_PAIR"
+
+3. Start the pairing procedure on the device:
+   - Long press on the blood pressure
+   - Button on the back for scale
+
+4. Note the values that are printed to the console at the end of the program.
+   They SHOULD be copied into pairing-info.txt for future reference.
+
+
+Now - in /home/pi/medicalgw/
+
+5. Copy the values of 'peer_ltk', 'peer_ediv', 'peer_random' into the top of:
+   - ANDUA651BLEImpl.c for the blood pressure
+   - ANDUC352BLEImpl.c for the scale
+   There should already be some values there that you need to remove.
+
+6. Copy the MAC address of the device into MedicalGW_cfg.c (around line 2800)
+
+7. Compile the new executable
+   "make"
+
+8. Re-start the medicalgw.service
+   "sudo systemctl start medicalgw.service"
+
+9. Check that everything seems fine
+   "sudo systemctl status medicalgw.service"
+
+
+
+Good job! :)
