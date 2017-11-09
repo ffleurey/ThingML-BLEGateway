@@ -81,12 +81,17 @@ thing HCISocketProxyImpl includes HCISocketProxy
     end
     return Address
   end
+  
+
 
   /* Function to send data to the socket */
   function SendCommand(Group: UInt, Command: UInt, Length : Byte, Data: DataPointer )
   @SuppressWarnings "Call"
   do
     if (DevHandle >= 0) do
+    
+    	'printf("[HCI-CMD Grp:0x%04x Cmd:%04x -> ] ", '&Group&', '&Command&');' printBuffer(Data, Length) print "\n"
+    
       '
         if (hci_send_cmd('&DevHandle&', '&Group&', '&Command&', '&Length&', '&Data&') < 0) {
           // Something went wrong, just close the socket and give up
@@ -103,6 +108,9 @@ thing HCISocketProxyImpl includes HCISocketProxy
   @SuppressWarnings "Call"
   do
     if (DevHandle >= 0) do
+    	
+      'printf("[HCI-ACL h:0x%04x CID:0x%04x  -> ] ", '&Handle&', '&CID&');' printBuffer(Data, Length) print "\n"
+    
       '
         uint8_t buffer[HCI_MAX_ACL_SIZE];
         buffer[0] = HCI_ACLDATA_PKT;

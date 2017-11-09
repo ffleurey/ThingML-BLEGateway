@@ -82,21 +82,45 @@ void Main_send_ATT_ATTHandleValueIndication(struct Main_Instance *_instance, uin
 void Main_send_ATT_ATTHandleValueConfirmation(struct Main_Instance *_instance, uint16_t ConnectionHandle);
 //Prototypes: Function
 void print_bytes(uint8_t *data, int16_t length);
+void f_Main_printBLERandomNumber(struct Main_Instance *_instance, ble_random_number_t n);
 ble_uuid_t f_Main_ReadUUID(struct Main_Instance *_instance, uint16_t Length, uint8_t * Data);
 ble_uuid_t f_Main_MakeUUID(struct Main_Instance *_instance, const char * Text);
 void f_Main_PrintUUID(struct Main_Instance *_instance, ble_uuid_t ID);
+//Debug fonction
+void Main_print_debug(struct Main_Instance * _instance, char * str) {
+if(_instance->debug) {
+printf("%s%s", _instance->name, str);
+}
+}
+
 // Declaration of functions:
 // Definition of function printBytes
 void print_bytes(uint8_t *data, int16_t length) {
+//Main_print_debug(_instance, " (Main): Start printBytes\n");
 printf("'{ ");
 
     int16_t i;
     for (i = 0; i < length; i++) printf("0x%2.2X, ",data[i]);
 
     printf("}'\\n");
+//Main_print_debug(_instance, " (Main): printBytes Done.\n");
+}
+// Definition of function printBLERandomNumber
+void f_Main_printBLERandomNumber(struct Main_Instance *_instance, ble_random_number_t n) {
+Main_print_debug(_instance, " (Main): Start printBLERandomNumber\n");
+	printf("[");
+  		int i = 0;
+  		for (i=0; i<16;i++) {
+  			printf("%02x", n.bytes[i]);
+  			//if (i<15) printf(", ");
+  		}
+  		printf("]");
+  	
+Main_print_debug(_instance, " (Main): printBLERandomNumber Done.\n");
 }
 // Definition of function ReadUUID
 ble_uuid_t f_Main_ReadUUID(struct Main_Instance *_instance, uint16_t Length, uint8_t * Data) {
+Main_print_debug(_instance, " (Main): Start ReadUUID\n");
 ;ble_uuid_t Value = { 0xFB, 0x34, 0x9B, 0x5F, 0x80, 0x00/*-*/, 0x00, 0x80/*-*/, 0x00, 0x10/*-*/, 0x00, 0x00/*-*/, 0x00, 0x00, 0x00, 0x00 };
 if(Length == 16) {
 memcpy(&Value, Data, 16);
@@ -112,9 +136,11 @@ fprintf(stdout, "[ERROR]: Trying to decode a UUID that was not 16, 32 or 128 bit
 
 }
 return Value;
+Main_print_debug(_instance, " (Main): ReadUUID Done.\n");
 }
 // Definition of function MakeUUID
 ble_uuid_t f_Main_MakeUUID(struct Main_Instance *_instance, const char * Text) {
+Main_print_debug(_instance, " (Main): Start MakeUUID\n");
 ;ble_uuid_t Value = { 0xFB, 0x34, 0x9B, 0x5F, 0x80, 0x00/*-*/, 0x00, 0x80/*-*/, 0x00, 0x10/*-*/, 0x00, 0x00/*-*/, 0x00, 0x00, 0x00, 0x00 };
 
       uint8_t *val = (uint8_t*)&Value;
@@ -146,9 +172,11 @@ ble_uuid_t f_Main_MakeUUID(struct Main_Instance *_instance, const char * Text) {
       }
     
 return Value;
+Main_print_debug(_instance, " (Main): MakeUUID Done.\n");
 }
 // Definition of function PrintUUID
 void f_Main_PrintUUID(struct Main_Instance *_instance, ble_uuid_t ID) {
+Main_print_debug(_instance, " (Main): Start PrintUUID\n");
 
       uint8_t *v = &ID;
       printf("%2.2X%2.2X%2.2X%2.2X-",v[15],v[14],v[13],v[12]);
@@ -157,6 +185,7 @@ void f_Main_PrintUUID(struct Main_Instance *_instance, ble_uuid_t ID) {
       printf("%2.2X%2.2X-",v[7],v[6]);
       printf("%2.2X%2.2X%2.2X%2.2X%2.2X%2.2X\n",v[5],v[4],v[3],v[2],v[1],v[0]);
     
+Main_print_debug(_instance, " (Main): PrintUUID Done.\n");
 }
 
 // Sessions functionss:
@@ -166,71 +195,58 @@ void f_Main_PrintUUID(struct Main_Instance *_instance, ble_uuid_t ID) {
 void Main_States_OnEntry(int state, struct Main_Instance *_instance) {
 switch(state) {
 case MAIN_STATES_STATE:{
+Main_print_debug(_instance, " (Main): Enters States\n");
 _instance->Main_States_State = MAIN_STATES_INITIALISE_STATE;
 Main_States_OnEntry(_instance->Main_States_State, _instance);
 break;
 }
-case MAIN_STATES_PAIRING_STATE:{
-_instance->Main_States_Pairing_State = MAIN_STATES_PAIRING_REQUEST_STATE;
-Main_States_OnEntry(_instance->Main_States_Pairing_State, _instance);
-break;
-}
 case MAIN_STATES_PAIRING_EXCHANGEKEYS_STATE:{
+Main_print_debug(_instance, " (Main): Enters States\n");
 _instance->Main_States_Pairing_ExchangeKeys_State = MAIN_STATES_PAIRING_EXCHANGEKEYS_WAITFORPEERKEYS_STATE;
 Main_States_OnEntry(_instance->Main_States_Pairing_ExchangeKeys_State, _instance);
 break;
 }
+case MAIN_STATES_PAIRING_CONFIRM_STATE:{
+Main_print_debug(_instance, " (Main): Enters States\n");
+_instance->Main_States_Pairing_Confirm_State = MAIN_STATES_PAIRING_CONFIRM_SENDMCONFIRM_STATE;
+Main_States_OnEntry(_instance->Main_States_Pairing_Confirm_State, _instance);
+break;
+}
+case MAIN_STATES_PAIRING_STATE:{
+Main_print_debug(_instance, " (Main): Enters States\n");
+_instance->Main_States_Pairing_State = MAIN_STATES_PAIRING_DONOTHING_STATE;
+Main_States_OnEntry(_instance->Main_States_Pairing_State, _instance);
+break;
+}
 case MAIN_STATES_PAIRING_EXCHANGEKEYS_GENERATEOWNKEYS_STATE:{
+Main_print_debug(_instance, " (Main): Enters States\n");
 _instance->Main_States_Pairing_ExchangeKeys_GenerateOwnKeys_State = MAIN_STATES_PAIRING_EXCHANGEKEYS_GENERATEOWNKEYS_GENERATELTK_STATE;
 fprintf(stdout, "[INFO]: Got all peer keys, generating own...\n");
 Main_States_OnEntry(_instance->Main_States_Pairing_ExchangeKeys_GenerateOwnKeys_State, _instance);
 break;
 }
-case MAIN_STATES_PAIRING_CONFIRM_STATE:{
-_instance->Main_States_Pairing_Confirm_State = MAIN_STATES_PAIRING_CONFIRM_SENDMCONFIRM_STATE;
-Main_States_OnEntry(_instance->Main_States_Pairing_Confirm_State, _instance);
+case MAIN_STATES_CONNECT_STATE:{
+Main_print_debug(_instance, " (Main): Enters States:Connect\n");
+Main_send_Connecter_Connect(_instance);
 break;
 }
-case MAIN_STATES_PAIRING_CONFIRM_SENDMCONFIRM_STATE:{
-fprintf(stdout, "[INFO]: Confirm Pairing...\n");
-Main_send_Encrypter_GenerateRandomNumber(_instance);
-break;
-}
-case MAIN_STATES_PAIRING_CONFIRM_GETSCONFIRM_STATE:{
-break;
-}
-case MAIN_STATES_INITIALISE_STATE:{
-Main_send_Initialiser_Start(_instance);
-break;
-}
-case MAIN_STATES_PAIRING_EXCHANGEKEYS_GENERATEOWNKEYS_GENERATEIRK_STATE:{
-Main_send_Encrypter_GenerateRandomNumber(_instance);
-break;
-}
-case MAIN_STATES_FAILED_STATE:{
-fprintf(stdout, "[ERROR]: Failed, quitting... !!!\n");
-Main_send_Signals_Quit(_instance, 1);
-break;
-}
-case MAIN_STATES_PAIRING_EXCHANGEKEYS_GENERATEOWNKEYS_GENERATELTK_STATE:{
-Main_send_Encrypter_GenerateRandomNumber(_instance);
+case MAIN_STATES_PAIRING_DONOTHING_STATE:{
+Main_print_debug(_instance, " (Main): Enters States:DONOTHING\n");
 break;
 }
 case MAIN_STATES_PAIRING_ENCRYPT_STATE:{
+Main_print_debug(_instance, " (Main): Enters States:Encrypt\n");
 fprintf(stdout, "[INFO]: Encrypting connection ...\n");
 Main_send_Encrypter_GenerateSTK(_instance, _instance->Main_Srand_var, _instance->Main_Mrand_var);
 break;
 }
-case MAIN_STATES_PAIRING_EXCHANGEKEYS_GENERATEOWNKEYS_GENERATEEDIVRAND_STATE:{
+case MAIN_STATES_PAIRING_EXCHANGEKEYS_GENERATEOWNKEYS_GENERATEIRK_STATE:{
+Main_print_debug(_instance, " (Main): Enters States:GenerateIRK\n");
 Main_send_Encrypter_GenerateRandomNumber(_instance);
 break;
 }
-case MAIN_STATES_PAIRING_PAIRFAILED_STATE:{
-fprintf(stdout, "[ERROR]: Pairing procedure failed.\n");
-Main_send_Connecter_Stop(_instance);
-break;
-}
 case MAIN_STATES_QUIT_STATE:{
+Main_print_debug(_instance, " (Main): Enters States:Quit\n");
 fprintf(stdout, "[INFO]: Finished, quitting...\n");
 if(_instance->Main_HasPairedSuccessfully_var) {
 fprintf(stdout, "\n\n\nPairing was successfull! Please note the following values and use for later connection:\n\n");
@@ -265,14 +281,8 @@ fprintf(stdout, "\n");
 Main_send_Signals_Quit(_instance, 0);
 break;
 }
-case MAIN_STATES_PAIRING_REQUEST_STATE:{
-break;
-}
-case MAIN_STATES_CONNECT_STATE:{
-Main_send_Connecter_Connect(_instance);
-break;
-}
 case MAIN_STATES_PAIRING_EXCHANGEKEYS_GENERATEOWNKEYS_SENDALL_STATE:{
+Main_print_debug(_instance, " (Main): Enters States:SendAll\n");
 _instance->Main_OwnIdentityAddressType_var = _instance->Main_DeviceAddressType_var;
 _instance->Main_OwnIdentityAddress_var = _instance->Main_DeviceAddress_var;
 fprintf(stdout, "[INFO]: Generate all own keys, sending...\n");
@@ -283,14 +293,68 @@ Main_send_SMP_SMPIdentityAddressInformation(_instance, _instance->Main_Connected
 _instance->Main_HasPairedSuccessfully_var = 1;
 break;
 }
+case MAIN_STATES_PAIRING_EXCHANGEKEYS_GENERATEOWNKEYS_GENERATELTK_STATE:{
+Main_print_debug(_instance, " (Main): Enters States:GenerateLTK\n");
+Main_send_Encrypter_GenerateRandomNumber(_instance);
+break;
+}
 case MAIN_STATES_UNINITIALISE_STATE:{
+Main_print_debug(_instance, " (Main): Enters States:Uninitialise\n");
 Main_send_Initialiser_Stop(_instance);
 break;
 }
+case MAIN_STATES_PAIRING_REQUEST_STATE:{
+Main_print_debug(_instance, " (Main): Enters States:Request\n");
+break;
+}
+case MAIN_STATES_PAIRING_REQUESTSENT2_STATE:{
+Main_print_debug(_instance, " (Main): Enters States:RequestSent2\n");
+fprintf(stdout, "Waiting for Pairing confirm #2...\n");
+break;
+}
+case MAIN_STATES_PAIRING_PAIRFAILED_STATE:{
+Main_print_debug(_instance, " (Main): Enters States:PairFailed\n");
+fprintf(stdout, "[ERROR]: Pairing procedure failed.\n");
+Main_send_Connecter_Stop(_instance);
+break;
+}
+case MAIN_STATES_PAIRING_EXCHANGEKEYS_GENERATEOWNKEYS_GENERATEEDIVRAND_STATE:{
+Main_print_debug(_instance, " (Main): Enters States:GenerateEDIVRand\n");
+Main_send_Encrypter_GenerateRandomNumber(_instance);
+break;
+}
+case MAIN_STATES_PAIRING_CONFIRM_SENDMCONFIRM_STATE:{
+Main_print_debug(_instance, " (Main): Enters States:SendMconfirm\n");
+fprintf(stdout, "[INFO]: Confirm Pairing...\n");
+Main_send_Encrypter_GenerateRandomNumber(_instance);
+break;
+}
+case MAIN_STATES_PAIRING_CONFIRM_GETSCONFIRM_STATE:{
+Main_print_debug(_instance, " (Main): Enters States:GetSconfirm\n");
+break;
+}
 case MAIN_STATES_PAIRING_CONFIRM_GETSRANDOM_STATE:{
+Main_print_debug(_instance, " (Main): Enters States:GetSrandom\n");
+break;
+}
+case MAIN_STATES_FAILED_STATE:{
+Main_print_debug(_instance, " (Main): Enters States:Failed\n");
+fprintf(stdout, "[ERROR]: Failed, quitting... !!!\n");
+Main_send_Signals_Quit(_instance, 1);
+break;
+}
+case MAIN_STATES_PAIRING_REQUESTSENT_STATE:{
+Main_print_debug(_instance, " (Main): Enters States:RequestSent\n");
+fprintf(stdout, "Waiting for Pairing confirm #1...\n");
+break;
+}
+case MAIN_STATES_INITIALISE_STATE:{
+Main_print_debug(_instance, " (Main): Enters States:Initialise\n");
+Main_send_Initialiser_Start(_instance);
 break;
 }
 case MAIN_STATES_PAIRING_EXCHANGEKEYS_WAITFORPEERKEYS_STATE:{
+Main_print_debug(_instance, " (Main): Enters States:WaitForPeerKeys\n");
 break;
 }
 default: break;
@@ -303,49 +367,74 @@ switch(state) {
 case MAIN_STATES_STATE:{
 Main_States_OnExit(_instance->Main_States_State, _instance);
 break;}
-case MAIN_STATES_PAIRING_STATE:{
-Main_States_OnExit(_instance->Main_States_Pairing_State, _instance);
-break;}
 case MAIN_STATES_PAIRING_EXCHANGEKEYS_STATE:{
 Main_States_OnExit(_instance->Main_States_Pairing_ExchangeKeys_State, _instance);
-break;}
-case MAIN_STATES_PAIRING_EXCHANGEKEYS_GENERATEOWNKEYS_STATE:{
-Main_States_OnExit(_instance->Main_States_Pairing_ExchangeKeys_GenerateOwnKeys_State, _instance);
 break;}
 case MAIN_STATES_PAIRING_CONFIRM_STATE:{
 Main_States_OnExit(_instance->Main_States_Pairing_Confirm_State, _instance);
 break;}
-case MAIN_STATES_PAIRING_CONFIRM_SENDMCONFIRM_STATE:{
+case MAIN_STATES_PAIRING_STATE:{
+Main_States_OnExit(_instance->Main_States_Pairing_State, _instance);
 break;}
-case MAIN_STATES_PAIRING_CONFIRM_GETSCONFIRM_STATE:{
-break;}
-case MAIN_STATES_INITIALISE_STATE:{
-break;}
-case MAIN_STATES_PAIRING_EXCHANGEKEYS_GENERATEOWNKEYS_GENERATEIRK_STATE:{
-break;}
-case MAIN_STATES_FAILED_STATE:{
-break;}
-case MAIN_STATES_PAIRING_EXCHANGEKEYS_GENERATEOWNKEYS_GENERATELTK_STATE:{
-break;}
-case MAIN_STATES_PAIRING_ENCRYPT_STATE:{
-break;}
-case MAIN_STATES_PAIRING_EXCHANGEKEYS_GENERATEOWNKEYS_GENERATEEDIVRAND_STATE:{
-break;}
-case MAIN_STATES_PAIRING_PAIRFAILED_STATE:{
-break;}
-case MAIN_STATES_QUIT_STATE:{
-break;}
-case MAIN_STATES_PAIRING_REQUEST_STATE:{
+case MAIN_STATES_PAIRING_EXCHANGEKEYS_GENERATEOWNKEYS_STATE:{
+Main_States_OnExit(_instance->Main_States_Pairing_ExchangeKeys_GenerateOwnKeys_State, _instance);
 break;}
 case MAIN_STATES_CONNECT_STATE:{
+Main_print_debug(_instance, " (Main): Exits States:Connect\n");
+break;}
+case MAIN_STATES_PAIRING_DONOTHING_STATE:{
+Main_print_debug(_instance, " (Main): Exits States:DONOTHING\n");
+break;}
+case MAIN_STATES_PAIRING_ENCRYPT_STATE:{
+Main_print_debug(_instance, " (Main): Exits States:Encrypt\n");
+break;}
+case MAIN_STATES_PAIRING_EXCHANGEKEYS_GENERATEOWNKEYS_GENERATEIRK_STATE:{
+Main_print_debug(_instance, " (Main): Exits States:GenerateIRK\n");
+break;}
+case MAIN_STATES_QUIT_STATE:{
+Main_print_debug(_instance, " (Main): Exits States:Quit\n");
 break;}
 case MAIN_STATES_PAIRING_EXCHANGEKEYS_GENERATEOWNKEYS_SENDALL_STATE:{
+Main_print_debug(_instance, " (Main): Exits States:SendAll\n");
+break;}
+case MAIN_STATES_PAIRING_EXCHANGEKEYS_GENERATEOWNKEYS_GENERATELTK_STATE:{
+Main_print_debug(_instance, " (Main): Exits States:GenerateLTK\n");
 break;}
 case MAIN_STATES_UNINITIALISE_STATE:{
+Main_print_debug(_instance, " (Main): Exits States:Uninitialise\n");
+break;}
+case MAIN_STATES_PAIRING_REQUEST_STATE:{
+Main_print_debug(_instance, " (Main): Exits States:Request\n");
+break;}
+case MAIN_STATES_PAIRING_REQUESTSENT2_STATE:{
+Main_print_debug(_instance, " (Main): Exits States:RequestSent2\n");
+break;}
+case MAIN_STATES_PAIRING_PAIRFAILED_STATE:{
+Main_print_debug(_instance, " (Main): Exits States:PairFailed\n");
+break;}
+case MAIN_STATES_PAIRING_EXCHANGEKEYS_GENERATEOWNKEYS_GENERATEEDIVRAND_STATE:{
+Main_print_debug(_instance, " (Main): Exits States:GenerateEDIVRand\n");
+break;}
+case MAIN_STATES_PAIRING_CONFIRM_SENDMCONFIRM_STATE:{
+Main_print_debug(_instance, " (Main): Exits States:SendMconfirm\n");
+break;}
+case MAIN_STATES_PAIRING_CONFIRM_GETSCONFIRM_STATE:{
+Main_print_debug(_instance, " (Main): Exits States:GetSconfirm\n");
 break;}
 case MAIN_STATES_PAIRING_CONFIRM_GETSRANDOM_STATE:{
+Main_print_debug(_instance, " (Main): Exits States:GetSrandom\n");
+break;}
+case MAIN_STATES_FAILED_STATE:{
+Main_print_debug(_instance, " (Main): Exits States:Failed\n");
+break;}
+case MAIN_STATES_PAIRING_REQUESTSENT_STATE:{
+Main_print_debug(_instance, " (Main): Exits States:RequestSent\n");
+break;}
+case MAIN_STATES_INITIALISE_STATE:{
+Main_print_debug(_instance, " (Main): Exits States:Initialise\n");
 break;}
 case MAIN_STATES_PAIRING_EXCHANGEKEYS_WAITFORPEERKEYS_STATE:{
+Main_print_debug(_instance, " (Main): Exits States:WaitForPeerKeys\n");
 break;}
 default: break;
 }
@@ -354,6 +443,7 @@ default: break;
 // Event Handlers for incoming messages:
 void Main_handle_HCIEvents_LEStartEncryptionStatus(struct Main_Instance *_instance, uint8_t NumberAllowedCommandPackets, uint8_t Status) {
 if(!(_instance->active)) return;
+Main_print_debug(_instance, " (Main): HCIEvents?LEStartEncryptionStatus\n");
 //Region States
 uint8_t Main_States_State_event_consumed = 0;
 if (_instance->Main_States_State == MAIN_STATES_PAIRING_STATE) {
@@ -361,12 +451,14 @@ if (_instance->Main_States_State == MAIN_STATES_PAIRING_STATE) {
 uint8_t Main_States_Pairing_State_event_consumed = 0;
 if (_instance->Main_States_Pairing_State == MAIN_STATES_PAIRING_ENCRYPT_STATE) {
 if (Main_States_Pairing_State_event_consumed == 0 && (Status > 0)) {
+Main_print_debug(_instance, " (Main): transition Encrypt -> PairFailed event HCIEvents?LEStartEncryptionStatus\n");
 Main_States_OnExit(MAIN_STATES_PAIRING_ENCRYPT_STATE, _instance);
 _instance->Main_States_Pairing_State = MAIN_STATES_PAIRING_PAIRFAILED_STATE;
 Main_States_OnEntry(MAIN_STATES_PAIRING_PAIRFAILED_STATE, _instance);
 Main_States_Pairing_State_event_consumed = 1;
 }
 else if (Main_States_Pairing_State_event_consumed == 0 && (Status == 0)) {
+Main_print_debug(_instance, " (Main): internal event HCIEvents?LEStartEncryptionStatus\n");
 fprintf(stdout, "[INFO]: Waiting for encryption...\n");
 Main_States_Pairing_State_event_consumed = 1;
 }
@@ -381,6 +473,7 @@ Main_States_State_event_consumed = 0 | Main_States_Pairing_State_event_consumed 
 }
 void Main_handle_HCIEvents_EncryptionChanged(struct Main_Instance *_instance, uint8_t Status, uint16_t ConnectionHandle, uint8_t Enabled) {
 if(!(_instance->active)) return;
+Main_print_debug(_instance, " (Main): HCIEvents?EncryptionChanged\n");
 //Region States
 uint8_t Main_States_State_event_consumed = 0;
 if (_instance->Main_States_State == MAIN_STATES_PAIRING_STATE) {
@@ -388,12 +481,14 @@ if (_instance->Main_States_State == MAIN_STATES_PAIRING_STATE) {
 uint8_t Main_States_Pairing_State_event_consumed = 0;
 if (_instance->Main_States_Pairing_State == MAIN_STATES_PAIRING_ENCRYPT_STATE) {
 if (Main_States_Pairing_State_event_consumed == 0 && (Status == 0x00 && Enabled == 0x01)) {
+Main_print_debug(_instance, " (Main): transition Encrypt -> ExchangeKeys event HCIEvents?EncryptionChanged\n");
 Main_States_OnExit(MAIN_STATES_PAIRING_ENCRYPT_STATE, _instance);
 _instance->Main_States_Pairing_State = MAIN_STATES_PAIRING_EXCHANGEKEYS_STATE;
 Main_States_OnEntry(MAIN_STATES_PAIRING_EXCHANGEKEYS_STATE, _instance);
 Main_States_Pairing_State_event_consumed = 1;
 }
 else if (Main_States_Pairing_State_event_consumed == 0 && (Status > 0x00 || Enabled != 0x01)) {
+Main_print_debug(_instance, " (Main): transition Encrypt -> PairFailed event HCIEvents?EncryptionChanged\n");
 Main_States_OnExit(MAIN_STATES_PAIRING_ENCRYPT_STATE, _instance);
 _instance->Main_States_Pairing_State = MAIN_STATES_PAIRING_PAIRFAILED_STATE;
 Main_States_OnEntry(MAIN_STATES_PAIRING_PAIRFAILED_STATE, _instance);
@@ -408,72 +503,17 @@ Main_States_State_event_consumed = 0 | Main_States_Pairing_State_event_consumed 
 //End dsregion States
 //Session list: 
 }
-void Main_handle_Initialiser_DeviceInitialised(struct Main_Instance *_instance, bdaddr_t Address) {
+void Main_handle_Connecter_Failure(struct Main_Instance *_instance) {
 if(!(_instance->active)) return;
-//Region States
-uint8_t Main_States_State_event_consumed = 0;
-if (_instance->Main_States_State == MAIN_STATES_INITIALISE_STATE) {
-if (Main_States_State_event_consumed == 0 && 1) {
-Main_States_OnExit(MAIN_STATES_INITIALISE_STATE, _instance);
-_instance->Main_States_State = MAIN_STATES_CONNECT_STATE;
-_instance->Main_DeviceAddress_var = Address;
-Main_States_OnEntry(MAIN_STATES_CONNECT_STATE, _instance);
-Main_States_State_event_consumed = 1;
-}
-}
-//End Region States
-//End dsregion States
-//Session list: 
-}
-void Main_handle_Initialiser_Stopped(struct Main_Instance *_instance) {
-if(!(_instance->active)) return;
-//Region States
-uint8_t Main_States_State_event_consumed = 0;
-if (_instance->Main_States_State == MAIN_STATES_UNINITIALISE_STATE) {
-if (Main_States_State_event_consumed == 0 && 1) {
-Main_States_OnExit(MAIN_STATES_UNINITIALISE_STATE, _instance);
-_instance->Main_States_State = MAIN_STATES_QUIT_STATE;
-Main_States_OnEntry(MAIN_STATES_QUIT_STATE, _instance);
-Main_States_State_event_consumed = 1;
-}
-}
-//End Region States
-//End dsregion States
-//Session list: 
-}
-void Main_handle_Initialiser_Failure(struct Main_Instance *_instance) {
-if(!(_instance->active)) return;
-//Region States
-uint8_t Main_States_State_event_consumed = 0;
-if (_instance->Main_States_State == MAIN_STATES_INITIALISE_STATE) {
-if (Main_States_State_event_consumed == 0 && 1) {
-Main_States_OnExit(MAIN_STATES_INITIALISE_STATE, _instance);
-_instance->Main_States_State = MAIN_STATES_FAILED_STATE;
-Main_States_OnEntry(MAIN_STATES_FAILED_STATE, _instance);
-Main_States_State_event_consumed = 1;
-}
-}
-else if (_instance->Main_States_State == MAIN_STATES_UNINITIALISE_STATE) {
-if (Main_States_State_event_consumed == 0 && 1) {
-Main_States_OnExit(MAIN_STATES_UNINITIALISE_STATE, _instance);
-_instance->Main_States_State = MAIN_STATES_FAILED_STATE;
-Main_States_OnEntry(MAIN_STATES_FAILED_STATE, _instance);
-Main_States_State_event_consumed = 1;
-}
-}
-//End Region States
-//End dsregion States
-//Session list: 
-}
-void Main_handle_Connecter_Stopped(struct Main_Instance *_instance) {
-if(!(_instance->active)) return;
+Main_print_debug(_instance, " (Main): Connecter?Failure\n");
 //Region States
 uint8_t Main_States_State_event_consumed = 0;
 if (_instance->Main_States_State == MAIN_STATES_CONNECT_STATE) {
 if (Main_States_State_event_consumed == 0 && 1) {
+Main_print_debug(_instance, " (Main): transition Connect -> Failed event Connecter?Failure\n");
 Main_States_OnExit(MAIN_STATES_CONNECT_STATE, _instance);
-_instance->Main_States_State = MAIN_STATES_UNINITIALISE_STATE;
-Main_States_OnEntry(MAIN_STATES_UNINITIALISE_STATE, _instance);
+_instance->Main_States_State = MAIN_STATES_FAILED_STATE;
+Main_States_OnEntry(MAIN_STATES_FAILED_STATE, _instance);
 Main_States_State_event_consumed = 1;
 }
 }
@@ -484,9 +524,10 @@ uint8_t Main_States_Pairing_State_event_consumed = 0;
 Main_States_State_event_consumed = 0 | Main_States_Pairing_State_event_consumed ;
 //End dsregion Pairing
 if (Main_States_State_event_consumed == 0 && 1) {
+Main_print_debug(_instance, " (Main): transition Pairing -> Failed event Connecter?Failure\n");
 Main_States_OnExit(MAIN_STATES_PAIRING_STATE, _instance);
-_instance->Main_States_State = MAIN_STATES_UNINITIALISE_STATE;
-Main_States_OnEntry(MAIN_STATES_UNINITIALISE_STATE, _instance);
+_instance->Main_States_State = MAIN_STATES_FAILED_STATE;
+Main_States_OnEntry(MAIN_STATES_FAILED_STATE, _instance);
 Main_States_State_event_consumed = 1;
 }
 }
@@ -496,10 +537,12 @@ Main_States_State_event_consumed = 1;
 }
 void Main_handle_Connecter_Connected(struct Main_Instance *_instance, uint16_t Handle, uint8_t AddressType, bdaddr_t Address) {
 if(!(_instance->active)) return;
+Main_print_debug(_instance, " (Main): Connecter?Connected\n");
 //Region States
 uint8_t Main_States_State_event_consumed = 0;
 if (_instance->Main_States_State == MAIN_STATES_CONNECT_STATE) {
 if (Main_States_State_event_consumed == 0 && 1) {
+Main_print_debug(_instance, " (Main): transition Connect -> Pairing event Connecter?Connected\n");
 Main_States_OnExit(MAIN_STATES_CONNECT_STATE, _instance);
 _instance->Main_States_State = MAIN_STATES_PAIRING_STATE;
 _instance->Main_ConnectedAddressType_var = AddressType;
@@ -513,15 +556,17 @@ Main_States_State_event_consumed = 1;
 //End dsregion States
 //Session list: 
 }
-void Main_handle_Connecter_Failure(struct Main_Instance *_instance) {
+void Main_handle_Connecter_Stopped(struct Main_Instance *_instance) {
 if(!(_instance->active)) return;
+Main_print_debug(_instance, " (Main): Connecter?Stopped\n");
 //Region States
 uint8_t Main_States_State_event_consumed = 0;
 if (_instance->Main_States_State == MAIN_STATES_CONNECT_STATE) {
 if (Main_States_State_event_consumed == 0 && 1) {
+Main_print_debug(_instance, " (Main): transition Connect -> Uninitialise event Connecter?Stopped\n");
 Main_States_OnExit(MAIN_STATES_CONNECT_STATE, _instance);
-_instance->Main_States_State = MAIN_STATES_FAILED_STATE;
-Main_States_OnEntry(MAIN_STATES_FAILED_STATE, _instance);
+_instance->Main_States_State = MAIN_STATES_UNINITIALISE_STATE;
+Main_States_OnEntry(MAIN_STATES_UNINITIALISE_STATE, _instance);
 Main_States_State_event_consumed = 1;
 }
 }
@@ -532,9 +577,10 @@ uint8_t Main_States_Pairing_State_event_consumed = 0;
 Main_States_State_event_consumed = 0 | Main_States_Pairing_State_event_consumed ;
 //End dsregion Pairing
 if (Main_States_State_event_consumed == 0 && 1) {
+Main_print_debug(_instance, " (Main): transition Pairing -> Uninitialise event Connecter?Stopped\n");
 Main_States_OnExit(MAIN_STATES_PAIRING_STATE, _instance);
-_instance->Main_States_State = MAIN_STATES_FAILED_STATE;
-Main_States_OnEntry(MAIN_STATES_FAILED_STATE, _instance);
+_instance->Main_States_State = MAIN_STATES_UNINITIALISE_STATE;
+Main_States_OnEntry(MAIN_STATES_UNINITIALISE_STATE, _instance);
 Main_States_State_event_consumed = 1;
 }
 }
@@ -542,8 +588,92 @@ Main_States_State_event_consumed = 1;
 //End dsregion States
 //Session list: 
 }
+void Main_handle_Signals_Interrupt(struct Main_Instance *_instance) {
+if(!(_instance->active)) return;
+Main_print_debug(_instance, " (Main): Signals?Interrupt\n");
+//Region States
+uint8_t Main_States_State_event_consumed = 0;
+if (_instance->Main_States_State == MAIN_STATES_INITIALISE_STATE) {
+if (Main_States_State_event_consumed == 0 && 1) {
+Main_print_debug(_instance, " (Main): transition Initialise -> Quit event Signals?Interrupt\n");
+Main_States_OnExit(MAIN_STATES_INITIALISE_STATE, _instance);
+_instance->Main_States_State = MAIN_STATES_QUIT_STATE;
+Main_States_OnEntry(MAIN_STATES_QUIT_STATE, _instance);
+Main_States_State_event_consumed = 1;
+}
+}
+else if (_instance->Main_States_State == MAIN_STATES_CONNECT_STATE) {
+if (Main_States_State_event_consumed == 0 && 1) {
+Main_print_debug(_instance, " (Main): internal event Signals?Interrupt\n");
+Main_send_Connecter_Stop(_instance);
+Main_States_State_event_consumed = 1;
+}
+}
+else if (_instance->Main_States_State == MAIN_STATES_PAIRING_STATE) {
+//Region Pairing
+uint8_t Main_States_Pairing_State_event_consumed = 0;
+//End Region Pairing
+Main_States_State_event_consumed = 0 | Main_States_Pairing_State_event_consumed ;
+//End dsregion Pairing
+if (Main_States_State_event_consumed == 0 && 1) {
+Main_print_debug(_instance, " (Main): internal event Signals?Interrupt\n");
+Main_send_Connecter_Stop(_instance);
+Main_States_State_event_consumed = 1;
+}
+}
+else if (_instance->Main_States_State == MAIN_STATES_UNINITIALISE_STATE) {
+if (Main_States_State_event_consumed == 0 && 1) {
+Main_print_debug(_instance, " (Main): transition Uninitialise -> Quit event Signals?Interrupt\n");
+Main_States_OnExit(MAIN_STATES_UNINITIALISE_STATE, _instance);
+_instance->Main_States_State = MAIN_STATES_QUIT_STATE;
+Main_States_OnEntry(MAIN_STATES_QUIT_STATE, _instance);
+Main_States_State_event_consumed = 1;
+}
+}
+//End Region States
+//End dsregion States
+//Session list: 
+}
+void Main_handle_Encrypter_CheckConfirmCompleted(struct Main_Instance *_instance, uint8_t Correct) {
+if(!(_instance->active)) return;
+Main_print_debug(_instance, " (Main): Encrypter?CheckConfirmCompleted\n");
+//Region States
+uint8_t Main_States_State_event_consumed = 0;
+if (_instance->Main_States_State == MAIN_STATES_PAIRING_STATE) {
+//Region Pairing
+uint8_t Main_States_Pairing_State_event_consumed = 0;
+if (_instance->Main_States_Pairing_State == MAIN_STATES_PAIRING_CONFIRM_STATE) {
+//Region Confirm
+uint8_t Main_States_Pairing_Confirm_State_event_consumed = 0;
+//End Region Confirm
+Main_States_Pairing_State_event_consumed = 0 | Main_States_Pairing_Confirm_State_event_consumed ;
+//End dsregion Confirm
+if (Main_States_Pairing_State_event_consumed == 0 && (Correct)) {
+Main_print_debug(_instance, " (Main): transition Confirm -> Encrypt event Encrypter?CheckConfirmCompleted\n");
+Main_States_OnExit(MAIN_STATES_PAIRING_CONFIRM_STATE, _instance);
+_instance->Main_States_Pairing_State = MAIN_STATES_PAIRING_ENCRYPT_STATE;
+Main_States_OnEntry(MAIN_STATES_PAIRING_ENCRYPT_STATE, _instance);
+Main_States_Pairing_State_event_consumed = 1;
+}
+else if (Main_States_Pairing_State_event_consumed == 0 && ( !(Correct))) {
+Main_print_debug(_instance, " (Main): transition Confirm -> PairFailed event Encrypter?CheckConfirmCompleted\n");
+Main_States_OnExit(MAIN_STATES_PAIRING_CONFIRM_STATE, _instance);
+_instance->Main_States_Pairing_State = MAIN_STATES_PAIRING_PAIRFAILED_STATE;
+Main_States_OnEntry(MAIN_STATES_PAIRING_PAIRFAILED_STATE, _instance);
+Main_States_Pairing_State_event_consumed = 1;
+}
+}
+//End Region Pairing
+Main_States_State_event_consumed = 0 | Main_States_Pairing_State_event_consumed ;
+//End dsregion Pairing
+}
+//End Region States
+//End dsregion States
+//Session list: 
+}
 void Main_handle_Encrypter_GenerateConfirmCompleted(struct Main_Instance *_instance, ble_random_number_t Confirm) {
 if(!(_instance->active)) return;
+Main_print_debug(_instance, " (Main): Encrypter?GenerateConfirmCompleted\n");
 //Region States
 uint8_t Main_States_State_event_consumed = 0;
 if (_instance->Main_States_State == MAIN_STATES_PAIRING_STATE) {
@@ -554,19 +684,28 @@ if (_instance->Main_States_Pairing_State == MAIN_STATES_PAIRING_CONFIRM_STATE) {
 uint8_t Main_States_Pairing_Confirm_State_event_consumed = 0;
 if (_instance->Main_States_Pairing_Confirm_State == MAIN_STATES_PAIRING_CONFIRM_SENDMCONFIRM_STATE) {
 if (Main_States_Pairing_Confirm_State_event_consumed == 0 && 1) {
+Main_print_debug(_instance, " (Main): transition SendMconfirm -> GetSconfirm event Encrypter?GenerateConfirmCompleted\n");
 Main_States_OnExit(MAIN_STATES_PAIRING_CONFIRM_SENDMCONFIRM_STATE, _instance);
 _instance->Main_States_Pairing_Confirm_State = MAIN_STATES_PAIRING_CONFIRM_GETSCONFIRM_STATE;
 _instance->Main_Mconfirm_var = Confirm;
 Main_send_SMP_SMPPairingConfirm(_instance, _instance->Main_ConnectedHandle_var, _instance->Main_Mconfirm_var);
-fprintf(stdout, "[INFO]: Sent Mconfirm.\n");
+fprintf(stdout, "[INFO]: Sent Mconfirm = ");
+f_Main_printBLERandomNumber(_instance, _instance->Main_Mconfirm_var);
+fprintf(stdout, "\n");
 Main_States_OnEntry(MAIN_STATES_PAIRING_CONFIRM_GETSCONFIRM_STATE, _instance);
 Main_States_Pairing_Confirm_State_event_consumed = 1;
 }
 }
 else if (_instance->Main_States_Pairing_Confirm_State == MAIN_STATES_PAIRING_CONFIRM_GETSRANDOM_STATE) {
 if (Main_States_Pairing_Confirm_State_event_consumed == 0 && 1) {
+Main_print_debug(_instance, " (Main): transition GetSrandom -> GetSconfirm event Encrypter?GenerateConfirmCompleted\n");
 Main_States_OnExit(MAIN_STATES_PAIRING_CONFIRM_GETSRANDOM_STATE, _instance);
 _instance->Main_States_Pairing_Confirm_State = MAIN_STATES_PAIRING_CONFIRM_GETSCONFIRM_STATE;
+fprintf(stdout, "[INFO]: GenerateConfirmCompleted Sconfirm = ");
+f_Main_printBLERandomNumber(_instance, _instance->Main_Sconfirm_var);
+fprintf(stdout, ", e.Confirm = ");
+f_Main_printBLERandomNumber(_instance, Confirm);
+fprintf(stdout, "\n");
 Main_send_Encrypter_CheckConfirm(_instance, _instance->Main_Sconfirm_var, Confirm);
 Main_States_OnEntry(MAIN_STATES_PAIRING_CONFIRM_GETSCONFIRM_STATE, _instance);
 Main_States_Pairing_Confirm_State_event_consumed = 1;
@@ -584,29 +723,21 @@ Main_States_State_event_consumed = 0 | Main_States_Pairing_State_event_consumed 
 //End dsregion States
 //Session list: 
 }
-void Main_handle_Encrypter_CheckConfirmCompleted(struct Main_Instance *_instance, uint8_t Correct) {
+void Main_handle_Encrypter_GenerateSTKCompleted(struct Main_Instance *_instance, ble_random_number_t STK) {
 if(!(_instance->active)) return;
+Main_print_debug(_instance, " (Main): Encrypter?GenerateSTKCompleted\n");
 //Region States
 uint8_t Main_States_State_event_consumed = 0;
 if (_instance->Main_States_State == MAIN_STATES_PAIRING_STATE) {
 //Region Pairing
 uint8_t Main_States_Pairing_State_event_consumed = 0;
-if (_instance->Main_States_Pairing_State == MAIN_STATES_PAIRING_CONFIRM_STATE) {
-//Region Confirm
-uint8_t Main_States_Pairing_Confirm_State_event_consumed = 0;
-//End Region Confirm
-Main_States_Pairing_State_event_consumed = 0 | Main_States_Pairing_Confirm_State_event_consumed ;
-//End dsregion Confirm
-if (Main_States_Pairing_State_event_consumed == 0 && (Correct)) {
-Main_States_OnExit(MAIN_STATES_PAIRING_CONFIRM_STATE, _instance);
-_instance->Main_States_Pairing_State = MAIN_STATES_PAIRING_ENCRYPT_STATE;
-Main_States_OnEntry(MAIN_STATES_PAIRING_ENCRYPT_STATE, _instance);
-Main_States_Pairing_State_event_consumed = 1;
-}
-else if (Main_States_Pairing_State_event_consumed == 0 && ( !(Correct))) {
-Main_States_OnExit(MAIN_STATES_PAIRING_CONFIRM_STATE, _instance);
-_instance->Main_States_Pairing_State = MAIN_STATES_PAIRING_PAIRFAILED_STATE;
-Main_States_OnEntry(MAIN_STATES_PAIRING_PAIRFAILED_STATE, _instance);
+if (_instance->Main_States_Pairing_State == MAIN_STATES_PAIRING_ENCRYPT_STATE) {
+if (Main_States_Pairing_State_event_consumed == 0 && 1) {
+Main_print_debug(_instance, " (Main): internal event Encrypter?GenerateSTKCompleted\n");
+fprintf(stdout, "[INFO]: Generated STK.\n");
+;ble_random_part_t Random = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+;uint16_t EDIV = 0;
+Main_send_HCICommands_LEStartEncryption(_instance, _instance->Main_ConnectedHandle_var, Random, EDIV, STK);
 Main_States_Pairing_State_event_consumed = 1;
 }
 }
@@ -620,6 +751,7 @@ Main_States_State_event_consumed = 0 | Main_States_Pairing_State_event_consumed 
 }
 void Main_handle_Encrypter_GenerateRandomNumberCompleted(struct Main_Instance *_instance, ble_random_number_t Random) {
 if(!(_instance->active)) return;
+Main_print_debug(_instance, " (Main): Encrypter?GenerateRandomNumberCompleted\n");
 //Region States
 uint8_t Main_States_State_event_consumed = 0;
 if (_instance->Main_States_State == MAIN_STATES_PAIRING_STATE) {
@@ -630,6 +762,7 @@ if (_instance->Main_States_Pairing_State == MAIN_STATES_PAIRING_CONFIRM_STATE) {
 uint8_t Main_States_Pairing_Confirm_State_event_consumed = 0;
 if (_instance->Main_States_Pairing_Confirm_State == MAIN_STATES_PAIRING_CONFIRM_SENDMCONFIRM_STATE) {
 if (Main_States_Pairing_Confirm_State_event_consumed == 0 && 1) {
+Main_print_debug(_instance, " (Main): internal event Encrypter?GenerateRandomNumberCompleted\n");
 _instance->Main_Mrand_var = Random;
 Main_send_Encrypter_GenerateConfirm(_instance, _instance->Main_Mrand_var, _instance->Main_DeviceAddressType_var, _instance->Main_DeviceAddress_var, _instance->Main_ConnectedAddressType_var, _instance->Main_ConnectedAddress_var);
 Main_States_Pairing_Confirm_State_event_consumed = 1;
@@ -647,6 +780,7 @@ if (_instance->Main_States_Pairing_ExchangeKeys_State == MAIN_STATES_PAIRING_EXC
 uint8_t Main_States_Pairing_ExchangeKeys_GenerateOwnKeys_State_event_consumed = 0;
 if (_instance->Main_States_Pairing_ExchangeKeys_GenerateOwnKeys_State == MAIN_STATES_PAIRING_EXCHANGEKEYS_GENERATEOWNKEYS_GENERATELTK_STATE) {
 if (Main_States_Pairing_ExchangeKeys_GenerateOwnKeys_State_event_consumed == 0 && 1) {
+Main_print_debug(_instance, " (Main): transition GenerateLTK -> GenerateEDIVRand event Encrypter?GenerateRandomNumberCompleted\n");
 Main_States_OnExit(MAIN_STATES_PAIRING_EXCHANGEKEYS_GENERATEOWNKEYS_GENERATELTK_STATE, _instance);
 _instance->Main_States_Pairing_ExchangeKeys_GenerateOwnKeys_State = MAIN_STATES_PAIRING_EXCHANGEKEYS_GENERATEOWNKEYS_GENERATEEDIVRAND_STATE;
 _instance->Main_OwnLTK_var = Random;
@@ -656,6 +790,7 @@ Main_States_Pairing_ExchangeKeys_GenerateOwnKeys_State_event_consumed = 1;
 }
 else if (_instance->Main_States_Pairing_ExchangeKeys_GenerateOwnKeys_State == MAIN_STATES_PAIRING_EXCHANGEKEYS_GENERATEOWNKEYS_GENERATEEDIVRAND_STATE) {
 if (Main_States_Pairing_ExchangeKeys_GenerateOwnKeys_State_event_consumed == 0 && 1) {
+Main_print_debug(_instance, " (Main): transition GenerateEDIVRand -> GenerateIRK event Encrypter?GenerateRandomNumberCompleted\n");
 Main_States_OnExit(MAIN_STATES_PAIRING_EXCHANGEKEYS_GENERATEOWNKEYS_GENERATEEDIVRAND_STATE, _instance);
 _instance->Main_States_Pairing_ExchangeKeys_GenerateOwnKeys_State = MAIN_STATES_PAIRING_EXCHANGEKEYS_GENERATEOWNKEYS_GENERATEIRK_STATE;
 _instance->Main_OwnEDIV_var = *((uint16_t*)&Random.bytes[0]);
@@ -666,6 +801,7 @@ Main_States_Pairing_ExchangeKeys_GenerateOwnKeys_State_event_consumed = 1;
 }
 else if (_instance->Main_States_Pairing_ExchangeKeys_GenerateOwnKeys_State == MAIN_STATES_PAIRING_EXCHANGEKEYS_GENERATEOWNKEYS_GENERATEIRK_STATE) {
 if (Main_States_Pairing_ExchangeKeys_GenerateOwnKeys_State_event_consumed == 0 && 1) {
+Main_print_debug(_instance, " (Main): transition GenerateIRK -> SendAll event Encrypter?GenerateRandomNumberCompleted\n");
 Main_States_OnExit(MAIN_STATES_PAIRING_EXCHANGEKEYS_GENERATEOWNKEYS_GENERATEIRK_STATE, _instance);
 _instance->Main_States_Pairing_ExchangeKeys_GenerateOwnKeys_State = MAIN_STATES_PAIRING_EXCHANGEKEYS_GENERATEOWNKEYS_SENDALL_STATE;
 _instance->Main_OwnIRK_var = Random;
@@ -689,43 +825,18 @@ Main_States_State_event_consumed = 0 | Main_States_Pairing_State_event_consumed 
 //End dsregion States
 //Session list: 
 }
-void Main_handle_Encrypter_GenerateSTKCompleted(struct Main_Instance *_instance, ble_random_number_t STK) {
+void Main_handle_Initialiser_DeviceInitialised(struct Main_Instance *_instance, bdaddr_t Address) {
 if(!(_instance->active)) return;
+Main_print_debug(_instance, " (Main): Initialiser?DeviceInitialised\n");
 //Region States
 uint8_t Main_States_State_event_consumed = 0;
-if (_instance->Main_States_State == MAIN_STATES_PAIRING_STATE) {
-//Region Pairing
-uint8_t Main_States_Pairing_State_event_consumed = 0;
-if (_instance->Main_States_Pairing_State == MAIN_STATES_PAIRING_ENCRYPT_STATE) {
-if (Main_States_Pairing_State_event_consumed == 0 && 1) {
-fprintf(stdout, "[INFO]: Generated STK.\n");
-;ble_random_part_t Random = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-;uint16_t EDIV = 0;
-Main_send_HCICommands_LEStartEncryption(_instance, _instance->Main_ConnectedHandle_var, Random, EDIV, STK);
-Main_States_Pairing_State_event_consumed = 1;
-}
-}
-//End Region Pairing
-Main_States_State_event_consumed = 0 | Main_States_Pairing_State_event_consumed ;
-//End dsregion Pairing
-}
-//End Region States
-//End dsregion States
-//Session list: 
-}
-void Main_handle_SMP_SMPPairingFailed(struct Main_Instance *_instance, uint16_t Handle, uint8_t Reason) {
-if(!(_instance->active)) return;
-//Region States
-uint8_t Main_States_State_event_consumed = 0;
-if (_instance->Main_States_State == MAIN_STATES_PAIRING_STATE) {
-//Region Pairing
-uint8_t Main_States_Pairing_State_event_consumed = 0;
-//End Region Pairing
-Main_States_State_event_consumed = 0 | Main_States_Pairing_State_event_consumed ;
-//End dsregion Pairing
+if (_instance->Main_States_State == MAIN_STATES_INITIALISE_STATE) {
 if (Main_States_State_event_consumed == 0 && 1) {
-fprintf(stdout, "[ERROR]: Received pairing failed!\n");
-Main_send_Connecter_Stop(_instance);
+Main_print_debug(_instance, " (Main): transition Initialise -> Connect event Initialiser?DeviceInitialised\n");
+Main_States_OnExit(MAIN_STATES_INITIALISE_STATE, _instance);
+_instance->Main_States_State = MAIN_STATES_CONNECT_STATE;
+_instance->Main_DeviceAddress_var = Address;
+Main_States_OnEntry(MAIN_STATES_CONNECT_STATE, _instance);
 Main_States_State_event_consumed = 1;
 }
 }
@@ -733,8 +844,93 @@ Main_States_State_event_consumed = 1;
 //End dsregion States
 //Session list: 
 }
-void Main_handle_SMP_SMPMasterIdentification(struct Main_Instance *_instance, uint16_t Handle, uint16_t EDIV, ble_random_part_t Rand) {
+void Main_handle_Initialiser_Failure(struct Main_Instance *_instance) {
 if(!(_instance->active)) return;
+Main_print_debug(_instance, " (Main): Initialiser?Failure\n");
+//Region States
+uint8_t Main_States_State_event_consumed = 0;
+if (_instance->Main_States_State == MAIN_STATES_INITIALISE_STATE) {
+if (Main_States_State_event_consumed == 0 && 1) {
+Main_print_debug(_instance, " (Main): transition Initialise -> Failed event Initialiser?Failure\n");
+Main_States_OnExit(MAIN_STATES_INITIALISE_STATE, _instance);
+_instance->Main_States_State = MAIN_STATES_FAILED_STATE;
+Main_States_OnEntry(MAIN_STATES_FAILED_STATE, _instance);
+Main_States_State_event_consumed = 1;
+}
+}
+else if (_instance->Main_States_State == MAIN_STATES_UNINITIALISE_STATE) {
+if (Main_States_State_event_consumed == 0 && 1) {
+Main_print_debug(_instance, " (Main): transition Uninitialise -> Failed event Initialiser?Failure\n");
+Main_States_OnExit(MAIN_STATES_UNINITIALISE_STATE, _instance);
+_instance->Main_States_State = MAIN_STATES_FAILED_STATE;
+Main_States_OnEntry(MAIN_STATES_FAILED_STATE, _instance);
+Main_States_State_event_consumed = 1;
+}
+}
+//End Region States
+//End dsregion States
+//Session list: 
+}
+void Main_handle_Initialiser_Stopped(struct Main_Instance *_instance) {
+if(!(_instance->active)) return;
+Main_print_debug(_instance, " (Main): Initialiser?Stopped\n");
+//Region States
+uint8_t Main_States_State_event_consumed = 0;
+if (_instance->Main_States_State == MAIN_STATES_UNINITIALISE_STATE) {
+if (Main_States_State_event_consumed == 0 && 1) {
+Main_print_debug(_instance, " (Main): transition Uninitialise -> Quit event Initialiser?Stopped\n");
+Main_States_OnExit(MAIN_STATES_UNINITIALISE_STATE, _instance);
+_instance->Main_States_State = MAIN_STATES_QUIT_STATE;
+Main_States_OnEntry(MAIN_STATES_QUIT_STATE, _instance);
+Main_States_State_event_consumed = 1;
+}
+}
+//End Region States
+//End dsregion States
+//Session list: 
+}
+void Main_handle_SMP_SMPPairingConfirm(struct Main_Instance *_instance, uint16_t Handle, ble_random_number_t ConfirmValue) {
+if(!(_instance->active)) return;
+Main_print_debug(_instance, " (Main): SMP?SMPPairingConfirm\n");
+//Region States
+uint8_t Main_States_State_event_consumed = 0;
+if (_instance->Main_States_State == MAIN_STATES_PAIRING_STATE) {
+//Region Pairing
+uint8_t Main_States_Pairing_State_event_consumed = 0;
+if (_instance->Main_States_Pairing_State == MAIN_STATES_PAIRING_CONFIRM_STATE) {
+//Region Confirm
+uint8_t Main_States_Pairing_Confirm_State_event_consumed = 0;
+if (_instance->Main_States_Pairing_Confirm_State == MAIN_STATES_PAIRING_CONFIRM_GETSCONFIRM_STATE) {
+if (Main_States_Pairing_Confirm_State_event_consumed == 0 && 1) {
+Main_print_debug(_instance, " (Main): transition GetSconfirm -> GetSrandom event SMP?SMPPairingConfirm\n");
+Main_States_OnExit(MAIN_STATES_PAIRING_CONFIRM_GETSCONFIRM_STATE, _instance);
+_instance->Main_States_Pairing_Confirm_State = MAIN_STATES_PAIRING_CONFIRM_GETSRANDOM_STATE;
+_instance->Main_Sconfirm_var = ConfirmValue;
+fprintf(stdout, "[INFO]: Got Sconfirm = ");
+f_Main_printBLERandomNumber(_instance, _instance->Main_Sconfirm_var);
+fprintf(stdout, ", replied with Mrand = ");
+f_Main_printBLERandomNumber(_instance, _instance->Main_Mrand_var);
+fprintf(stdout, "\n");
+Main_send_SMP_SMPPairingRandom(_instance, _instance->Main_ConnectedHandle_var, _instance->Main_Mrand_var);
+Main_States_OnEntry(MAIN_STATES_PAIRING_CONFIRM_GETSRANDOM_STATE, _instance);
+Main_States_Pairing_Confirm_State_event_consumed = 1;
+}
+}
+//End Region Confirm
+Main_States_Pairing_State_event_consumed = 0 | Main_States_Pairing_Confirm_State_event_consumed ;
+//End dsregion Confirm
+}
+//End Region Pairing
+Main_States_State_event_consumed = 0 | Main_States_Pairing_State_event_consumed ;
+//End dsregion Pairing
+}
+//End Region States
+//End dsregion States
+//Session list: 
+}
+void Main_handle_SMP_SMPEncryptionInformation(struct Main_Instance *_instance, uint16_t Handle, ble_random_number_t LongTermKey) {
+if(!(_instance->active)) return;
+Main_print_debug(_instance, " (Main): SMP?SMPEncryptionInformation\n");
 //Region States
 uint8_t Main_States_State_event_consumed = 0;
 if (_instance->Main_States_State == MAIN_STATES_PAIRING_STATE) {
@@ -745,6 +941,38 @@ if (_instance->Main_States_Pairing_State == MAIN_STATES_PAIRING_EXCHANGEKEYS_STA
 uint8_t Main_States_Pairing_ExchangeKeys_State_event_consumed = 0;
 if (_instance->Main_States_Pairing_ExchangeKeys_State == MAIN_STATES_PAIRING_EXCHANGEKEYS_WAITFORPEERKEYS_STATE) {
 if (Main_States_Pairing_ExchangeKeys_State_event_consumed == 0 && 1) {
+Main_print_debug(_instance, " (Main): internal event SMP?SMPEncryptionInformation\n");
+_instance->Main_PeerLTK_var = LongTermKey;
+_instance->Main_HavePeerLTK_var = 1;
+Main_States_Pairing_ExchangeKeys_State_event_consumed = 1;
+}
+}
+//End Region ExchangeKeys
+Main_States_Pairing_State_event_consumed = 0 | Main_States_Pairing_ExchangeKeys_State_event_consumed ;
+//End dsregion ExchangeKeys
+}
+//End Region Pairing
+Main_States_State_event_consumed = 0 | Main_States_Pairing_State_event_consumed ;
+//End dsregion Pairing
+}
+//End Region States
+//End dsregion States
+//Session list: 
+}
+void Main_handle_SMP_SMPMasterIdentification(struct Main_Instance *_instance, uint16_t Handle, uint16_t EDIV, ble_random_part_t Rand) {
+if(!(_instance->active)) return;
+Main_print_debug(_instance, " (Main): SMP?SMPMasterIdentification\n");
+//Region States
+uint8_t Main_States_State_event_consumed = 0;
+if (_instance->Main_States_State == MAIN_STATES_PAIRING_STATE) {
+//Region Pairing
+uint8_t Main_States_Pairing_State_event_consumed = 0;
+if (_instance->Main_States_Pairing_State == MAIN_STATES_PAIRING_EXCHANGEKEYS_STATE) {
+//Region ExchangeKeys
+uint8_t Main_States_Pairing_ExchangeKeys_State_event_consumed = 0;
+if (_instance->Main_States_Pairing_ExchangeKeys_State == MAIN_STATES_PAIRING_EXCHANGEKEYS_WAITFORPEERKEYS_STATE) {
+if (Main_States_Pairing_ExchangeKeys_State_event_consumed == 0 && 1) {
+Main_print_debug(_instance, " (Main): internal event SMP?SMPMasterIdentification\n");
 _instance->Main_PeerEDIV_var = EDIV;
 _instance->Main_PeerRandom_var = Rand;
 _instance->Main_HavePeerIdentification_var = 1;
@@ -763,30 +991,32 @@ Main_States_State_event_consumed = 0 | Main_States_Pairing_State_event_consumed 
 //End dsregion States
 //Session list: 
 }
-void Main_handle_SMP_SMPPairingConfirm(struct Main_Instance *_instance, uint16_t Handle, ble_random_number_t ConfirmValue) {
+void Main_handle_SMP_SMPSecurityRequest(struct Main_Instance *_instance, uint16_t Handle, uint8_t Bonding, uint8_t MITM, uint8_t SecureConnection, uint8_t Keypress) {
 if(!(_instance->active)) return;
+Main_print_debug(_instance, " (Main): SMP?SMPSecurityRequest\n");
 //Region States
 uint8_t Main_States_State_event_consumed = 0;
 if (_instance->Main_States_State == MAIN_STATES_PAIRING_STATE) {
 //Region Pairing
 uint8_t Main_States_Pairing_State_event_consumed = 0;
-if (_instance->Main_States_Pairing_State == MAIN_STATES_PAIRING_CONFIRM_STATE) {
-//Region Confirm
-uint8_t Main_States_Pairing_Confirm_State_event_consumed = 0;
-if (_instance->Main_States_Pairing_Confirm_State == MAIN_STATES_PAIRING_CONFIRM_GETSCONFIRM_STATE) {
-if (Main_States_Pairing_Confirm_State_event_consumed == 0 && 1) {
-Main_States_OnExit(MAIN_STATES_PAIRING_CONFIRM_GETSCONFIRM_STATE, _instance);
-_instance->Main_States_Pairing_Confirm_State = MAIN_STATES_PAIRING_CONFIRM_GETSRANDOM_STATE;
-_instance->Main_Sconfirm_var = ConfirmValue;
-fprintf(stdout, "[INFO]: Got Sconfirm, replied with Mrand.\n");
-Main_send_SMP_SMPPairingRandom(_instance, _instance->Main_ConnectedHandle_var, _instance->Main_Mrand_var);
-Main_States_OnEntry(MAIN_STATES_PAIRING_CONFIRM_GETSRANDOM_STATE, _instance);
-Main_States_Pairing_Confirm_State_event_consumed = 1;
+if (_instance->Main_States_Pairing_State == MAIN_STATES_PAIRING_REQUEST_STATE) {
+if (Main_States_Pairing_State_event_consumed == 0 && 1) {
+Main_print_debug(_instance, " (Main): transition Request -> RequestSent event SMP?SMPSecurityRequest\n");
+Main_States_OnExit(MAIN_STATES_PAIRING_REQUEST_STATE, _instance);
+_instance->Main_States_Pairing_State = MAIN_STATES_PAIRING_REQUESTSENT_STATE;
+fprintf(stdout, "[INFO]: Received Security request, requesting pairing ...\n");
+;uint8_t IOCapability = SMPIOCAPABILITIES_NO_INPUT_NO_OUTPUT;
+;uint8_t OOBDataPresent = 0;
+;uint8_t Bonding = 1;
+;uint8_t MITM = 0;
+;uint8_t SecureConnection = 1;
+;uint8_t Keypress = 0;
+;uint8_t MaximumEncryptionKeySize = 16;
+;uint8_t InitiatorKeyDistribution = SMPKEYDISTRIBUTION_ENCKEY_NOIDKEY_SIGN_NOLINKKEY;
+;uint8_t ResponderKeyDistribution = SMPKEYDISTRIBUTION_ENCKEY_IDKEY_SIGN_NOLINKKEY;
+Main_States_OnEntry(MAIN_STATES_PAIRING_REQUESTSENT_STATE, _instance);
+Main_States_Pairing_State_event_consumed = 1;
 }
-}
-//End Region Confirm
-Main_States_Pairing_State_event_consumed = 0 | Main_States_Pairing_Confirm_State_event_consumed ;
-//End dsregion Confirm
 }
 //End Region Pairing
 Main_States_State_event_consumed = 0 | Main_States_Pairing_State_event_consumed ;
@@ -798,6 +1028,7 @@ Main_States_State_event_consumed = 0 | Main_States_Pairing_State_event_consumed 
 }
 void Main_handle_SMP_SMPIdentityAddressInformation(struct Main_Instance *_instance, uint16_t Handle, uint8_t AddressType, bdaddr_t Address) {
 if(!(_instance->active)) return;
+Main_print_debug(_instance, " (Main): SMP?SMPIdentityAddressInformation\n");
 //Region States
 uint8_t Main_States_State_event_consumed = 0;
 if (_instance->Main_States_State == MAIN_STATES_PAIRING_STATE) {
@@ -808,6 +1039,7 @@ if (_instance->Main_States_Pairing_State == MAIN_STATES_PAIRING_EXCHANGEKEYS_STA
 uint8_t Main_States_Pairing_ExchangeKeys_State_event_consumed = 0;
 if (_instance->Main_States_Pairing_ExchangeKeys_State == MAIN_STATES_PAIRING_EXCHANGEKEYS_WAITFORPEERKEYS_STATE) {
 if (Main_States_Pairing_ExchangeKeys_State_event_consumed == 0 && 1) {
+Main_print_debug(_instance, " (Main): internal event SMP?SMPIdentityAddressInformation\n");
 _instance->Main_PeerIdentityAddressType_var = AddressType;
 _instance->Main_PeerIdentityAddress_var = Address;
 _instance->Main_HavePeerIdentityAddress_var = 1;
@@ -826,8 +1058,31 @@ Main_States_State_event_consumed = 0 | Main_States_Pairing_State_event_consumed 
 //End dsregion States
 //Session list: 
 }
+void Main_handle_SMP_SMPPairingFailed(struct Main_Instance *_instance, uint16_t Handle, uint8_t Reason) {
+if(!(_instance->active)) return;
+Main_print_debug(_instance, " (Main): SMP?SMPPairingFailed\n");
+//Region States
+uint8_t Main_States_State_event_consumed = 0;
+if (_instance->Main_States_State == MAIN_STATES_PAIRING_STATE) {
+//Region Pairing
+uint8_t Main_States_Pairing_State_event_consumed = 0;
+//End Region Pairing
+Main_States_State_event_consumed = 0 | Main_States_Pairing_State_event_consumed ;
+//End dsregion Pairing
+if (Main_States_State_event_consumed == 0 && 1) {
+Main_print_debug(_instance, " (Main): internal event SMP?SMPPairingFailed\n");
+fprintf(stdout, "[ERROR]: Received pairing failed!\n");
+Main_send_Connecter_Stop(_instance);
+Main_States_State_event_consumed = 1;
+}
+}
+//End Region States
+//End dsregion States
+//Session list: 
+}
 void Main_handle_SMP_SMPIdentityInformation(struct Main_Instance *_instance, uint16_t Handle, ble_random_number_t IdentityResolvingKey) {
 if(!(_instance->active)) return;
+Main_print_debug(_instance, " (Main): SMP?SMPIdentityInformation\n");
 //Region States
 uint8_t Main_States_State_event_consumed = 0;
 if (_instance->Main_States_State == MAIN_STATES_PAIRING_STATE) {
@@ -838,6 +1093,7 @@ if (_instance->Main_States_Pairing_State == MAIN_STATES_PAIRING_EXCHANGEKEYS_STA
 uint8_t Main_States_Pairing_ExchangeKeys_State_event_consumed = 0;
 if (_instance->Main_States_Pairing_ExchangeKeys_State == MAIN_STATES_PAIRING_EXCHANGEKEYS_WAITFORPEERKEYS_STATE) {
 if (Main_States_Pairing_ExchangeKeys_State_event_consumed == 0 && 1) {
+Main_print_debug(_instance, " (Main): internal event SMP?SMPIdentityInformation\n");
 _instance->Main_PeerIRK_var = IdentityResolvingKey;
 _instance->Main_HavePeerIdentity_var = 1;
 Main_States_Pairing_ExchangeKeys_State_event_consumed = 1;
@@ -855,8 +1111,43 @@ Main_States_State_event_consumed = 0 | Main_States_Pairing_State_event_consumed 
 //End dsregion States
 //Session list: 
 }
+void Main_handle_SMP_SMPPairingResponse(struct Main_Instance *_instance, uint16_t Handle, uint8_t IOCapability, uint8_t OOBDataPresent, uint8_t Bonding, uint8_t MITM, uint8_t SecureConnection, uint8_t Keypress, uint8_t MaximumEncryptionKeySize, uint8_t InitiatorKeyDistribution, uint8_t ResponderKeyDistribution) {
+if(!(_instance->active)) return;
+Main_print_debug(_instance, " (Main): SMP?SMPPairingResponse\n");
+//Region States
+uint8_t Main_States_State_event_consumed = 0;
+if (_instance->Main_States_State == MAIN_STATES_PAIRING_STATE) {
+//Region Pairing
+uint8_t Main_States_Pairing_State_event_consumed = 0;
+if (_instance->Main_States_Pairing_State == MAIN_STATES_PAIRING_REQUESTSENT_STATE) {
+if (Main_States_Pairing_State_event_consumed == 0 && 1) {
+Main_print_debug(_instance, " (Main): transition RequestSent -> RequestSent2 event SMP?SMPPairingResponse\n");
+Main_States_OnExit(MAIN_STATES_PAIRING_REQUESTSENT_STATE, _instance);
+_instance->Main_States_Pairing_State = MAIN_STATES_PAIRING_REQUESTSENT2_STATE;
+Main_States_OnEntry(MAIN_STATES_PAIRING_REQUESTSENT2_STATE, _instance);
+Main_States_Pairing_State_event_consumed = 1;
+}
+}
+else if (_instance->Main_States_Pairing_State == MAIN_STATES_PAIRING_REQUESTSENT2_STATE) {
+if (Main_States_Pairing_State_event_consumed == 0 && 1) {
+Main_print_debug(_instance, " (Main): transition RequestSent2 -> Confirm event SMP?SMPPairingResponse\n");
+Main_States_OnExit(MAIN_STATES_PAIRING_REQUESTSENT2_STATE, _instance);
+_instance->Main_States_Pairing_State = MAIN_STATES_PAIRING_CONFIRM_STATE;
+Main_States_OnEntry(MAIN_STATES_PAIRING_CONFIRM_STATE, _instance);
+Main_States_Pairing_State_event_consumed = 1;
+}
+}
+//End Region Pairing
+Main_States_State_event_consumed = 0 | Main_States_Pairing_State_event_consumed ;
+//End dsregion Pairing
+}
+//End Region States
+//End dsregion States
+//Session list: 
+}
 void Main_handle_SMP_SMPPairingRandom(struct Main_Instance *_instance, uint16_t Handle, ble_random_number_t RandomValue) {
 if(!(_instance->active)) return;
+Main_print_debug(_instance, " (Main): SMP?SMPPairingRandom\n");
 //Region States
 uint8_t Main_States_State_event_consumed = 0;
 if (_instance->Main_States_State == MAIN_STATES_PAIRING_STATE) {
@@ -867,8 +1158,11 @@ if (_instance->Main_States_Pairing_State == MAIN_STATES_PAIRING_CONFIRM_STATE) {
 uint8_t Main_States_Pairing_Confirm_State_event_consumed = 0;
 if (_instance->Main_States_Pairing_Confirm_State == MAIN_STATES_PAIRING_CONFIRM_GETSRANDOM_STATE) {
 if (Main_States_Pairing_Confirm_State_event_consumed == 0 && 1) {
+Main_print_debug(_instance, " (Main): internal event SMP?SMPPairingRandom\n");
 _instance->Main_Srand_var = RandomValue;
-fprintf(stdout, "[INFO]: Got Srand, confirming...\n");
+fprintf(stdout, "[INFO]: Got Srand = ");
+f_Main_printBLERandomNumber(_instance, _instance->Main_Srand_var);
+fprintf(stdout, ", confirming...\n");
 Main_send_Encrypter_GenerateConfirm(_instance, _instance->Main_Srand_var, _instance->Main_DeviceAddressType_var, _instance->Main_DeviceAddress_var, _instance->Main_ConnectedAddressType_var, _instance->Main_ConnectedAddress_var);
 Main_States_Pairing_Confirm_State_event_consumed = 1;
 }
@@ -885,136 +1179,6 @@ Main_States_State_event_consumed = 0 | Main_States_Pairing_State_event_consumed 
 //End dsregion States
 //Session list: 
 }
-void Main_handle_SMP_SMPSecurityRequest(struct Main_Instance *_instance, uint16_t Handle, uint8_t Bonding, uint8_t MITM, uint8_t SecureConnection, uint8_t Keypress) {
-if(!(_instance->active)) return;
-//Region States
-uint8_t Main_States_State_event_consumed = 0;
-if (_instance->Main_States_State == MAIN_STATES_PAIRING_STATE) {
-//Region Pairing
-uint8_t Main_States_Pairing_State_event_consumed = 0;
-if (_instance->Main_States_Pairing_State == MAIN_STATES_PAIRING_REQUEST_STATE) {
-if (Main_States_Pairing_State_event_consumed == 0 && 1) {
-fprintf(stdout, "[INFO]: Received Security request, requesting pairing...\n");
-;uint8_t IOCapability = SMPIOCAPABILITIES_NO_INPUT_NO_OUTPUT;
-;uint8_t OOBDataPresent = 0;
-;uint8_t Bonding = 1;
-;uint8_t MITM = 0;
-;uint8_t SecureConnection = 0;
-;uint8_t Keypress = 0;
-;uint8_t MaximumEncryptionKeySize = 16;
-;uint8_t InitiatorKeyDistribution = SMPKEYDISTRIBUTION_ENCKEY_IDKEY_NOSIGN_NOLINKKEY;
-;uint8_t ResponderKeyDistribution = SMPKEYDISTRIBUTION_ENCKEY_IDKEY_NOSIGN_NOLINKKEY;
-Main_send_SMP_SMPPairingRequest(_instance, _instance->Main_ConnectedHandle_var, IOCapability, OOBDataPresent, Bonding, MITM, SecureConnection, Keypress, MaximumEncryptionKeySize, InitiatorKeyDistribution, ResponderKeyDistribution);
-Main_States_Pairing_State_event_consumed = 1;
-}
-}
-//End Region Pairing
-Main_States_State_event_consumed = 0 | Main_States_Pairing_State_event_consumed ;
-//End dsregion Pairing
-}
-//End Region States
-//End dsregion States
-//Session list: 
-}
-void Main_handle_SMP_SMPPairingResponse(struct Main_Instance *_instance, uint16_t Handle, uint8_t IOCapability, uint8_t OOBDataPresent, uint8_t Bonding, uint8_t MITM, uint8_t SecureConnection, uint8_t Keypress, uint8_t MaximumEncryptionKeySize, uint8_t InitiatorKeyDistribution, uint8_t ResponderKeyDistribution) {
-if(!(_instance->active)) return;
-//Region States
-uint8_t Main_States_State_event_consumed = 0;
-if (_instance->Main_States_State == MAIN_STATES_PAIRING_STATE) {
-//Region Pairing
-uint8_t Main_States_Pairing_State_event_consumed = 0;
-if (_instance->Main_States_Pairing_State == MAIN_STATES_PAIRING_REQUEST_STATE) {
-if (Main_States_Pairing_State_event_consumed == 0 && (IOCapability == SMPIOCAPABILITIES_NO_INPUT_NO_OUTPUT && OOBDataPresent == 0 && Bonding == 1 && MITM == 0 && SecureConnection == 0 && Keypress == 0 && MaximumEncryptionKeySize == 16 && InitiatorKeyDistribution == SMPKEYDISTRIBUTION_ENCKEY_IDKEY_NOSIGN_NOLINKKEY && ResponderKeyDistribution == SMPKEYDISTRIBUTION_ENCKEY_IDKEY_NOSIGN_NOLINKKEY)) {
-Main_States_OnExit(MAIN_STATES_PAIRING_REQUEST_STATE, _instance);
-_instance->Main_States_Pairing_State = MAIN_STATES_PAIRING_CONFIRM_STATE;
-Main_States_OnEntry(MAIN_STATES_PAIRING_CONFIRM_STATE, _instance);
-Main_States_Pairing_State_event_consumed = 1;
-}
-else if (Main_States_Pairing_State_event_consumed == 0 && 1) {
-Main_States_OnExit(MAIN_STATES_PAIRING_REQUEST_STATE, _instance);
-_instance->Main_States_Pairing_State = MAIN_STATES_PAIRING_PAIRFAILED_STATE;
-Main_States_OnEntry(MAIN_STATES_PAIRING_PAIRFAILED_STATE, _instance);
-Main_States_Pairing_State_event_consumed = 1;
-}
-}
-//End Region Pairing
-Main_States_State_event_consumed = 0 | Main_States_Pairing_State_event_consumed ;
-//End dsregion Pairing
-}
-//End Region States
-//End dsregion States
-//Session list: 
-}
-void Main_handle_SMP_SMPEncryptionInformation(struct Main_Instance *_instance, uint16_t Handle, ble_random_number_t LongTermKey) {
-if(!(_instance->active)) return;
-//Region States
-uint8_t Main_States_State_event_consumed = 0;
-if (_instance->Main_States_State == MAIN_STATES_PAIRING_STATE) {
-//Region Pairing
-uint8_t Main_States_Pairing_State_event_consumed = 0;
-if (_instance->Main_States_Pairing_State == MAIN_STATES_PAIRING_EXCHANGEKEYS_STATE) {
-//Region ExchangeKeys
-uint8_t Main_States_Pairing_ExchangeKeys_State_event_consumed = 0;
-if (_instance->Main_States_Pairing_ExchangeKeys_State == MAIN_STATES_PAIRING_EXCHANGEKEYS_WAITFORPEERKEYS_STATE) {
-if (Main_States_Pairing_ExchangeKeys_State_event_consumed == 0 && 1) {
-_instance->Main_PeerLTK_var = LongTermKey;
-_instance->Main_HavePeerLTK_var = 1;
-Main_States_Pairing_ExchangeKeys_State_event_consumed = 1;
-}
-}
-//End Region ExchangeKeys
-Main_States_Pairing_State_event_consumed = 0 | Main_States_Pairing_ExchangeKeys_State_event_consumed ;
-//End dsregion ExchangeKeys
-}
-//End Region Pairing
-Main_States_State_event_consumed = 0 | Main_States_Pairing_State_event_consumed ;
-//End dsregion Pairing
-}
-//End Region States
-//End dsregion States
-//Session list: 
-}
-void Main_handle_Signals_Interrupt(struct Main_Instance *_instance) {
-if(!(_instance->active)) return;
-//Region States
-uint8_t Main_States_State_event_consumed = 0;
-if (_instance->Main_States_State == MAIN_STATES_INITIALISE_STATE) {
-if (Main_States_State_event_consumed == 0 && 1) {
-Main_States_OnExit(MAIN_STATES_INITIALISE_STATE, _instance);
-_instance->Main_States_State = MAIN_STATES_QUIT_STATE;
-Main_States_OnEntry(MAIN_STATES_QUIT_STATE, _instance);
-Main_States_State_event_consumed = 1;
-}
-}
-else if (_instance->Main_States_State == MAIN_STATES_CONNECT_STATE) {
-if (Main_States_State_event_consumed == 0 && 1) {
-Main_send_Connecter_Stop(_instance);
-Main_States_State_event_consumed = 1;
-}
-}
-else if (_instance->Main_States_State == MAIN_STATES_PAIRING_STATE) {
-//Region Pairing
-uint8_t Main_States_Pairing_State_event_consumed = 0;
-//End Region Pairing
-Main_States_State_event_consumed = 0 | Main_States_Pairing_State_event_consumed ;
-//End dsregion Pairing
-if (Main_States_State_event_consumed == 0 && 1) {
-Main_send_Connecter_Stop(_instance);
-Main_States_State_event_consumed = 1;
-}
-}
-else if (_instance->Main_States_State == MAIN_STATES_UNINITIALISE_STATE) {
-if (Main_States_State_event_consumed == 0 && 1) {
-Main_States_OnExit(MAIN_STATES_UNINITIALISE_STATE, _instance);
-_instance->Main_States_State = MAIN_STATES_QUIT_STATE;
-Main_States_OnEntry(MAIN_STATES_QUIT_STATE, _instance);
-Main_States_State_event_consumed = 1;
-}
-}
-//End Region States
-//End dsregion States
-//Session list: 
-}
 int Main_handle_empty_event(struct Main_Instance *_instance) {
  uint8_t empty_event_consumed = 0;
 if(!(_instance->active)) return 0;
@@ -1025,6 +1189,7 @@ if (_instance->Main_States_Pairing_State == MAIN_STATES_PAIRING_EXCHANGEKEYS_STA
 //Region ExchangeKeys
 if (_instance->Main_States_Pairing_ExchangeKeys_State == MAIN_STATES_PAIRING_EXCHANGEKEYS_WAITFORPEERKEYS_STATE) {
 if ((_instance->Main_HavePeerLTK_var && _instance->Main_HavePeerIdentification_var && _instance->Main_HavePeerIdentity_var && _instance->Main_HavePeerIdentityAddress_var)) {
+Main_print_debug(_instance, " (Main): transition WaitForPeerKeys -> GenerateOwnKeys\n");
 Main_States_OnExit(MAIN_STATES_PAIRING_EXCHANGEKEYS_WAITFORPEERKEYS_STATE, _instance);
 _instance->Main_States_Pairing_ExchangeKeys_State = MAIN_STATES_PAIRING_EXCHANGEKEYS_GENERATEOWNKEYS_STATE;
 Main_States_OnEntry(MAIN_STATES_PAIRING_EXCHANGEKEYS_GENERATEOWNKEYS_STATE, _instance);
@@ -1048,6 +1213,7 @@ void register_Main_send_Signals_Quit_listener(void (*_listener)(struct Main_Inst
 Main_send_Signals_Quit_listener = _listener;
 }
 void Main_send_Signals_Quit(struct Main_Instance *_instance, int16_t code){
+Main_print_debug(_instance, " (Main): Signals!Quit\n");
 if (Main_send_Signals_Quit_listener != 0x0) Main_send_Signals_Quit_listener(_instance, code);
 if (external_Main_send_Signals_Quit_listener != 0x0) external_Main_send_Signals_Quit_listener(_instance, code);
 ;
@@ -1061,6 +1227,7 @@ void register_Main_send_Initialiser_Start_listener(void (*_listener)(struct Main
 Main_send_Initialiser_Start_listener = _listener;
 }
 void Main_send_Initialiser_Start(struct Main_Instance *_instance){
+Main_print_debug(_instance, " (Main): Initialiser!Start\n");
 if (Main_send_Initialiser_Start_listener != 0x0) Main_send_Initialiser_Start_listener(_instance);
 if (external_Main_send_Initialiser_Start_listener != 0x0) external_Main_send_Initialiser_Start_listener(_instance);
 ;
@@ -1074,6 +1241,7 @@ void register_Main_send_Initialiser_Stop_listener(void (*_listener)(struct Main_
 Main_send_Initialiser_Stop_listener = _listener;
 }
 void Main_send_Initialiser_Stop(struct Main_Instance *_instance){
+Main_print_debug(_instance, " (Main): Initialiser!Stop\n");
 if (Main_send_Initialiser_Stop_listener != 0x0) Main_send_Initialiser_Stop_listener(_instance);
 if (external_Main_send_Initialiser_Stop_listener != 0x0) external_Main_send_Initialiser_Stop_listener(_instance);
 ;
@@ -1087,6 +1255,7 @@ void register_Main_send_Connecter_Connect_listener(void (*_listener)(struct Main
 Main_send_Connecter_Connect_listener = _listener;
 }
 void Main_send_Connecter_Connect(struct Main_Instance *_instance){
+Main_print_debug(_instance, " (Main): Connecter!Connect\n");
 if (Main_send_Connecter_Connect_listener != 0x0) Main_send_Connecter_Connect_listener(_instance);
 if (external_Main_send_Connecter_Connect_listener != 0x0) external_Main_send_Connecter_Connect_listener(_instance);
 ;
@@ -1100,6 +1269,7 @@ void register_Main_send_Connecter_ConnectTo_listener(void (*_listener)(struct Ma
 Main_send_Connecter_ConnectTo_listener = _listener;
 }
 void Main_send_Connecter_ConnectTo(struct Main_Instance *_instance, uint8_t AddressType, bdaddr_t Address, ble_random_number_t LongTermKey, uint16_t EncryptedDiversifier, ble_random_part_t RandomNumber){
+Main_print_debug(_instance, " (Main): Connecter!ConnectTo\n");
 if (Main_send_Connecter_ConnectTo_listener != 0x0) Main_send_Connecter_ConnectTo_listener(_instance, AddressType, Address, LongTermKey, EncryptedDiversifier, RandomNumber);
 if (external_Main_send_Connecter_ConnectTo_listener != 0x0) external_Main_send_Connecter_ConnectTo_listener(_instance, AddressType, Address, LongTermKey, EncryptedDiversifier, RandomNumber);
 ;
@@ -1113,6 +1283,7 @@ void register_Main_send_Connecter_ConnectToU_listener(void (*_listener)(struct M
 Main_send_Connecter_ConnectToU_listener = _listener;
 }
 void Main_send_Connecter_ConnectToU(struct Main_Instance *_instance, uint8_t AddressType, bdaddr_t Address){
+Main_print_debug(_instance, " (Main): Connecter!ConnectToU\n");
 if (Main_send_Connecter_ConnectToU_listener != 0x0) Main_send_Connecter_ConnectToU_listener(_instance, AddressType, Address);
 if (external_Main_send_Connecter_ConnectToU_listener != 0x0) external_Main_send_Connecter_ConnectToU_listener(_instance, AddressType, Address);
 ;
@@ -1126,6 +1297,7 @@ void register_Main_send_Connecter_Stop_listener(void (*_listener)(struct Main_In
 Main_send_Connecter_Stop_listener = _listener;
 }
 void Main_send_Connecter_Stop(struct Main_Instance *_instance){
+Main_print_debug(_instance, " (Main): Connecter!Stop\n");
 if (Main_send_Connecter_Stop_listener != 0x0) Main_send_Connecter_Stop_listener(_instance);
 if (external_Main_send_Connecter_Stop_listener != 0x0) external_Main_send_Connecter_Stop_listener(_instance);
 ;
@@ -1139,6 +1311,7 @@ void register_Main_send_Connecter_Encrypt_listener(void (*_listener)(struct Main
 Main_send_Connecter_Encrypt_listener = _listener;
 }
 void Main_send_Connecter_Encrypt(struct Main_Instance *_instance){
+Main_print_debug(_instance, " (Main): Connecter!Encrypt\n");
 if (Main_send_Connecter_Encrypt_listener != 0x0) Main_send_Connecter_Encrypt_listener(_instance);
 if (external_Main_send_Connecter_Encrypt_listener != 0x0) external_Main_send_Connecter_Encrypt_listener(_instance);
 ;
@@ -1152,6 +1325,7 @@ void register_Main_send_Encrypter_Start_listener(void (*_listener)(struct Main_I
 Main_send_Encrypter_Start_listener = _listener;
 }
 void Main_send_Encrypter_Start(struct Main_Instance *_instance){
+Main_print_debug(_instance, " (Main): Encrypter!Start\n");
 if (Main_send_Encrypter_Start_listener != 0x0) Main_send_Encrypter_Start_listener(_instance);
 if (external_Main_send_Encrypter_Start_listener != 0x0) external_Main_send_Encrypter_Start_listener(_instance);
 ;
@@ -1165,6 +1339,7 @@ void register_Main_send_Encrypter_GenerateRandomNumber_listener(void (*_listener
 Main_send_Encrypter_GenerateRandomNumber_listener = _listener;
 }
 void Main_send_Encrypter_GenerateRandomNumber(struct Main_Instance *_instance){
+Main_print_debug(_instance, " (Main): Encrypter!GenerateRandomNumber\n");
 if (Main_send_Encrypter_GenerateRandomNumber_listener != 0x0) Main_send_Encrypter_GenerateRandomNumber_listener(_instance);
 if (external_Main_send_Encrypter_GenerateRandomNumber_listener != 0x0) external_Main_send_Encrypter_GenerateRandomNumber_listener(_instance);
 ;
@@ -1178,6 +1353,7 @@ void register_Main_send_Encrypter_GenerateConfirm_listener(void (*_listener)(str
 Main_send_Encrypter_GenerateConfirm_listener = _listener;
 }
 void Main_send_Encrypter_GenerateConfirm(struct Main_Instance *_instance, ble_random_number_t Rand, uint8_t IAT, bdaddr_t IA, uint8_t RAT, bdaddr_t RA){
+Main_print_debug(_instance, " (Main): Encrypter!GenerateConfirm\n");
 if (Main_send_Encrypter_GenerateConfirm_listener != 0x0) Main_send_Encrypter_GenerateConfirm_listener(_instance, Rand, IAT, IA, RAT, RA);
 if (external_Main_send_Encrypter_GenerateConfirm_listener != 0x0) external_Main_send_Encrypter_GenerateConfirm_listener(_instance, Rand, IAT, IA, RAT, RA);
 ;
@@ -1191,6 +1367,7 @@ void register_Main_send_Encrypter_CheckConfirm_listener(void (*_listener)(struct
 Main_send_Encrypter_CheckConfirm_listener = _listener;
 }
 void Main_send_Encrypter_CheckConfirm(struct Main_Instance *_instance, ble_random_number_t Received, ble_random_number_t Calculated){
+Main_print_debug(_instance, " (Main): Encrypter!CheckConfirm\n");
 if (Main_send_Encrypter_CheckConfirm_listener != 0x0) Main_send_Encrypter_CheckConfirm_listener(_instance, Received, Calculated);
 if (external_Main_send_Encrypter_CheckConfirm_listener != 0x0) external_Main_send_Encrypter_CheckConfirm_listener(_instance, Received, Calculated);
 ;
@@ -1204,6 +1381,7 @@ void register_Main_send_Encrypter_GenerateSTK_listener(void (*_listener)(struct 
 Main_send_Encrypter_GenerateSTK_listener = _listener;
 }
 void Main_send_Encrypter_GenerateSTK(struct Main_Instance *_instance, ble_random_number_t Srand, ble_random_number_t Mrand){
+Main_print_debug(_instance, " (Main): Encrypter!GenerateSTK\n");
 if (Main_send_Encrypter_GenerateSTK_listener != 0x0) Main_send_Encrypter_GenerateSTK_listener(_instance, Srand, Mrand);
 if (external_Main_send_Encrypter_GenerateSTK_listener != 0x0) external_Main_send_Encrypter_GenerateSTK_listener(_instance, Srand, Mrand);
 ;
@@ -1217,6 +1395,7 @@ void register_Main_send_Socket_Open_listener(void (*_listener)(struct Main_Insta
 Main_send_Socket_Open_listener = _listener;
 }
 void Main_send_Socket_Open(struct Main_Instance *_instance){
+Main_print_debug(_instance, " (Main): Socket!Open\n");
 if (Main_send_Socket_Open_listener != 0x0) Main_send_Socket_Open_listener(_instance);
 if (external_Main_send_Socket_Open_listener != 0x0) external_Main_send_Socket_Open_listener(_instance);
 ;
@@ -1230,6 +1409,7 @@ void register_Main_send_Socket_Close_listener(void (*_listener)(struct Main_Inst
 Main_send_Socket_Close_listener = _listener;
 }
 void Main_send_Socket_Close(struct Main_Instance *_instance){
+Main_print_debug(_instance, " (Main): Socket!Close\n");
 if (Main_send_Socket_Close_listener != 0x0) Main_send_Socket_Close_listener(_instance);
 if (external_Main_send_Socket_Close_listener != 0x0) external_Main_send_Socket_Close_listener(_instance);
 ;
@@ -1243,6 +1423,7 @@ void register_Main_send_HCICommands_Reset_listener(void (*_listener)(struct Main
 Main_send_HCICommands_Reset_listener = _listener;
 }
 void Main_send_HCICommands_Reset(struct Main_Instance *_instance){
+Main_print_debug(_instance, " (Main): HCICommands!Reset\n");
 if (Main_send_HCICommands_Reset_listener != 0x0) Main_send_HCICommands_Reset_listener(_instance);
 if (external_Main_send_HCICommands_Reset_listener != 0x0) external_Main_send_HCICommands_Reset_listener(_instance);
 ;
@@ -1256,6 +1437,7 @@ void register_Main_send_HCICommands_SetEventMask_listener(void (*_listener)(stru
 Main_send_HCICommands_SetEventMask_listener = _listener;
 }
 void Main_send_HCICommands_SetEventMask(struct Main_Instance *_instance, set_event_mask_cp Mask){
+Main_print_debug(_instance, " (Main): HCICommands!SetEventMask\n");
 if (Main_send_HCICommands_SetEventMask_listener != 0x0) Main_send_HCICommands_SetEventMask_listener(_instance, Mask);
 if (external_Main_send_HCICommands_SetEventMask_listener != 0x0) external_Main_send_HCICommands_SetEventMask_listener(_instance, Mask);
 ;
@@ -1269,6 +1451,7 @@ void register_Main_send_HCICommands_SetEventMaskAll_listener(void (*_listener)(s
 Main_send_HCICommands_SetEventMaskAll_listener = _listener;
 }
 void Main_send_HCICommands_SetEventMaskAll(struct Main_Instance *_instance){
+Main_print_debug(_instance, " (Main): HCICommands!SetEventMaskAll\n");
 if (Main_send_HCICommands_SetEventMaskAll_listener != 0x0) Main_send_HCICommands_SetEventMaskAll_listener(_instance);
 if (external_Main_send_HCICommands_SetEventMaskAll_listener != 0x0) external_Main_send_HCICommands_SetEventMaskAll_listener(_instance);
 ;
@@ -1282,6 +1465,7 @@ void register_Main_send_HCICommands_SetLocalName_listener(void (*_listener)(stru
 Main_send_HCICommands_SetLocalName_listener = _listener;
 }
 void Main_send_HCICommands_SetLocalName(struct Main_Instance *_instance, change_local_name_cp Name){
+Main_print_debug(_instance, " (Main): HCICommands!SetLocalName\n");
 if (Main_send_HCICommands_SetLocalName_listener != 0x0) Main_send_HCICommands_SetLocalName_listener(_instance, Name);
 if (external_Main_send_HCICommands_SetLocalName_listener != 0x0) external_Main_send_HCICommands_SetLocalName_listener(_instance, Name);
 ;
@@ -1295,6 +1479,7 @@ void register_Main_send_HCICommands_Disconnect_listener(void (*_listener)(struct
 Main_send_HCICommands_Disconnect_listener = _listener;
 }
 void Main_send_HCICommands_Disconnect(struct Main_Instance *_instance, uint16_t ConnectionHandle, uint8_t Reason){
+Main_print_debug(_instance, " (Main): HCICommands!Disconnect\n");
 if (Main_send_HCICommands_Disconnect_listener != 0x0) Main_send_HCICommands_Disconnect_listener(_instance, ConnectionHandle, Reason);
 if (external_Main_send_HCICommands_Disconnect_listener != 0x0) external_Main_send_HCICommands_Disconnect_listener(_instance, ConnectionHandle, Reason);
 ;
@@ -1308,6 +1493,7 @@ void register_Main_send_HCICommands_SetLEEventMask_listener(void (*_listener)(st
 Main_send_HCICommands_SetLEEventMask_listener = _listener;
 }
 void Main_send_HCICommands_SetLEEventMask(struct Main_Instance *_instance, set_event_mask_cp Mask){
+Main_print_debug(_instance, " (Main): HCICommands!SetLEEventMask\n");
 if (Main_send_HCICommands_SetLEEventMask_listener != 0x0) Main_send_HCICommands_SetLEEventMask_listener(_instance, Mask);
 if (external_Main_send_HCICommands_SetLEEventMask_listener != 0x0) external_Main_send_HCICommands_SetLEEventMask_listener(_instance, Mask);
 ;
@@ -1321,6 +1507,7 @@ void register_Main_send_HCICommands_SetLEEventMaskAll_listener(void (*_listener)
 Main_send_HCICommands_SetLEEventMaskAll_listener = _listener;
 }
 void Main_send_HCICommands_SetLEEventMaskAll(struct Main_Instance *_instance){
+Main_print_debug(_instance, " (Main): HCICommands!SetLEEventMaskAll\n");
 if (Main_send_HCICommands_SetLEEventMaskAll_listener != 0x0) Main_send_HCICommands_SetLEEventMaskAll_listener(_instance);
 if (external_Main_send_HCICommands_SetLEEventMaskAll_listener != 0x0) external_Main_send_HCICommands_SetLEEventMaskAll_listener(_instance);
 ;
@@ -1334,6 +1521,7 @@ void register_Main_send_HCICommands_SetLEAdvertisementParameters_listener(void (
 Main_send_HCICommands_SetLEAdvertisementParameters_listener = _listener;
 }
 void Main_send_HCICommands_SetLEAdvertisementParameters(struct Main_Instance *_instance, uint16_t MinInterval, uint16_t MaxInterval, uint8_t Type, uint8_t OwnAddressType, uint8_t PeerAddressType, bdaddr_t PeerAddress, uint8_t Channel, uint8_t FilterPolicy){
+Main_print_debug(_instance, " (Main): HCICommands!SetLEAdvertisementParameters\n");
 if (Main_send_HCICommands_SetLEAdvertisementParameters_listener != 0x0) Main_send_HCICommands_SetLEAdvertisementParameters_listener(_instance, MinInterval, MaxInterval, Type, OwnAddressType, PeerAddressType, PeerAddress, Channel, FilterPolicy);
 if (external_Main_send_HCICommands_SetLEAdvertisementParameters_listener != 0x0) external_Main_send_HCICommands_SetLEAdvertisementParameters_listener(_instance, MinInterval, MaxInterval, Type, OwnAddressType, PeerAddressType, PeerAddress, Channel, FilterPolicy);
 ;
@@ -1347,6 +1535,7 @@ void register_Main_send_HCICommands_SetLEAdvertiseEnable_listener(void (*_listen
 Main_send_HCICommands_SetLEAdvertiseEnable_listener = _listener;
 }
 void Main_send_HCICommands_SetLEAdvertiseEnable(struct Main_Instance *_instance, uint8_t Enable){
+Main_print_debug(_instance, " (Main): HCICommands!SetLEAdvertiseEnable\n");
 if (Main_send_HCICommands_SetLEAdvertiseEnable_listener != 0x0) Main_send_HCICommands_SetLEAdvertiseEnable_listener(_instance, Enable);
 if (external_Main_send_HCICommands_SetLEAdvertiseEnable_listener != 0x0) external_Main_send_HCICommands_SetLEAdvertiseEnable_listener(_instance, Enable);
 ;
@@ -1360,6 +1549,7 @@ void register_Main_send_HCICommands_SetLEAdvertisingData_listener(void (*_listen
 Main_send_HCICommands_SetLEAdvertisingData_listener = _listener;
 }
 void Main_send_HCICommands_SetLEAdvertisingData(struct Main_Instance *_instance, uint8_t Length, ble_adv_data_t Data){
+Main_print_debug(_instance, " (Main): HCICommands!SetLEAdvertisingData\n");
 if (Main_send_HCICommands_SetLEAdvertisingData_listener != 0x0) Main_send_HCICommands_SetLEAdvertisingData_listener(_instance, Length, Data);
 if (external_Main_send_HCICommands_SetLEAdvertisingData_listener != 0x0) external_Main_send_HCICommands_SetLEAdvertisingData_listener(_instance, Length, Data);
 ;
@@ -1373,6 +1563,7 @@ void register_Main_send_HCICommands_SetLEScanResponseData_listener(void (*_liste
 Main_send_HCICommands_SetLEScanResponseData_listener = _listener;
 }
 void Main_send_HCICommands_SetLEScanResponseData(struct Main_Instance *_instance, uint8_t Length, ble_adv_data_t Data){
+Main_print_debug(_instance, " (Main): HCICommands!SetLEScanResponseData\n");
 if (Main_send_HCICommands_SetLEScanResponseData_listener != 0x0) Main_send_HCICommands_SetLEScanResponseData_listener(_instance, Length, Data);
 if (external_Main_send_HCICommands_SetLEScanResponseData_listener != 0x0) external_Main_send_HCICommands_SetLEScanResponseData_listener(_instance, Length, Data);
 ;
@@ -1386,6 +1577,7 @@ void register_Main_send_HCICommands_SetLEScanParameters_listener(void (*_listene
 Main_send_HCICommands_SetLEScanParameters_listener = _listener;
 }
 void Main_send_HCICommands_SetLEScanParameters(struct Main_Instance *_instance, uint8_t Type, uint16_t Interval, uint16_t Window, uint8_t OwnAddressType, uint8_t FilterPolicy){
+Main_print_debug(_instance, " (Main): HCICommands!SetLEScanParameters\n");
 if (Main_send_HCICommands_SetLEScanParameters_listener != 0x0) Main_send_HCICommands_SetLEScanParameters_listener(_instance, Type, Interval, Window, OwnAddressType, FilterPolicy);
 if (external_Main_send_HCICommands_SetLEScanParameters_listener != 0x0) external_Main_send_HCICommands_SetLEScanParameters_listener(_instance, Type, Interval, Window, OwnAddressType, FilterPolicy);
 ;
@@ -1399,6 +1591,7 @@ void register_Main_send_HCICommands_SetLEScanEnable_listener(void (*_listener)(s
 Main_send_HCICommands_SetLEScanEnable_listener = _listener;
 }
 void Main_send_HCICommands_SetLEScanEnable(struct Main_Instance *_instance, uint8_t Enable, uint8_t FilterDuplicates){
+Main_print_debug(_instance, " (Main): HCICommands!SetLEScanEnable\n");
 if (Main_send_HCICommands_SetLEScanEnable_listener != 0x0) Main_send_HCICommands_SetLEScanEnable_listener(_instance, Enable, FilterDuplicates);
 if (external_Main_send_HCICommands_SetLEScanEnable_listener != 0x0) external_Main_send_HCICommands_SetLEScanEnable_listener(_instance, Enable, FilterDuplicates);
 ;
@@ -1412,6 +1605,7 @@ void register_Main_send_HCICommands_LECreateConnection_listener(void (*_listener
 Main_send_HCICommands_LECreateConnection_listener = _listener;
 }
 void Main_send_HCICommands_LECreateConnection(struct Main_Instance *_instance, uint16_t Interval, uint16_t Window, uint8_t FilterPolicy, uint8_t PeerAddressType, bdaddr_t PeerAddress, uint8_t OwnAddressType, uint16_t ConnIntervalMin, uint16_t ConnIntervalMax, uint16_t ConnLatency, uint16_t SupervisionTimeout, uint16_t CELengthMin, uint16_t CELengthMax){
+Main_print_debug(_instance, " (Main): HCICommands!LECreateConnection\n");
 if (Main_send_HCICommands_LECreateConnection_listener != 0x0) Main_send_HCICommands_LECreateConnection_listener(_instance, Interval, Window, FilterPolicy, PeerAddressType, PeerAddress, OwnAddressType, ConnIntervalMin, ConnIntervalMax, ConnLatency, SupervisionTimeout, CELengthMin, CELengthMax);
 if (external_Main_send_HCICommands_LECreateConnection_listener != 0x0) external_Main_send_HCICommands_LECreateConnection_listener(_instance, Interval, Window, FilterPolicy, PeerAddressType, PeerAddress, OwnAddressType, ConnIntervalMin, ConnIntervalMax, ConnLatency, SupervisionTimeout, CELengthMin, CELengthMax);
 ;
@@ -1425,6 +1619,7 @@ void register_Main_send_HCICommands_LECreateConnectionCancel_listener(void (*_li
 Main_send_HCICommands_LECreateConnectionCancel_listener = _listener;
 }
 void Main_send_HCICommands_LECreateConnectionCancel(struct Main_Instance *_instance){
+Main_print_debug(_instance, " (Main): HCICommands!LECreateConnectionCancel\n");
 if (Main_send_HCICommands_LECreateConnectionCancel_listener != 0x0) Main_send_HCICommands_LECreateConnectionCancel_listener(_instance);
 if (external_Main_send_HCICommands_LECreateConnectionCancel_listener != 0x0) external_Main_send_HCICommands_LECreateConnectionCancel_listener(_instance);
 ;
@@ -1438,6 +1633,7 @@ void register_Main_send_HCICommands_LERand_listener(void (*_listener)(struct Mai
 Main_send_HCICommands_LERand_listener = _listener;
 }
 void Main_send_HCICommands_LERand(struct Main_Instance *_instance){
+Main_print_debug(_instance, " (Main): HCICommands!LERand\n");
 if (Main_send_HCICommands_LERand_listener != 0x0) Main_send_HCICommands_LERand_listener(_instance);
 if (external_Main_send_HCICommands_LERand_listener != 0x0) external_Main_send_HCICommands_LERand_listener(_instance);
 ;
@@ -1451,6 +1647,7 @@ void register_Main_send_HCICommands_LEEncrypt_listener(void (*_listener)(struct 
 Main_send_HCICommands_LEEncrypt_listener = _listener;
 }
 void Main_send_HCICommands_LEEncrypt(struct Main_Instance *_instance, ble_random_number_t Key, ble_random_number_t Plaintext){
+Main_print_debug(_instance, " (Main): HCICommands!LEEncrypt\n");
 if (Main_send_HCICommands_LEEncrypt_listener != 0x0) Main_send_HCICommands_LEEncrypt_listener(_instance, Key, Plaintext);
 if (external_Main_send_HCICommands_LEEncrypt_listener != 0x0) external_Main_send_HCICommands_LEEncrypt_listener(_instance, Key, Plaintext);
 ;
@@ -1464,6 +1661,7 @@ void register_Main_send_HCICommands_LEStartEncryption_listener(void (*_listener)
 Main_send_HCICommands_LEStartEncryption_listener = _listener;
 }
 void Main_send_HCICommands_LEStartEncryption(struct Main_Instance *_instance, uint16_t ConnectionHandle, ble_random_part_t Random, uint16_t EDIV, ble_random_number_t LTK){
+Main_print_debug(_instance, " (Main): HCICommands!LEStartEncryption\n");
 if (Main_send_HCICommands_LEStartEncryption_listener != 0x0) Main_send_HCICommands_LEStartEncryption_listener(_instance, ConnectionHandle, Random, EDIV, LTK);
 if (external_Main_send_HCICommands_LEStartEncryption_listener != 0x0) external_Main_send_HCICommands_LEStartEncryption_listener(_instance, ConnectionHandle, Random, EDIV, LTK);
 ;
@@ -1477,6 +1675,7 @@ void register_Main_send_SMP_SMPPairingRequest_listener(void (*_listener)(struct 
 Main_send_SMP_SMPPairingRequest_listener = _listener;
 }
 void Main_send_SMP_SMPPairingRequest(struct Main_Instance *_instance, uint16_t Handle, uint8_t IOCapability, uint8_t OOBDataPresent, uint8_t Bonding, uint8_t MITM, uint8_t SecureConnection, uint8_t Keypress, uint8_t MaximumEncryptionKeySize, uint8_t InitiatorKeyDistribution, uint8_t ResponderKeyDistribution){
+Main_print_debug(_instance, " (Main): SMP!SMPPairingRequest\n");
 if (Main_send_SMP_SMPPairingRequest_listener != 0x0) Main_send_SMP_SMPPairingRequest_listener(_instance, Handle, IOCapability, OOBDataPresent, Bonding, MITM, SecureConnection, Keypress, MaximumEncryptionKeySize, InitiatorKeyDistribution, ResponderKeyDistribution);
 if (external_Main_send_SMP_SMPPairingRequest_listener != 0x0) external_Main_send_SMP_SMPPairingRequest_listener(_instance, Handle, IOCapability, OOBDataPresent, Bonding, MITM, SecureConnection, Keypress, MaximumEncryptionKeySize, InitiatorKeyDistribution, ResponderKeyDistribution);
 ;
@@ -1490,6 +1689,7 @@ void register_Main_send_SMP_SMPPairingResponse_listener(void (*_listener)(struct
 Main_send_SMP_SMPPairingResponse_listener = _listener;
 }
 void Main_send_SMP_SMPPairingResponse(struct Main_Instance *_instance, uint16_t Handle, uint8_t IOCapability, uint8_t OOBDataPresent, uint8_t Bonding, uint8_t MITM, uint8_t SecureConnection, uint8_t Keypress, uint8_t MaximumEncryptionKeySize, uint8_t InitiatorKeyDistribution, uint8_t ResponderKeyDistribution){
+Main_print_debug(_instance, " (Main): SMP!SMPPairingResponse\n");
 if (Main_send_SMP_SMPPairingResponse_listener != 0x0) Main_send_SMP_SMPPairingResponse_listener(_instance, Handle, IOCapability, OOBDataPresent, Bonding, MITM, SecureConnection, Keypress, MaximumEncryptionKeySize, InitiatorKeyDistribution, ResponderKeyDistribution);
 if (external_Main_send_SMP_SMPPairingResponse_listener != 0x0) external_Main_send_SMP_SMPPairingResponse_listener(_instance, Handle, IOCapability, OOBDataPresent, Bonding, MITM, SecureConnection, Keypress, MaximumEncryptionKeySize, InitiatorKeyDistribution, ResponderKeyDistribution);
 ;
@@ -1503,6 +1703,7 @@ void register_Main_send_SMP_SMPPairingConfirm_listener(void (*_listener)(struct 
 Main_send_SMP_SMPPairingConfirm_listener = _listener;
 }
 void Main_send_SMP_SMPPairingConfirm(struct Main_Instance *_instance, uint16_t Handle, ble_random_number_t ConfirmValue){
+Main_print_debug(_instance, " (Main): SMP!SMPPairingConfirm\n");
 if (Main_send_SMP_SMPPairingConfirm_listener != 0x0) Main_send_SMP_SMPPairingConfirm_listener(_instance, Handle, ConfirmValue);
 if (external_Main_send_SMP_SMPPairingConfirm_listener != 0x0) external_Main_send_SMP_SMPPairingConfirm_listener(_instance, Handle, ConfirmValue);
 ;
@@ -1516,6 +1717,7 @@ void register_Main_send_SMP_SMPPairingRandom_listener(void (*_listener)(struct M
 Main_send_SMP_SMPPairingRandom_listener = _listener;
 }
 void Main_send_SMP_SMPPairingRandom(struct Main_Instance *_instance, uint16_t Handle, ble_random_number_t RandomValue){
+Main_print_debug(_instance, " (Main): SMP!SMPPairingRandom\n");
 if (Main_send_SMP_SMPPairingRandom_listener != 0x0) Main_send_SMP_SMPPairingRandom_listener(_instance, Handle, RandomValue);
 if (external_Main_send_SMP_SMPPairingRandom_listener != 0x0) external_Main_send_SMP_SMPPairingRandom_listener(_instance, Handle, RandomValue);
 ;
@@ -1529,6 +1731,7 @@ void register_Main_send_SMP_SMPPairingFailed_listener(void (*_listener)(struct M
 Main_send_SMP_SMPPairingFailed_listener = _listener;
 }
 void Main_send_SMP_SMPPairingFailed(struct Main_Instance *_instance, uint16_t Handle, uint8_t Reason){
+Main_print_debug(_instance, " (Main): SMP!SMPPairingFailed\n");
 if (Main_send_SMP_SMPPairingFailed_listener != 0x0) Main_send_SMP_SMPPairingFailed_listener(_instance, Handle, Reason);
 if (external_Main_send_SMP_SMPPairingFailed_listener != 0x0) external_Main_send_SMP_SMPPairingFailed_listener(_instance, Handle, Reason);
 ;
@@ -1542,6 +1745,7 @@ void register_Main_send_SMP_SMPPairingPublicKey_listener(void (*_listener)(struc
 Main_send_SMP_SMPPairingPublicKey_listener = _listener;
 }
 void Main_send_SMP_SMPPairingPublicKey(struct Main_Instance *_instance, uint16_t Handle, smp_public_key_t KeyX, smp_public_key_t KeyY){
+Main_print_debug(_instance, " (Main): SMP!SMPPairingPublicKey\n");
 if (Main_send_SMP_SMPPairingPublicKey_listener != 0x0) Main_send_SMP_SMPPairingPublicKey_listener(_instance, Handle, KeyX, KeyY);
 if (external_Main_send_SMP_SMPPairingPublicKey_listener != 0x0) external_Main_send_SMP_SMPPairingPublicKey_listener(_instance, Handle, KeyX, KeyY);
 ;
@@ -1555,6 +1759,7 @@ void register_Main_send_SMP_SMPPairingDHKeyCheck_listener(void (*_listener)(stru
 Main_send_SMP_SMPPairingDHKeyCheck_listener = _listener;
 }
 void Main_send_SMP_SMPPairingDHKeyCheck(struct Main_Instance *_instance, uint16_t Handle, ble_random_number_t DHKeyCheck){
+Main_print_debug(_instance, " (Main): SMP!SMPPairingDHKeyCheck\n");
 if (Main_send_SMP_SMPPairingDHKeyCheck_listener != 0x0) Main_send_SMP_SMPPairingDHKeyCheck_listener(_instance, Handle, DHKeyCheck);
 if (external_Main_send_SMP_SMPPairingDHKeyCheck_listener != 0x0) external_Main_send_SMP_SMPPairingDHKeyCheck_listener(_instance, Handle, DHKeyCheck);
 ;
@@ -1568,6 +1773,7 @@ void register_Main_send_SMP_SMPKeypressNotification_listener(void (*_listener)(s
 Main_send_SMP_SMPKeypressNotification_listener = _listener;
 }
 void Main_send_SMP_SMPKeypressNotification(struct Main_Instance *_instance, uint16_t Handle, uint8_t Type){
+Main_print_debug(_instance, " (Main): SMP!SMPKeypressNotification\n");
 if (Main_send_SMP_SMPKeypressNotification_listener != 0x0) Main_send_SMP_SMPKeypressNotification_listener(_instance, Handle, Type);
 if (external_Main_send_SMP_SMPKeypressNotification_listener != 0x0) external_Main_send_SMP_SMPKeypressNotification_listener(_instance, Handle, Type);
 ;
@@ -1581,6 +1787,7 @@ void register_Main_send_SMP_SMPEncryptionInformation_listener(void (*_listener)(
 Main_send_SMP_SMPEncryptionInformation_listener = _listener;
 }
 void Main_send_SMP_SMPEncryptionInformation(struct Main_Instance *_instance, uint16_t Handle, ble_random_number_t LongTermKey){
+Main_print_debug(_instance, " (Main): SMP!SMPEncryptionInformation\n");
 if (Main_send_SMP_SMPEncryptionInformation_listener != 0x0) Main_send_SMP_SMPEncryptionInformation_listener(_instance, Handle, LongTermKey);
 if (external_Main_send_SMP_SMPEncryptionInformation_listener != 0x0) external_Main_send_SMP_SMPEncryptionInformation_listener(_instance, Handle, LongTermKey);
 ;
@@ -1594,6 +1801,7 @@ void register_Main_send_SMP_SMPMasterIdentification_listener(void (*_listener)(s
 Main_send_SMP_SMPMasterIdentification_listener = _listener;
 }
 void Main_send_SMP_SMPMasterIdentification(struct Main_Instance *_instance, uint16_t Handle, uint16_t EDIV, ble_random_part_t Rand){
+Main_print_debug(_instance, " (Main): SMP!SMPMasterIdentification\n");
 if (Main_send_SMP_SMPMasterIdentification_listener != 0x0) Main_send_SMP_SMPMasterIdentification_listener(_instance, Handle, EDIV, Rand);
 if (external_Main_send_SMP_SMPMasterIdentification_listener != 0x0) external_Main_send_SMP_SMPMasterIdentification_listener(_instance, Handle, EDIV, Rand);
 ;
@@ -1607,6 +1815,7 @@ void register_Main_send_SMP_SMPIdentityInformation_listener(void (*_listener)(st
 Main_send_SMP_SMPIdentityInformation_listener = _listener;
 }
 void Main_send_SMP_SMPIdentityInformation(struct Main_Instance *_instance, uint16_t Handle, ble_random_number_t IdentityResolvingKey){
+Main_print_debug(_instance, " (Main): SMP!SMPIdentityInformation\n");
 if (Main_send_SMP_SMPIdentityInformation_listener != 0x0) Main_send_SMP_SMPIdentityInformation_listener(_instance, Handle, IdentityResolvingKey);
 if (external_Main_send_SMP_SMPIdentityInformation_listener != 0x0) external_Main_send_SMP_SMPIdentityInformation_listener(_instance, Handle, IdentityResolvingKey);
 ;
@@ -1620,6 +1829,7 @@ void register_Main_send_SMP_SMPIdentityAddressInformation_listener(void (*_liste
 Main_send_SMP_SMPIdentityAddressInformation_listener = _listener;
 }
 void Main_send_SMP_SMPIdentityAddressInformation(struct Main_Instance *_instance, uint16_t Handle, uint8_t AddressType, bdaddr_t Address){
+Main_print_debug(_instance, " (Main): SMP!SMPIdentityAddressInformation\n");
 if (Main_send_SMP_SMPIdentityAddressInformation_listener != 0x0) Main_send_SMP_SMPIdentityAddressInformation_listener(_instance, Handle, AddressType, Address);
 if (external_Main_send_SMP_SMPIdentityAddressInformation_listener != 0x0) external_Main_send_SMP_SMPIdentityAddressInformation_listener(_instance, Handle, AddressType, Address);
 ;
@@ -1633,6 +1843,7 @@ void register_Main_send_SMP_SMPSigningInformation_listener(void (*_listener)(str
 Main_send_SMP_SMPSigningInformation_listener = _listener;
 }
 void Main_send_SMP_SMPSigningInformation(struct Main_Instance *_instance, uint16_t Handle, ble_random_number_t SignatureKey){
+Main_print_debug(_instance, " (Main): SMP!SMPSigningInformation\n");
 if (Main_send_SMP_SMPSigningInformation_listener != 0x0) Main_send_SMP_SMPSigningInformation_listener(_instance, Handle, SignatureKey);
 if (external_Main_send_SMP_SMPSigningInformation_listener != 0x0) external_Main_send_SMP_SMPSigningInformation_listener(_instance, Handle, SignatureKey);
 ;
@@ -1646,6 +1857,7 @@ void register_Main_send_SMP_SMPSecurityRequest_listener(void (*_listener)(struct
 Main_send_SMP_SMPSecurityRequest_listener = _listener;
 }
 void Main_send_SMP_SMPSecurityRequest(struct Main_Instance *_instance, uint16_t Handle, uint8_t Bonding, uint8_t MITM, uint8_t SecureConnection, uint8_t Keypress){
+Main_print_debug(_instance, " (Main): SMP!SMPSecurityRequest\n");
 if (Main_send_SMP_SMPSecurityRequest_listener != 0x0) Main_send_SMP_SMPSecurityRequest_listener(_instance, Handle, Bonding, MITM, SecureConnection, Keypress);
 if (external_Main_send_SMP_SMPSecurityRequest_listener != 0x0) external_Main_send_SMP_SMPSecurityRequest_listener(_instance, Handle, Bonding, MITM, SecureConnection, Keypress);
 ;
@@ -1659,6 +1871,7 @@ void register_Main_send_ATT_ATTFindInformationRequest_listener(void (*_listener)
 Main_send_ATT_ATTFindInformationRequest_listener = _listener;
 }
 void Main_send_ATT_ATTFindInformationRequest(struct Main_Instance *_instance, uint16_t ConnectionHandle, uint16_t StartingHandle, uint16_t EndingHandle){
+Main_print_debug(_instance, " (Main): ATT!ATTFindInformationRequest\n");
 if (Main_send_ATT_ATTFindInformationRequest_listener != 0x0) Main_send_ATT_ATTFindInformationRequest_listener(_instance, ConnectionHandle, StartingHandle, EndingHandle);
 if (external_Main_send_ATT_ATTFindInformationRequest_listener != 0x0) external_Main_send_ATT_ATTFindInformationRequest_listener(_instance, ConnectionHandle, StartingHandle, EndingHandle);
 ;
@@ -1672,6 +1885,7 @@ void register_Main_send_ATT_ATTFindInformationResponse_listener(void (*_listener
 Main_send_ATT_ATTFindInformationResponse_listener = _listener;
 }
 void Main_send_ATT_ATTFindInformationResponse(struct Main_Instance *_instance, uint16_t ConnectionHandle, uint8_t Format, ble_gatt_data_t InformationData){
+Main_print_debug(_instance, " (Main): ATT!ATTFindInformationResponse\n");
 if (Main_send_ATT_ATTFindInformationResponse_listener != 0x0) Main_send_ATT_ATTFindInformationResponse_listener(_instance, ConnectionHandle, Format, InformationData);
 if (external_Main_send_ATT_ATTFindInformationResponse_listener != 0x0) external_Main_send_ATT_ATTFindInformationResponse_listener(_instance, ConnectionHandle, Format, InformationData);
 ;
@@ -1685,6 +1899,7 @@ void register_Main_send_ATT_ATTFindInformationError_listener(void (*_listener)(s
 Main_send_ATT_ATTFindInformationError_listener = _listener;
 }
 void Main_send_ATT_ATTFindInformationError(struct Main_Instance *_instance, uint16_t ConnectionHandle, uint16_t AttributeHandle, uint8_t Error){
+Main_print_debug(_instance, " (Main): ATT!ATTFindInformationError\n");
 if (Main_send_ATT_ATTFindInformationError_listener != 0x0) Main_send_ATT_ATTFindInformationError_listener(_instance, ConnectionHandle, AttributeHandle, Error);
 if (external_Main_send_ATT_ATTFindInformationError_listener != 0x0) external_Main_send_ATT_ATTFindInformationError_listener(_instance, ConnectionHandle, AttributeHandle, Error);
 ;
@@ -1698,6 +1913,7 @@ void register_Main_send_ATT_ATTReadByTypeRequest_listener(void (*_listener)(stru
 Main_send_ATT_ATTReadByTypeRequest_listener = _listener;
 }
 void Main_send_ATT_ATTReadByTypeRequest(struct Main_Instance *_instance, uint16_t ConnectionHandle, uint16_t StartingHandle, uint16_t EndingHandle, ble_uuid_t AttributeType){
+Main_print_debug(_instance, " (Main): ATT!ATTReadByTypeRequest\n");
 if (Main_send_ATT_ATTReadByTypeRequest_listener != 0x0) Main_send_ATT_ATTReadByTypeRequest_listener(_instance, ConnectionHandle, StartingHandle, EndingHandle, AttributeType);
 if (external_Main_send_ATT_ATTReadByTypeRequest_listener != 0x0) external_Main_send_ATT_ATTReadByTypeRequest_listener(_instance, ConnectionHandle, StartingHandle, EndingHandle, AttributeType);
 ;
@@ -1711,6 +1927,7 @@ void register_Main_send_ATT_ATTReadByTypeResponse_listener(void (*_listener)(str
 Main_send_ATT_ATTReadByTypeResponse_listener = _listener;
 }
 void Main_send_ATT_ATTReadByTypeResponse(struct Main_Instance *_instance, uint16_t ConnectionHandle, uint8_t Length, ble_gatt_data_t AttributeDataList){
+Main_print_debug(_instance, " (Main): ATT!ATTReadByTypeResponse\n");
 if (Main_send_ATT_ATTReadByTypeResponse_listener != 0x0) Main_send_ATT_ATTReadByTypeResponse_listener(_instance, ConnectionHandle, Length, AttributeDataList);
 if (external_Main_send_ATT_ATTReadByTypeResponse_listener != 0x0) external_Main_send_ATT_ATTReadByTypeResponse_listener(_instance, ConnectionHandle, Length, AttributeDataList);
 ;
@@ -1724,6 +1941,7 @@ void register_Main_send_ATT_ATTReadByTypeError_listener(void (*_listener)(struct
 Main_send_ATT_ATTReadByTypeError_listener = _listener;
 }
 void Main_send_ATT_ATTReadByTypeError(struct Main_Instance *_instance, uint16_t ConnectionHandle, uint16_t AttributeHandle, uint8_t Error){
+Main_print_debug(_instance, " (Main): ATT!ATTReadByTypeError\n");
 if (Main_send_ATT_ATTReadByTypeError_listener != 0x0) Main_send_ATT_ATTReadByTypeError_listener(_instance, ConnectionHandle, AttributeHandle, Error);
 if (external_Main_send_ATT_ATTReadByTypeError_listener != 0x0) external_Main_send_ATT_ATTReadByTypeError_listener(_instance, ConnectionHandle, AttributeHandle, Error);
 ;
@@ -1737,6 +1955,7 @@ void register_Main_send_ATT_ATTReadRequest_listener(void (*_listener)(struct Mai
 Main_send_ATT_ATTReadRequest_listener = _listener;
 }
 void Main_send_ATT_ATTReadRequest(struct Main_Instance *_instance, uint16_t ConnectionHandle, uint16_t AttributeHandle){
+Main_print_debug(_instance, " (Main): ATT!ATTReadRequest\n");
 if (Main_send_ATT_ATTReadRequest_listener != 0x0) Main_send_ATT_ATTReadRequest_listener(_instance, ConnectionHandle, AttributeHandle);
 if (external_Main_send_ATT_ATTReadRequest_listener != 0x0) external_Main_send_ATT_ATTReadRequest_listener(_instance, ConnectionHandle, AttributeHandle);
 ;
@@ -1750,6 +1969,7 @@ void register_Main_send_ATT_ATTReadResponse_listener(void (*_listener)(struct Ma
 Main_send_ATT_ATTReadResponse_listener = _listener;
 }
 void Main_send_ATT_ATTReadResponse(struct Main_Instance *_instance, uint16_t ConnectionHandle, ble_gatt_data_t AttributeValue){
+Main_print_debug(_instance, " (Main): ATT!ATTReadResponse\n");
 if (Main_send_ATT_ATTReadResponse_listener != 0x0) Main_send_ATT_ATTReadResponse_listener(_instance, ConnectionHandle, AttributeValue);
 if (external_Main_send_ATT_ATTReadResponse_listener != 0x0) external_Main_send_ATT_ATTReadResponse_listener(_instance, ConnectionHandle, AttributeValue);
 ;
@@ -1763,6 +1983,7 @@ void register_Main_send_ATT_ATTReadError_listener(void (*_listener)(struct Main_
 Main_send_ATT_ATTReadError_listener = _listener;
 }
 void Main_send_ATT_ATTReadError(struct Main_Instance *_instance, uint16_t ConnectionHandle, uint16_t AttributeHandle, uint8_t Error){
+Main_print_debug(_instance, " (Main): ATT!ATTReadError\n");
 if (Main_send_ATT_ATTReadError_listener != 0x0) Main_send_ATT_ATTReadError_listener(_instance, ConnectionHandle, AttributeHandle, Error);
 if (external_Main_send_ATT_ATTReadError_listener != 0x0) external_Main_send_ATT_ATTReadError_listener(_instance, ConnectionHandle, AttributeHandle, Error);
 ;
@@ -1776,6 +1997,7 @@ void register_Main_send_ATT_ATTReadByGroupTypeRequest_listener(void (*_listener)
 Main_send_ATT_ATTReadByGroupTypeRequest_listener = _listener;
 }
 void Main_send_ATT_ATTReadByGroupTypeRequest(struct Main_Instance *_instance, uint16_t ConnectionHandle, uint16_t StartingHandle, uint16_t EndingHandle, ble_uuid_t AttributeGroupType){
+Main_print_debug(_instance, " (Main): ATT!ATTReadByGroupTypeRequest\n");
 if (Main_send_ATT_ATTReadByGroupTypeRequest_listener != 0x0) Main_send_ATT_ATTReadByGroupTypeRequest_listener(_instance, ConnectionHandle, StartingHandle, EndingHandle, AttributeGroupType);
 if (external_Main_send_ATT_ATTReadByGroupTypeRequest_listener != 0x0) external_Main_send_ATT_ATTReadByGroupTypeRequest_listener(_instance, ConnectionHandle, StartingHandle, EndingHandle, AttributeGroupType);
 ;
@@ -1789,6 +2011,7 @@ void register_Main_send_ATT_ATTReadByGroupTypeResponse_listener(void (*_listener
 Main_send_ATT_ATTReadByGroupTypeResponse_listener = _listener;
 }
 void Main_send_ATT_ATTReadByGroupTypeResponse(struct Main_Instance *_instance, uint16_t ConnectionHandle, uint8_t Length, ble_gatt_data_t AttributeDataList){
+Main_print_debug(_instance, " (Main): ATT!ATTReadByGroupTypeResponse\n");
 if (Main_send_ATT_ATTReadByGroupTypeResponse_listener != 0x0) Main_send_ATT_ATTReadByGroupTypeResponse_listener(_instance, ConnectionHandle, Length, AttributeDataList);
 if (external_Main_send_ATT_ATTReadByGroupTypeResponse_listener != 0x0) external_Main_send_ATT_ATTReadByGroupTypeResponse_listener(_instance, ConnectionHandle, Length, AttributeDataList);
 ;
@@ -1802,6 +2025,7 @@ void register_Main_send_ATT_ATTReadByGroupTypeError_listener(void (*_listener)(s
 Main_send_ATT_ATTReadByGroupTypeError_listener = _listener;
 }
 void Main_send_ATT_ATTReadByGroupTypeError(struct Main_Instance *_instance, uint16_t ConnectionHandle, uint16_t AttributeHandle, uint8_t Error){
+Main_print_debug(_instance, " (Main): ATT!ATTReadByGroupTypeError\n");
 if (Main_send_ATT_ATTReadByGroupTypeError_listener != 0x0) Main_send_ATT_ATTReadByGroupTypeError_listener(_instance, ConnectionHandle, AttributeHandle, Error);
 if (external_Main_send_ATT_ATTReadByGroupTypeError_listener != 0x0) external_Main_send_ATT_ATTReadByGroupTypeError_listener(_instance, ConnectionHandle, AttributeHandle, Error);
 ;
@@ -1815,6 +2039,7 @@ void register_Main_send_ATT_ATTWriteRequest_listener(void (*_listener)(struct Ma
 Main_send_ATT_ATTWriteRequest_listener = _listener;
 }
 void Main_send_ATT_ATTWriteRequest(struct Main_Instance *_instance, uint16_t ConnectionHandle, uint16_t AttributeHandle, ble_gatt_data_t AttributeValue){
+Main_print_debug(_instance, " (Main): ATT!ATTWriteRequest\n");
 if (Main_send_ATT_ATTWriteRequest_listener != 0x0) Main_send_ATT_ATTWriteRequest_listener(_instance, ConnectionHandle, AttributeHandle, AttributeValue);
 if (external_Main_send_ATT_ATTWriteRequest_listener != 0x0) external_Main_send_ATT_ATTWriteRequest_listener(_instance, ConnectionHandle, AttributeHandle, AttributeValue);
 ;
@@ -1828,6 +2053,7 @@ void register_Main_send_ATT_ATTWriteResponse_listener(void (*_listener)(struct M
 Main_send_ATT_ATTWriteResponse_listener = _listener;
 }
 void Main_send_ATT_ATTWriteResponse(struct Main_Instance *_instance, uint16_t ConnectionHandle){
+Main_print_debug(_instance, " (Main): ATT!ATTWriteResponse\n");
 if (Main_send_ATT_ATTWriteResponse_listener != 0x0) Main_send_ATT_ATTWriteResponse_listener(_instance, ConnectionHandle);
 if (external_Main_send_ATT_ATTWriteResponse_listener != 0x0) external_Main_send_ATT_ATTWriteResponse_listener(_instance, ConnectionHandle);
 ;
@@ -1841,6 +2067,7 @@ void register_Main_send_ATT_ATTWriteError_listener(void (*_listener)(struct Main
 Main_send_ATT_ATTWriteError_listener = _listener;
 }
 void Main_send_ATT_ATTWriteError(struct Main_Instance *_instance, uint16_t ConnectionHandle, uint16_t AttributeHandle, uint8_t Error){
+Main_print_debug(_instance, " (Main): ATT!ATTWriteError\n");
 if (Main_send_ATT_ATTWriteError_listener != 0x0) Main_send_ATT_ATTWriteError_listener(_instance, ConnectionHandle, AttributeHandle, Error);
 if (external_Main_send_ATT_ATTWriteError_listener != 0x0) external_Main_send_ATT_ATTWriteError_listener(_instance, ConnectionHandle, AttributeHandle, Error);
 ;
@@ -1854,6 +2081,7 @@ void register_Main_send_ATT_ATTWriteCommand_listener(void (*_listener)(struct Ma
 Main_send_ATT_ATTWriteCommand_listener = _listener;
 }
 void Main_send_ATT_ATTWriteCommand(struct Main_Instance *_instance, uint16_t ConnectionHandle, uint16_t AttributeHandle, ble_gatt_data_t AttributeValue){
+Main_print_debug(_instance, " (Main): ATT!ATTWriteCommand\n");
 if (Main_send_ATT_ATTWriteCommand_listener != 0x0) Main_send_ATT_ATTWriteCommand_listener(_instance, ConnectionHandle, AttributeHandle, AttributeValue);
 if (external_Main_send_ATT_ATTWriteCommand_listener != 0x0) external_Main_send_ATT_ATTWriteCommand_listener(_instance, ConnectionHandle, AttributeHandle, AttributeValue);
 ;
@@ -1867,6 +2095,7 @@ void register_Main_send_ATT_ATTHandleValueNotification_listener(void (*_listener
 Main_send_ATT_ATTHandleValueNotification_listener = _listener;
 }
 void Main_send_ATT_ATTHandleValueNotification(struct Main_Instance *_instance, uint16_t ConnectionHandle, uint16_t AttributeHandle, ble_gatt_data_t AttributeValue){
+Main_print_debug(_instance, " (Main): ATT!ATTHandleValueNotification\n");
 if (Main_send_ATT_ATTHandleValueNotification_listener != 0x0) Main_send_ATT_ATTHandleValueNotification_listener(_instance, ConnectionHandle, AttributeHandle, AttributeValue);
 if (external_Main_send_ATT_ATTHandleValueNotification_listener != 0x0) external_Main_send_ATT_ATTHandleValueNotification_listener(_instance, ConnectionHandle, AttributeHandle, AttributeValue);
 ;
@@ -1880,6 +2109,7 @@ void register_Main_send_ATT_ATTHandleValueIndication_listener(void (*_listener)(
 Main_send_ATT_ATTHandleValueIndication_listener = _listener;
 }
 void Main_send_ATT_ATTHandleValueIndication(struct Main_Instance *_instance, uint16_t ConnectionHandle, uint16_t AttributeHandle, ble_gatt_data_t AttributeValue){
+Main_print_debug(_instance, " (Main): ATT!ATTHandleValueIndication\n");
 if (Main_send_ATT_ATTHandleValueIndication_listener != 0x0) Main_send_ATT_ATTHandleValueIndication_listener(_instance, ConnectionHandle, AttributeHandle, AttributeValue);
 if (external_Main_send_ATT_ATTHandleValueIndication_listener != 0x0) external_Main_send_ATT_ATTHandleValueIndication_listener(_instance, ConnectionHandle, AttributeHandle, AttributeValue);
 ;
@@ -1893,6 +2123,7 @@ void register_Main_send_ATT_ATTHandleValueConfirmation_listener(void (*_listener
 Main_send_ATT_ATTHandleValueConfirmation_listener = _listener;
 }
 void Main_send_ATT_ATTHandleValueConfirmation(struct Main_Instance *_instance, uint16_t ConnectionHandle){
+Main_print_debug(_instance, " (Main): ATT!ATTHandleValueConfirmation\n");
 if (Main_send_ATT_ATTHandleValueConfirmation_listener != 0x0) Main_send_ATT_ATTHandleValueConfirmation_listener(_instance, ConnectionHandle);
 if (external_Main_send_ATT_ATTHandleValueConfirmation_listener != 0x0) external_Main_send_ATT_ATTHandleValueConfirmation_listener(_instance, ConnectionHandle);
 ;

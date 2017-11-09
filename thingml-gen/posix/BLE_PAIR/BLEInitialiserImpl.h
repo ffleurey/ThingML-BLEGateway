@@ -18,41 +18,6 @@ extern "C" {
  *****************************************************************************/
 
 
-// BEGIN: Code from the c_header annotation for type UUID
-#ifndef BLE_UUID_T_H
-#define BLE_UUID_T_H
-typedef struct { uint8_t bytes[16]; } ble_uuid_t;
-#endif
-// END: Code from the c_header annotation for type UUID
-
-
-// BEGIN: Code from the c_header annotation for type BTAddress
-#include <bluetooth/bluetooth.h>
-// END: Code from the c_header annotation for type BTAddress
-
-
-// BEGIN: Code from the c_header annotation for type BTLocalName
-#include <bluetooth/bluetooth.h>
-#include <bluetooth/hci.h>
-// END: Code from the c_header annotation for type BTLocalName
-
-
-// BEGIN: Code from the c_header annotation for type SMPPublicKey
-#ifndef SMP_PUBLIC_KEY_T_H
-#define SMP_PUBLIC_KEY_T_H
-typedef struct { uint8_t bytes[32]; } smp_public_key_t;
-#endif
-// END: Code from the c_header annotation for type SMPPublicKey
-
-
-// BEGIN: Code from the c_header annotation for type BLERandomPart
-#ifndef BLE_RANDOM_PART_T_H
-#define BLE_RANDOM_PART_T_H
-typedef struct { uint8_t bytes[8]; } ble_random_part_t;
-#endif
-// END: Code from the c_header annotation for type BLERandomPart
-
-
 // BEGIN: Code from the c_header annotation for type BLERandomNumber
 #ifndef BLE_RANDOM_NUMBER_T_H
 #define BLE_RANDOM_NUMBER_T_H
@@ -61,10 +26,12 @@ typedef struct { uint8_t bytes[16]; } ble_random_number_t;
 // END: Code from the c_header annotation for type BLERandomNumber
 
 
-// BEGIN: Code from the c_header annotation for type HCIEventMask
-#include <bluetooth/bluetooth.h>
-#include <bluetooth/hci.h>
-// END: Code from the c_header annotation for type HCIEventMask
+// BEGIN: Code from the c_header annotation for type UUID
+#ifndef BLE_UUID_T_H
+#define BLE_UUID_T_H
+typedef struct { uint8_t bytes[16]; } ble_uuid_t;
+#endif
+// END: Code from the c_header annotation for type UUID
 
 
 // BEGIN: Code from the c_header annotation for type GATTData
@@ -75,6 +42,20 @@ typedef struct { uint8_t length; uint8_t bytes[23]; } ble_gatt_data_t;
 // END: Code from the c_header annotation for type GATTData
 
 
+// BEGIN: Code from the c_header annotation for type SMPPublicKey
+#ifndef SMP_PUBLIC_KEY_T_H
+#define SMP_PUBLIC_KEY_T_H
+typedef struct { uint8_t bytes[32]; } smp_public_key_t;
+#endif
+// END: Code from the c_header annotation for type SMPPublicKey
+
+
+// BEGIN: Code from the c_header annotation for type HCIEventMask
+#include <bluetooth/bluetooth.h>
+#include <bluetooth/hci.h>
+// END: Code from the c_header annotation for type HCIEventMask
+
+
 // BEGIN: Code from the c_header annotation for type BLEAdvertiseData
 #ifndef BLE_ADV_DATA_T_H
 #define BLE_ADV_DATA_T_H
@@ -82,8 +63,29 @@ typedef struct { uint8_t bytes[31]; } ble_adv_data_t;
 #endif
 // END: Code from the c_header annotation for type BLEAdvertiseData
 
+
+// BEGIN: Code from the c_header annotation for type BTAddress
+#include <bluetooth/bluetooth.h>
+// END: Code from the c_header annotation for type BTAddress
+
+
+// BEGIN: Code from the c_header annotation for type BLERandomPart
+#ifndef BLE_RANDOM_PART_T_H
+#define BLE_RANDOM_PART_T_H
+typedef struct { uint8_t bytes[8]; } ble_random_part_t;
+#endif
+// END: Code from the c_header annotation for type BLERandomPart
+
+
+// BEGIN: Code from the c_header annotation for type BTLocalName
+#include <bluetooth/bluetooth.h>
+#include <bluetooth/hci.h>
+// END: Code from the c_header annotation for type BTLocalName
+
 // Definition of the instance struct:
 struct BLEInitialiserImpl_Instance {
+bool debug;
+char * name;
 
 // Instances of different sessions
 bool active;
@@ -102,11 +104,11 @@ bdaddr_t BLEInitialiserImpl_DeviceAddress_var;
 };
 // Declaration of prototypes outgoing messages :
 void BLEInitialiserImpl_States_OnEntry(int state, struct BLEInitialiserImpl_Instance *_instance);
+void BLEInitialiserImpl_handle_HCIEvents_SetEventMaskCompleted(struct BLEInitialiserImpl_Instance *_instance, uint8_t NumberAllowedCommandPackets, uint8_t Status);
+void BLEInitialiserImpl_handle_HCIEvents_SetLEEventMaskCompleted(struct BLEInitialiserImpl_Instance *_instance, uint8_t NumberAllowedCommandPackets, uint8_t Status);
+void BLEInitialiserImpl_handle_HCIEvents_ResetCompleted(struct BLEInitialiserImpl_Instance *_instance, uint8_t NumberAllowedCommandPackets, uint8_t Status);
 void BLEInitialiserImpl_handle_Socket_Closed(struct BLEInitialiserImpl_Instance *_instance);
 void BLEInitialiserImpl_handle_Socket_Opened(struct BLEInitialiserImpl_Instance *_instance, bdaddr_t Address);
-void BLEInitialiserImpl_handle_HCIEvents_SetLEEventMaskCompleted(struct BLEInitialiserImpl_Instance *_instance, uint8_t NumberAllowedCommandPackets, uint8_t Status);
-void BLEInitialiserImpl_handle_HCIEvents_SetEventMaskCompleted(struct BLEInitialiserImpl_Instance *_instance, uint8_t NumberAllowedCommandPackets, uint8_t Status);
-void BLEInitialiserImpl_handle_HCIEvents_ResetCompleted(struct BLEInitialiserImpl_Instance *_instance, uint8_t NumberAllowedCommandPackets, uint8_t Status);
 void BLEInitialiserImpl_handle_Initialiser_Start(struct BLEInitialiserImpl_Instance *_instance);
 void BLEInitialiserImpl_handle_Initialiser_Stop(struct BLEInitialiserImpl_Instance *_instance);
 // Declaration of callbacks for incoming messages:
@@ -226,13 +228,13 @@ void register_BLEInitialiserImpl_send_ATT_ATTHandleValueConfirmation_listener(vo
 void register_external_BLEInitialiserImpl_send_ATT_ATTHandleValueConfirmation_listener(void (*_listener)(struct BLEInitialiserImpl_Instance *, uint16_t));
 
 // Definition of the states:
-#define BLEINITIALISERIMPL_STATES_CLOSING_STATE 0
-#define BLEINITIALISERIMPL_STATES_CLOSED_STATE 1
-#define BLEINITIALISERIMPL_STATES_OPENING_STATE 2
+#define BLEINITIALISERIMPL_STATES_CLOSED_STATE 0
+#define BLEINITIALISERIMPL_STATES_CLOSING_STATE 1
+#define BLEINITIALISERIMPL_STATES_OPEN_STATE 2
 #define BLEINITIALISERIMPL_STATES_FAILURE_STATE 3
 #define BLEINITIALISERIMPL_STATES_INITIALISE_STATE 4
-#define BLEINITIALISERIMPL_STATES_STATE 5
-#define BLEINITIALISERIMPL_STATES_OPEN_STATE 6
+#define BLEINITIALISERIMPL_STATES_OPENING_STATE 5
+#define BLEINITIALISERIMPL_STATES_STATE 6
 
 
 

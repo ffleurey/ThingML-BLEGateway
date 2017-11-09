@@ -75,9 +75,17 @@ void BLEConnecterImpl_send_ATT_ATTHandleValueConfirmation(struct BLEConnecterImp
 ble_uuid_t f_BLEConnecterImpl_ReadUUID(struct BLEConnecterImpl_Instance *_instance, uint16_t Length, uint8_t * Data);
 ble_uuid_t f_BLEConnecterImpl_MakeUUID(struct BLEConnecterImpl_Instance *_instance, const char * Text);
 void f_BLEConnecterImpl_PrintUUID(struct BLEConnecterImpl_Instance *_instance, ble_uuid_t ID);
+//Debug fonction
+void BLEConnecterImpl_print_debug(struct BLEConnecterImpl_Instance * _instance, char * str) {
+if(_instance->debug) {
+printf("%s%s", _instance->name, str);
+}
+}
+
 // Declaration of functions:
 // Definition of function ReadUUID
 ble_uuid_t f_BLEConnecterImpl_ReadUUID(struct BLEConnecterImpl_Instance *_instance, uint16_t Length, uint8_t * Data) {
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): Start ReadUUID\n");
 ;ble_uuid_t Value = { 0xFB, 0x34, 0x9B, 0x5F, 0x80, 0x00/*-*/, 0x00, 0x80/*-*/, 0x00, 0x10/*-*/, 0x00, 0x00/*-*/, 0x00, 0x00, 0x00, 0x00 };
 if(Length == 16) {
 memcpy(&Value, Data, 16);
@@ -93,9 +101,11 @@ fprintf(stdout, "[ERROR]: Trying to decode a UUID that was not 16, 32 or 128 bit
 
 }
 return Value;
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): ReadUUID Done.\n");
 }
 // Definition of function MakeUUID
 ble_uuid_t f_BLEConnecterImpl_MakeUUID(struct BLEConnecterImpl_Instance *_instance, const char * Text) {
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): Start MakeUUID\n");
 ;ble_uuid_t Value = { 0xFB, 0x34, 0x9B, 0x5F, 0x80, 0x00/*-*/, 0x00, 0x80/*-*/, 0x00, 0x10/*-*/, 0x00, 0x00/*-*/, 0x00, 0x00, 0x00, 0x00 };
 
       uint8_t *val = (uint8_t*)&Value;
@@ -127,9 +137,11 @@ ble_uuid_t f_BLEConnecterImpl_MakeUUID(struct BLEConnecterImpl_Instance *_instan
       }
     
 return Value;
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): MakeUUID Done.\n");
 }
 // Definition of function PrintUUID
 void f_BLEConnecterImpl_PrintUUID(struct BLEConnecterImpl_Instance *_instance, ble_uuid_t ID) {
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): Start PrintUUID\n");
 
       uint8_t *v = &ID;
       printf("%2.2X%2.2X%2.2X%2.2X-",v[15],v[14],v[13],v[12]);
@@ -138,6 +150,7 @@ void f_BLEConnecterImpl_PrintUUID(struct BLEConnecterImpl_Instance *_instance, b
       printf("%2.2X%2.2X-",v[7],v[6]);
       printf("%2.2X%2.2X%2.2X%2.2X%2.2X%2.2X\n",v[5],v[4],v[3],v[2],v[1],v[0]);
     
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): PrintUUID Done.\n");
 }
 
 // Sessions functionss:
@@ -147,11 +160,40 @@ void f_BLEConnecterImpl_PrintUUID(struct BLEConnecterImpl_Instance *_instance, b
 void BLEConnecterImpl_States_OnEntry(int state, struct BLEConnecterImpl_Instance *_instance) {
 switch(state) {
 case BLECONNECTERIMPL_STATES_STATE:{
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): Enters States\n");
 _instance->BLEConnecterImpl_States_State = BLECONNECTERIMPL_STATES_NOTCONNECTED_STATE;
 BLEConnecterImpl_States_OnEntry(_instance->BLEConnecterImpl_States_State, _instance);
 break;
 }
+case BLECONNECTERIMPL_STATES_DISCONNECTING_STATE:{
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): Enters States:Disconnecting\n");
+BLEConnecterImpl_send_HCICommands_Disconnect(_instance, _instance->BLEConnecterImpl_ConnectedHandle_var, BTDISCONNECTREASON_REMOTE_USER);
+break;
+}
+case BLECONNECTERIMPL_STATES_NOTCONNECTED_STATE:{
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): Enters States:NotConnected\n");
+break;
+}
+case BLECONNECTERIMPL_STATES_CONNECTED_STATE:{
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): Enters States:Connected\n");
+fprintf(stdout, "[INFO]: Connected!\n");
+BLEConnecterImpl_send_Connecter_Connected(_instance, _instance->BLEConnecterImpl_ConnectedHandle_var, _instance->BLEConnecterImpl_ConnectedAddressType_var, _instance->BLEConnecterImpl_ConnectedAddress_var);
+break;
+}
+case BLECONNECTERIMPL_STATES_FAILURE_STATE:{
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): Enters States:Failure\n");
+fprintf(stdout, "[ERROR]: BLE_connecter failed :(\n");
+BLEConnecterImpl_send_Connecter_Failure(_instance);
+BLEConnecterImpl_send_Connecter_Stopped(_instance);
+break;
+}
+case BLECONNECTERIMPL_STATES_CANCELCONNECTION_STATE:{
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): Enters States:CancelConnection\n");
+BLEConnecterImpl_send_HCICommands_LECreateConnectionCancel(_instance);
+break;
+}
 case BLECONNECTERIMPL_STATES_CONNECTING_STATE:{
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): Enters States:Connecting\n");
 ;int16_t Interval = 0x0010;
 ;int16_t Window = 0x0010;
 ;uint8_t FilterPolicy = BLEINITIATORFILTERPOLICY_WHITELIST_NOT_USED;
@@ -167,31 +209,10 @@ case BLECONNECTERIMPL_STATES_CONNECTING_STATE:{
 BLEConnecterImpl_send_HCICommands_LECreateConnection(_instance, Interval, Window, FilterPolicy, PeerAddressType, PeerAddress, OwnAddressType, ConnIntervalMin, ConnIntervalMax, ConnLatency, SupervisionTimeout, CELengthMin, CELengthMax);
 break;
 }
-case BLECONNECTERIMPL_STATES_CANCELCONNECTION_STATE:{
-BLEConnecterImpl_send_HCICommands_LECreateConnectionCancel(_instance);
-break;
-}
 case BLECONNECTERIMPL_STATES_ENCRYPTED_STATE:{
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): Enters States:Encrypted\n");
 fprintf(stdout, "[INFO]: Connection encrypted!\n");
 BLEConnecterImpl_send_Connecter_Encrypted(_instance);
-break;
-}
-case BLECONNECTERIMPL_STATES_CONNECTED_STATE:{
-fprintf(stdout, "[INFO]: Connected!\n");
-BLEConnecterImpl_send_Connecter_Connected(_instance, _instance->BLEConnecterImpl_ConnectedHandle_var, _instance->BLEConnecterImpl_ConnectedAddressType_var, _instance->BLEConnecterImpl_ConnectedAddress_var);
-break;
-}
-case BLECONNECTERIMPL_STATES_DISCONNECTING_STATE:{
-BLEConnecterImpl_send_HCICommands_Disconnect(_instance, _instance->BLEConnecterImpl_ConnectedHandle_var, BTDISCONNECTREASON_REMOTE_USER);
-break;
-}
-case BLECONNECTERIMPL_STATES_NOTCONNECTED_STATE:{
-break;
-}
-case BLECONNECTERIMPL_STATES_FAILURE_STATE:{
-fprintf(stdout, "[ERROR]: BLE_connecter failed :(\n");
-BLEConnecterImpl_send_Connecter_Failure(_instance);
-BLEConnecterImpl_send_Connecter_Stopped(_instance);
 break;
 }
 default: break;
@@ -204,119 +225,40 @@ switch(state) {
 case BLECONNECTERIMPL_STATES_STATE:{
 BLEConnecterImpl_States_OnExit(_instance->BLEConnecterImpl_States_State, _instance);
 break;}
-case BLECONNECTERIMPL_STATES_CONNECTING_STATE:{
-break;}
-case BLECONNECTERIMPL_STATES_CANCELCONNECTION_STATE:{
-break;}
-case BLECONNECTERIMPL_STATES_ENCRYPTED_STATE:{
-break;}
-case BLECONNECTERIMPL_STATES_CONNECTED_STATE:{
-break;}
 case BLECONNECTERIMPL_STATES_DISCONNECTING_STATE:{
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): Exits States:Disconnecting\n");
 break;}
 case BLECONNECTERIMPL_STATES_NOTCONNECTED_STATE:{
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): Exits States:NotConnected\n");
+break;}
+case BLECONNECTERIMPL_STATES_CONNECTED_STATE:{
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): Exits States:Connected\n");
 break;}
 case BLECONNECTERIMPL_STATES_FAILURE_STATE:{
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): Exits States:Failure\n");
+break;}
+case BLECONNECTERIMPL_STATES_CANCELCONNECTION_STATE:{
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): Exits States:CancelConnection\n");
+break;}
+case BLECONNECTERIMPL_STATES_CONNECTING_STATE:{
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): Exits States:Connecting\n");
+break;}
+case BLECONNECTERIMPL_STATES_ENCRYPTED_STATE:{
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): Exits States:Encrypted\n");
 break;}
 default: break;
 }
 }
 
 // Event Handlers for incoming messages:
-void BLEConnecterImpl_handle_HCIEvents_DisconnectionCompleted(struct BLEConnecterImpl_Instance *_instance, uint8_t Status, uint16_t ConnectionHandle, uint8_t Reason) {
-if(!(_instance->active)) return;
-//Region States
-uint8_t BLEConnecterImpl_States_State_event_consumed = 0;
-if (_instance->BLEConnecterImpl_States_State == BLECONNECTERIMPL_STATES_CONNECTED_STATE) {
-if (BLEConnecterImpl_States_State_event_consumed == 0 && (Status == 0)) {
-BLEConnecterImpl_States_OnExit(BLECONNECTERIMPL_STATES_CONNECTED_STATE, _instance);
-_instance->BLEConnecterImpl_States_State = BLECONNECTERIMPL_STATES_NOTCONNECTED_STATE;
-fprintf(stdout, "[INFO]: Connection closed by remote.\n");
-BLEConnecterImpl_send_Connecter_Stopped(_instance);
-BLEConnecterImpl_States_OnEntry(BLECONNECTERIMPL_STATES_NOTCONNECTED_STATE, _instance);
-BLEConnecterImpl_States_State_event_consumed = 1;
-}
-else if (BLEConnecterImpl_States_State_event_consumed == 0 && (Status > 0)) {
-BLEConnecterImpl_States_OnExit(BLECONNECTERIMPL_STATES_CONNECTED_STATE, _instance);
-_instance->BLEConnecterImpl_States_State = BLECONNECTERIMPL_STATES_FAILURE_STATE;
-BLEConnecterImpl_States_OnEntry(BLECONNECTERIMPL_STATES_FAILURE_STATE, _instance);
-BLEConnecterImpl_States_State_event_consumed = 1;
-}
-}
-else if (_instance->BLEConnecterImpl_States_State == BLECONNECTERIMPL_STATES_ENCRYPTED_STATE) {
-if (BLEConnecterImpl_States_State_event_consumed == 0 && (Status == 0)) {
-BLEConnecterImpl_States_OnExit(BLECONNECTERIMPL_STATES_ENCRYPTED_STATE, _instance);
-_instance->BLEConnecterImpl_States_State = BLECONNECTERIMPL_STATES_NOTCONNECTED_STATE;
-fprintf(stdout, "[INFO]: Connection closed by remote.\n");
-BLEConnecterImpl_send_Connecter_Stopped(_instance);
-BLEConnecterImpl_States_OnEntry(BLECONNECTERIMPL_STATES_NOTCONNECTED_STATE, _instance);
-BLEConnecterImpl_States_State_event_consumed = 1;
-}
-else if (BLEConnecterImpl_States_State_event_consumed == 0 && (Status > 0)) {
-BLEConnecterImpl_States_OnExit(BLECONNECTERIMPL_STATES_ENCRYPTED_STATE, _instance);
-_instance->BLEConnecterImpl_States_State = BLECONNECTERIMPL_STATES_FAILURE_STATE;
-BLEConnecterImpl_States_OnEntry(BLECONNECTERIMPL_STATES_FAILURE_STATE, _instance);
-BLEConnecterImpl_States_State_event_consumed = 1;
-}
-}
-else if (_instance->BLEConnecterImpl_States_State == BLECONNECTERIMPL_STATES_DISCONNECTING_STATE) {
-if (BLEConnecterImpl_States_State_event_consumed == 0 && (Status == 0)) {
-BLEConnecterImpl_States_OnExit(BLECONNECTERIMPL_STATES_DISCONNECTING_STATE, _instance);
-_instance->BLEConnecterImpl_States_State = BLECONNECTERIMPL_STATES_NOTCONNECTED_STATE;
-BLEConnecterImpl_send_Connecter_Stopped(_instance);
-BLEConnecterImpl_States_OnEntry(BLECONNECTERIMPL_STATES_NOTCONNECTED_STATE, _instance);
-BLEConnecterImpl_States_State_event_consumed = 1;
-}
-else if (BLEConnecterImpl_States_State_event_consumed == 0 && (Status > 0)) {
-BLEConnecterImpl_States_OnExit(BLECONNECTERIMPL_STATES_DISCONNECTING_STATE, _instance);
-_instance->BLEConnecterImpl_States_State = BLECONNECTERIMPL_STATES_FAILURE_STATE;
-BLEConnecterImpl_States_OnEntry(BLECONNECTERIMPL_STATES_FAILURE_STATE, _instance);
-BLEConnecterImpl_States_State_event_consumed = 1;
-}
-}
-//End Region States
-//End dsregion States
-//Session list: 
-}
-void BLEConnecterImpl_handle_HCIEvents_LEEnhancedConnectionComplete(struct BLEConnecterImpl_Instance *_instance, uint8_t Status, uint16_t ConnectionHandle, uint8_t Role, uint8_t PeerAddressType, bdaddr_t PeerAddress, bdaddr_t LocalResolvablePrivateAddress, bdaddr_t PeerResolvablePrivateAddress, uint16_t ConnInterval, uint16_t ConnLatency, uint16_t SupervisionTimeout, uint8_t MasterClockAccuracy) {
-if(!(_instance->active)) return;
-//Region States
-uint8_t BLEConnecterImpl_States_State_event_consumed = 0;
-if (_instance->BLEConnecterImpl_States_State == BLECONNECTERIMPL_STATES_CONNECTING_STATE) {
-if (BLEConnecterImpl_States_State_event_consumed == 0 && (Status == 0)) {
-BLEConnecterImpl_States_OnExit(BLECONNECTERIMPL_STATES_CONNECTING_STATE, _instance);
-_instance->BLEConnecterImpl_States_State = BLECONNECTERIMPL_STATES_CONNECTED_STATE;
-_instance->BLEConnecterImpl_ConnectedHandle_var = ConnectionHandle;
-fprintf(stdout, "[INFO]: Enhanced connection complete\n");
-BLEConnecterImpl_States_OnEntry(BLECONNECTERIMPL_STATES_CONNECTED_STATE, _instance);
-BLEConnecterImpl_States_State_event_consumed = 1;
-}
-else if (BLEConnecterImpl_States_State_event_consumed == 0 && (Status > 0)) {
-BLEConnecterImpl_States_OnExit(BLECONNECTERIMPL_STATES_CONNECTING_STATE, _instance);
-_instance->BLEConnecterImpl_States_State = BLECONNECTERIMPL_STATES_FAILURE_STATE;
-BLEConnecterImpl_States_OnEntry(BLECONNECTERIMPL_STATES_FAILURE_STATE, _instance);
-BLEConnecterImpl_States_State_event_consumed = 1;
-}
-}
-else if (_instance->BLEConnecterImpl_States_State == BLECONNECTERIMPL_STATES_CANCELCONNECTION_STATE) {
-if (BLEConnecterImpl_States_State_event_consumed == 0 && (Status == 0x02)) {
-BLEConnecterImpl_States_OnExit(BLECONNECTERIMPL_STATES_CANCELCONNECTION_STATE, _instance);
-_instance->BLEConnecterImpl_States_State = BLECONNECTERIMPL_STATES_NOTCONNECTED_STATE;
-BLEConnecterImpl_send_Connecter_Stopped(_instance);
-BLEConnecterImpl_States_OnEntry(BLECONNECTERIMPL_STATES_NOTCONNECTED_STATE, _instance);
-BLEConnecterImpl_States_State_event_consumed = 1;
-}
-}
-//End Region States
-//End dsregion States
-//Session list: 
-}
 void BLEConnecterImpl_handle_HCIEvents_LEConnectionComplete(struct BLEConnecterImpl_Instance *_instance, uint8_t Status, uint16_t ConnectionHandle, uint8_t Role, uint8_t PeerAddressType, bdaddr_t PeerAddress, uint16_t ConnInterval, uint16_t ConnLatency, uint16_t SupervisionTimeout, uint8_t MasterClockAccuracy) {
 if(!(_instance->active)) return;
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): HCIEvents?LEConnectionComplete\n");
 //Region States
 uint8_t BLEConnecterImpl_States_State_event_consumed = 0;
 if (_instance->BLEConnecterImpl_States_State == BLECONNECTERIMPL_STATES_CONNECTING_STATE) {
 if (BLEConnecterImpl_States_State_event_consumed == 0 && (Status == 0)) {
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): transition Connecting -> Connected event HCIEvents?LEConnectionComplete\n");
 BLEConnecterImpl_States_OnExit(BLECONNECTERIMPL_STATES_CONNECTING_STATE, _instance);
 _instance->BLEConnecterImpl_States_State = BLECONNECTERIMPL_STATES_CONNECTED_STATE;
 _instance->BLEConnecterImpl_ConnectedHandle_var = ConnectionHandle;
@@ -327,6 +269,7 @@ BLEConnecterImpl_States_OnEntry(BLECONNECTERIMPL_STATES_CONNECTED_STATE, _instan
 BLEConnecterImpl_States_State_event_consumed = 1;
 }
 else if (BLEConnecterImpl_States_State_event_consumed == 0 && (Status > 0)) {
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): transition Connecting -> Failure event HCIEvents?LEConnectionComplete\n");
 BLEConnecterImpl_States_OnExit(BLECONNECTERIMPL_STATES_CONNECTING_STATE, _instance);
 _instance->BLEConnecterImpl_States_State = BLECONNECTERIMPL_STATES_FAILURE_STATE;
 BLEConnecterImpl_States_OnEntry(BLECONNECTERIMPL_STATES_FAILURE_STATE, _instance);
@@ -335,6 +278,7 @@ BLEConnecterImpl_States_State_event_consumed = 1;
 }
 else if (_instance->BLEConnecterImpl_States_State == BLECONNECTERIMPL_STATES_CANCELCONNECTION_STATE) {
 if (BLEConnecterImpl_States_State_event_consumed == 0 && (Status == 0x02)) {
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): transition CancelConnection -> NotConnected event HCIEvents?LEConnectionComplete\n");
 BLEConnecterImpl_States_OnExit(BLECONNECTERIMPL_STATES_CANCELCONNECTION_STATE, _instance);
 _instance->BLEConnecterImpl_States_State = BLECONNECTERIMPL_STATES_NOTCONNECTED_STATE;
 BLEConnecterImpl_send_Connecter_Stopped(_instance);
@@ -346,20 +290,36 @@ BLEConnecterImpl_States_State_event_consumed = 1;
 //End dsregion States
 //Session list: 
 }
-void BLEConnecterImpl_handle_HCIEvents_LEStartEncryptionStatus(struct BLEConnecterImpl_Instance *_instance, uint8_t NumberAllowedCommandPackets, uint8_t Status) {
+void BLEConnecterImpl_handle_HCIEvents_LEEnhancedConnectionComplete(struct BLEConnecterImpl_Instance *_instance, uint8_t Status, uint16_t ConnectionHandle, uint8_t Role, uint8_t PeerAddressType, bdaddr_t PeerAddress, bdaddr_t LocalResolvablePrivateAddress, bdaddr_t PeerResolvablePrivateAddress, uint16_t ConnInterval, uint16_t ConnLatency, uint16_t SupervisionTimeout, uint8_t MasterClockAccuracy) {
 if(!(_instance->active)) return;
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): HCIEvents?LEEnhancedConnectionComplete\n");
 //Region States
 uint8_t BLEConnecterImpl_States_State_event_consumed = 0;
-if (_instance->BLEConnecterImpl_States_State == BLECONNECTERIMPL_STATES_CONNECTED_STATE) {
-if (BLEConnecterImpl_States_State_event_consumed == 0 && (Status > 0)) {
-BLEConnecterImpl_States_OnExit(BLECONNECTERIMPL_STATES_CONNECTED_STATE, _instance);
+if (_instance->BLEConnecterImpl_States_State == BLECONNECTERIMPL_STATES_CONNECTING_STATE) {
+if (BLEConnecterImpl_States_State_event_consumed == 0 && (Status == 0)) {
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): transition Connecting -> Connected event HCIEvents?LEEnhancedConnectionComplete\n");
+BLEConnecterImpl_States_OnExit(BLECONNECTERIMPL_STATES_CONNECTING_STATE, _instance);
+_instance->BLEConnecterImpl_States_State = BLECONNECTERIMPL_STATES_CONNECTED_STATE;
+_instance->BLEConnecterImpl_ConnectedHandle_var = ConnectionHandle;
+fprintf(stdout, "[INFO]: Enhanced connection complete\n");
+BLEConnecterImpl_States_OnEntry(BLECONNECTERIMPL_STATES_CONNECTED_STATE, _instance);
+BLEConnecterImpl_States_State_event_consumed = 1;
+}
+else if (BLEConnecterImpl_States_State_event_consumed == 0 && (Status > 0)) {
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): transition Connecting -> Failure event HCIEvents?LEEnhancedConnectionComplete\n");
+BLEConnecterImpl_States_OnExit(BLECONNECTERIMPL_STATES_CONNECTING_STATE, _instance);
 _instance->BLEConnecterImpl_States_State = BLECONNECTERIMPL_STATES_FAILURE_STATE;
-fprintf(stdout, "[ERROR]: Start encryption failed!\n");
 BLEConnecterImpl_States_OnEntry(BLECONNECTERIMPL_STATES_FAILURE_STATE, _instance);
 BLEConnecterImpl_States_State_event_consumed = 1;
 }
-else if (BLEConnecterImpl_States_State_event_consumed == 0 && (Status == 0)) {
-fprintf(stdout, "[INFO]: Requested encryption...\n");
+}
+else if (_instance->BLEConnecterImpl_States_State == BLECONNECTERIMPL_STATES_CANCELCONNECTION_STATE) {
+if (BLEConnecterImpl_States_State_event_consumed == 0 && (Status == 0x02)) {
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): transition CancelConnection -> NotConnected event HCIEvents?LEEnhancedConnectionComplete\n");
+BLEConnecterImpl_States_OnExit(BLECONNECTERIMPL_STATES_CANCELCONNECTION_STATE, _instance);
+_instance->BLEConnecterImpl_States_State = BLECONNECTERIMPL_STATES_NOTCONNECTED_STATE;
+BLEConnecterImpl_send_Connecter_Stopped(_instance);
+BLEConnecterImpl_States_OnEntry(BLECONNECTERIMPL_STATES_NOTCONNECTED_STATE, _instance);
 BLEConnecterImpl_States_State_event_consumed = 1;
 }
 }
@@ -367,15 +327,85 @@ BLEConnecterImpl_States_State_event_consumed = 1;
 //End dsregion States
 //Session list: 
 }
-void BLEConnecterImpl_handle_HCIEvents_LECreateConnectionCancelCompleted(struct BLEConnecterImpl_Instance *_instance, uint8_t NumberAllowedCommandPackets, uint8_t Status) {
+void BLEConnecterImpl_handle_HCIEvents_DisconnectionCompleted(struct BLEConnecterImpl_Instance *_instance, uint8_t Status, uint16_t ConnectionHandle, uint8_t Reason) {
 if(!(_instance->active)) return;
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): HCIEvents?DisconnectionCompleted\n");
 //Region States
 uint8_t BLEConnecterImpl_States_State_event_consumed = 0;
-if (_instance->BLEConnecterImpl_States_State == BLECONNECTERIMPL_STATES_CANCELCONNECTION_STATE) {
-if (BLEConnecterImpl_States_State_event_consumed == 0 && (Status > 0)) {
-BLEConnecterImpl_States_OnExit(BLECONNECTERIMPL_STATES_CANCELCONNECTION_STATE, _instance);
+if (_instance->BLEConnecterImpl_States_State == BLECONNECTERIMPL_STATES_CONNECTED_STATE) {
+if (BLEConnecterImpl_States_State_event_consumed == 0 && (Status == 0)) {
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): transition Connected -> NotConnected event HCIEvents?DisconnectionCompleted\n");
+BLEConnecterImpl_States_OnExit(BLECONNECTERIMPL_STATES_CONNECTED_STATE, _instance);
+_instance->BLEConnecterImpl_States_State = BLECONNECTERIMPL_STATES_NOTCONNECTED_STATE;
+fprintf(stdout, "[INFO]: Connection closed by remote.\n");
+BLEConnecterImpl_send_Connecter_Stopped(_instance);
+BLEConnecterImpl_States_OnEntry(BLECONNECTERIMPL_STATES_NOTCONNECTED_STATE, _instance);
+BLEConnecterImpl_States_State_event_consumed = 1;
+}
+else if (BLEConnecterImpl_States_State_event_consumed == 0 && (Status > 0)) {
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): transition Connected -> Failure event HCIEvents?DisconnectionCompleted\n");
+BLEConnecterImpl_States_OnExit(BLECONNECTERIMPL_STATES_CONNECTED_STATE, _instance);
 _instance->BLEConnecterImpl_States_State = BLECONNECTERIMPL_STATES_FAILURE_STATE;
 BLEConnecterImpl_States_OnEntry(BLECONNECTERIMPL_STATES_FAILURE_STATE, _instance);
+BLEConnecterImpl_States_State_event_consumed = 1;
+}
+}
+else if (_instance->BLEConnecterImpl_States_State == BLECONNECTERIMPL_STATES_ENCRYPTED_STATE) {
+if (BLEConnecterImpl_States_State_event_consumed == 0 && (Status == 0)) {
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): transition Encrypted -> NotConnected event HCIEvents?DisconnectionCompleted\n");
+BLEConnecterImpl_States_OnExit(BLECONNECTERIMPL_STATES_ENCRYPTED_STATE, _instance);
+_instance->BLEConnecterImpl_States_State = BLECONNECTERIMPL_STATES_NOTCONNECTED_STATE;
+fprintf(stdout, "[INFO]: Connection closed by remote.\n");
+BLEConnecterImpl_send_Connecter_Stopped(_instance);
+BLEConnecterImpl_States_OnEntry(BLECONNECTERIMPL_STATES_NOTCONNECTED_STATE, _instance);
+BLEConnecterImpl_States_State_event_consumed = 1;
+}
+else if (BLEConnecterImpl_States_State_event_consumed == 0 && (Status > 0)) {
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): transition Encrypted -> Failure event HCIEvents?DisconnectionCompleted\n");
+BLEConnecterImpl_States_OnExit(BLECONNECTERIMPL_STATES_ENCRYPTED_STATE, _instance);
+_instance->BLEConnecterImpl_States_State = BLECONNECTERIMPL_STATES_FAILURE_STATE;
+BLEConnecterImpl_States_OnEntry(BLECONNECTERIMPL_STATES_FAILURE_STATE, _instance);
+BLEConnecterImpl_States_State_event_consumed = 1;
+}
+}
+else if (_instance->BLEConnecterImpl_States_State == BLECONNECTERIMPL_STATES_DISCONNECTING_STATE) {
+if (BLEConnecterImpl_States_State_event_consumed == 0 && (Status == 0)) {
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): transition Disconnecting -> NotConnected event HCIEvents?DisconnectionCompleted\n");
+BLEConnecterImpl_States_OnExit(BLECONNECTERIMPL_STATES_DISCONNECTING_STATE, _instance);
+_instance->BLEConnecterImpl_States_State = BLECONNECTERIMPL_STATES_NOTCONNECTED_STATE;
+BLEConnecterImpl_send_Connecter_Stopped(_instance);
+BLEConnecterImpl_States_OnEntry(BLECONNECTERIMPL_STATES_NOTCONNECTED_STATE, _instance);
+BLEConnecterImpl_States_State_event_consumed = 1;
+}
+else if (BLEConnecterImpl_States_State_event_consumed == 0 && (Status > 0)) {
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): transition Disconnecting -> Failure event HCIEvents?DisconnectionCompleted\n");
+BLEConnecterImpl_States_OnExit(BLECONNECTERIMPL_STATES_DISCONNECTING_STATE, _instance);
+_instance->BLEConnecterImpl_States_State = BLECONNECTERIMPL_STATES_FAILURE_STATE;
+BLEConnecterImpl_States_OnEntry(BLECONNECTERIMPL_STATES_FAILURE_STATE, _instance);
+BLEConnecterImpl_States_State_event_consumed = 1;
+}
+}
+//End Region States
+//End dsregion States
+//Session list: 
+}
+void BLEConnecterImpl_handle_HCIEvents_LEStartEncryptionStatus(struct BLEConnecterImpl_Instance *_instance, uint8_t NumberAllowedCommandPackets, uint8_t Status) {
+if(!(_instance->active)) return;
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): HCIEvents?LEStartEncryptionStatus\n");
+//Region States
+uint8_t BLEConnecterImpl_States_State_event_consumed = 0;
+if (_instance->BLEConnecterImpl_States_State == BLECONNECTERIMPL_STATES_CONNECTED_STATE) {
+if (BLEConnecterImpl_States_State_event_consumed == 0 && (Status > 0)) {
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): transition Connected -> Failure event HCIEvents?LEStartEncryptionStatus\n");
+BLEConnecterImpl_States_OnExit(BLECONNECTERIMPL_STATES_CONNECTED_STATE, _instance);
+_instance->BLEConnecterImpl_States_State = BLECONNECTERIMPL_STATES_FAILURE_STATE;
+fprintf(stdout, "[ERROR]: Start encryption failed!\n");
+BLEConnecterImpl_States_OnEntry(BLECONNECTERIMPL_STATES_FAILURE_STATE, _instance);
+BLEConnecterImpl_States_State_event_consumed = 1;
+}
+else if (BLEConnecterImpl_States_State_event_consumed == 0 && (Status == 0)) {
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): internal event HCIEvents?LEStartEncryptionStatus\n");
+fprintf(stdout, "[INFO]: Requested encryption...\n");
 BLEConnecterImpl_States_State_event_consumed = 1;
 }
 }
@@ -385,16 +415,19 @@ BLEConnecterImpl_States_State_event_consumed = 1;
 }
 void BLEConnecterImpl_handle_HCIEvents_DisconnectStatus(struct BLEConnecterImpl_Instance *_instance, uint8_t NumberAllowedCommandPackets, uint8_t Status) {
 if(!(_instance->active)) return;
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): HCIEvents?DisconnectStatus\n");
 //Region States
 uint8_t BLEConnecterImpl_States_State_event_consumed = 0;
 if (_instance->BLEConnecterImpl_States_State == BLECONNECTERIMPL_STATES_DISCONNECTING_STATE) {
 if (BLEConnecterImpl_States_State_event_consumed == 0 && (Status > 0)) {
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): transition Disconnecting -> Failure event HCIEvents?DisconnectStatus\n");
 BLEConnecterImpl_States_OnExit(BLECONNECTERIMPL_STATES_DISCONNECTING_STATE, _instance);
 _instance->BLEConnecterImpl_States_State = BLECONNECTERIMPL_STATES_FAILURE_STATE;
 BLEConnecterImpl_States_OnEntry(BLECONNECTERIMPL_STATES_FAILURE_STATE, _instance);
 BLEConnecterImpl_States_State_event_consumed = 1;
 }
 else if (BLEConnecterImpl_States_State_event_consumed == 0 && (Status == 0)) {
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): internal event HCIEvents?DisconnectStatus\n");
 fprintf(stdout, "[INFO]: Closing connection...\n");
 BLEConnecterImpl_States_State_event_consumed = 1;
 }
@@ -405,16 +438,19 @@ BLEConnecterImpl_States_State_event_consumed = 1;
 }
 void BLEConnecterImpl_handle_HCIEvents_LECreateConnectionStatus(struct BLEConnecterImpl_Instance *_instance, uint8_t NumberAllowedCommandPackets, uint8_t Status) {
 if(!(_instance->active)) return;
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): HCIEvents?LECreateConnectionStatus\n");
 //Region States
 uint8_t BLEConnecterImpl_States_State_event_consumed = 0;
 if (_instance->BLEConnecterImpl_States_State == BLECONNECTERIMPL_STATES_CONNECTING_STATE) {
 if (BLEConnecterImpl_States_State_event_consumed == 0 && (Status > 0)) {
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): transition Connecting -> Failure event HCIEvents?LECreateConnectionStatus\n");
 BLEConnecterImpl_States_OnExit(BLECONNECTERIMPL_STATES_CONNECTING_STATE, _instance);
 _instance->BLEConnecterImpl_States_State = BLECONNECTERIMPL_STATES_FAILURE_STATE;
 BLEConnecterImpl_States_OnEntry(BLECONNECTERIMPL_STATES_FAILURE_STATE, _instance);
 BLEConnecterImpl_States_State_event_consumed = 1;
 }
 else if (BLEConnecterImpl_States_State_event_consumed == 0 && (Status == 0)) {
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): internal event HCIEvents?LECreateConnectionStatus\n");
 fprintf(stdout, "[INFO]: Requested connection to ");
 
           char address[18];
@@ -430,18 +466,39 @@ BLEConnecterImpl_States_State_event_consumed = 1;
 //End dsregion States
 //Session list: 
 }
+void BLEConnecterImpl_handle_HCIEvents_LECreateConnectionCancelCompleted(struct BLEConnecterImpl_Instance *_instance, uint8_t NumberAllowedCommandPackets, uint8_t Status) {
+if(!(_instance->active)) return;
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): HCIEvents?LECreateConnectionCancelCompleted\n");
+//Region States
+uint8_t BLEConnecterImpl_States_State_event_consumed = 0;
+if (_instance->BLEConnecterImpl_States_State == BLECONNECTERIMPL_STATES_CANCELCONNECTION_STATE) {
+if (BLEConnecterImpl_States_State_event_consumed == 0 && (Status > 0)) {
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): transition CancelConnection -> Failure event HCIEvents?LECreateConnectionCancelCompleted\n");
+BLEConnecterImpl_States_OnExit(BLECONNECTERIMPL_STATES_CANCELCONNECTION_STATE, _instance);
+_instance->BLEConnecterImpl_States_State = BLECONNECTERIMPL_STATES_FAILURE_STATE;
+BLEConnecterImpl_States_OnEntry(BLECONNECTERIMPL_STATES_FAILURE_STATE, _instance);
+BLEConnecterImpl_States_State_event_consumed = 1;
+}
+}
+//End Region States
+//End dsregion States
+//Session list: 
+}
 void BLEConnecterImpl_handle_HCIEvents_EncryptionChanged(struct BLEConnecterImpl_Instance *_instance, uint8_t Status, uint16_t ConnectionHandle, uint8_t Enabled) {
 if(!(_instance->active)) return;
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): HCIEvents?EncryptionChanged\n");
 //Region States
 uint8_t BLEConnecterImpl_States_State_event_consumed = 0;
 if (_instance->BLEConnecterImpl_States_State == BLECONNECTERIMPL_STATES_CONNECTED_STATE) {
 if (BLEConnecterImpl_States_State_event_consumed == 0 && (Status == 0 && Enabled)) {
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): transition Connected -> Encrypted event HCIEvents?EncryptionChanged\n");
 BLEConnecterImpl_States_OnExit(BLECONNECTERIMPL_STATES_CONNECTED_STATE, _instance);
 _instance->BLEConnecterImpl_States_State = BLECONNECTERIMPL_STATES_ENCRYPTED_STATE;
 BLEConnecterImpl_States_OnEntry(BLECONNECTERIMPL_STATES_ENCRYPTED_STATE, _instance);
 BLEConnecterImpl_States_State_event_consumed = 1;
 }
 else if (BLEConnecterImpl_States_State_event_consumed == 0 && (Status > 0)) {
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): transition Connected -> Failure event HCIEvents?EncryptionChanged\n");
 BLEConnecterImpl_States_OnExit(BLECONNECTERIMPL_STATES_CONNECTED_STATE, _instance);
 _instance->BLEConnecterImpl_States_State = BLECONNECTERIMPL_STATES_FAILURE_STATE;
 fprintf(stdout, "[ERROR]: Encryption failed!\n");
@@ -451,12 +508,14 @@ BLEConnecterImpl_States_State_event_consumed = 1;
 }
 else if (_instance->BLEConnecterImpl_States_State == BLECONNECTERIMPL_STATES_ENCRYPTED_STATE) {
 if (BLEConnecterImpl_States_State_event_consumed == 0 && (Status == 0 &&  !(Enabled))) {
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): transition Encrypted -> Connected event HCIEvents?EncryptionChanged\n");
 BLEConnecterImpl_States_OnExit(BLECONNECTERIMPL_STATES_ENCRYPTED_STATE, _instance);
 _instance->BLEConnecterImpl_States_State = BLECONNECTERIMPL_STATES_CONNECTED_STATE;
 BLEConnecterImpl_States_OnEntry(BLECONNECTERIMPL_STATES_CONNECTED_STATE, _instance);
 BLEConnecterImpl_States_State_event_consumed = 1;
 }
 else if (BLEConnecterImpl_States_State_event_consumed == 0 && (Status > 0)) {
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): transition Encrypted -> Failure event HCIEvents?EncryptionChanged\n");
 BLEConnecterImpl_States_OnExit(BLECONNECTERIMPL_STATES_ENCRYPTED_STATE, _instance);
 _instance->BLEConnecterImpl_States_State = BLECONNECTERIMPL_STATES_FAILURE_STATE;
 fprintf(stdout, "[ERROR]: Encryption failed!\n");
@@ -468,50 +527,14 @@ BLEConnecterImpl_States_State_event_consumed = 1;
 //End dsregion States
 //Session list: 
 }
-void BLEConnecterImpl_handle_Connecter_Encrypt(struct BLEConnecterImpl_Instance *_instance) {
-if(!(_instance->active)) return;
-//Region States
-uint8_t BLEConnecterImpl_States_State_event_consumed = 0;
-if (_instance->BLEConnecterImpl_States_State == BLECONNECTERIMPL_STATES_CONNECTED_STATE) {
-if (BLEConnecterImpl_States_State_event_consumed == 0 && 1) {
-BLEConnecterImpl_send_HCICommands_LEStartEncryption(_instance, _instance->BLEConnecterImpl_ConnectedHandle_var, _instance->BLEConnecterImpl_RandomNumber_var, _instance->BLEConnecterImpl_EncryptedDiversifier_var, _instance->BLEConnecterImpl_LongTermKey_var);
-BLEConnecterImpl_States_State_event_consumed = 1;
-}
-}
-else if (_instance->BLEConnecterImpl_States_State == BLECONNECTERIMPL_STATES_ENCRYPTED_STATE) {
-if (BLEConnecterImpl_States_State_event_consumed == 0 && 1) {
-BLEConnecterImpl_send_Connecter_Encrypted(_instance);
-BLEConnecterImpl_States_State_event_consumed = 1;
-}
-}
-//End Region States
-//End dsregion States
-//Session list: 
-}
-void BLEConnecterImpl_handle_Connecter_ConnectToU(struct BLEConnecterImpl_Instance *_instance, uint8_t AddressType, bdaddr_t Address) {
-if(!(_instance->active)) return;
-//Region States
-uint8_t BLEConnecterImpl_States_State_event_consumed = 0;
-if (_instance->BLEConnecterImpl_States_State == BLECONNECTERIMPL_STATES_NOTCONNECTED_STATE) {
-if (BLEConnecterImpl_States_State_event_consumed == 0 && 1) {
-BLEConnecterImpl_States_OnExit(BLECONNECTERIMPL_STATES_NOTCONNECTED_STATE, _instance);
-_instance->BLEConnecterImpl_States_State = BLECONNECTERIMPL_STATES_CONNECTING_STATE;
-_instance->BLEConnecterImpl_ConnectAddressType_var = AddressType;
-_instance->BLEConnecterImpl_ConnectAddressBT_var = Address;
-BLEConnecterImpl_States_OnEntry(BLECONNECTERIMPL_STATES_CONNECTING_STATE, _instance);
-BLEConnecterImpl_States_State_event_consumed = 1;
-}
-}
-//End Region States
-//End dsregion States
-//Session list: 
-}
 void BLEConnecterImpl_handle_Connecter_ConnectTo(struct BLEConnecterImpl_Instance *_instance, uint8_t AddressType, bdaddr_t Address, ble_random_number_t LongTermKey, uint16_t EncryptedDiversifier, ble_random_part_t RandomNumber) {
 if(!(_instance->active)) return;
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): Connecter?ConnectTo\n");
 //Region States
 uint8_t BLEConnecterImpl_States_State_event_consumed = 0;
 if (_instance->BLEConnecterImpl_States_State == BLECONNECTERIMPL_STATES_NOTCONNECTED_STATE) {
 if (BLEConnecterImpl_States_State_event_consumed == 0 && 1) {
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): transition NotConnected -> Connecting event Connecter?ConnectTo\n");
 BLEConnecterImpl_States_OnExit(BLECONNECTERIMPL_STATES_NOTCONNECTED_STATE, _instance);
 _instance->BLEConnecterImpl_States_State = BLECONNECTERIMPL_STATES_CONNECTING_STATE;
 _instance->BLEConnecterImpl_ConnectAddressType_var = AddressType;
@@ -529,16 +552,19 @@ BLEConnecterImpl_States_State_event_consumed = 1;
 }
 void BLEConnecterImpl_handle_Connecter_Stop(struct BLEConnecterImpl_Instance *_instance) {
 if(!(_instance->active)) return;
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): Connecter?Stop\n");
 //Region States
 uint8_t BLEConnecterImpl_States_State_event_consumed = 0;
 if (_instance->BLEConnecterImpl_States_State == BLECONNECTERIMPL_STATES_NOTCONNECTED_STATE) {
 if (BLEConnecterImpl_States_State_event_consumed == 0 && 1) {
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): internal event Connecter?Stop\n");
 BLEConnecterImpl_send_Connecter_Stopped(_instance);
 BLEConnecterImpl_States_State_event_consumed = 1;
 }
 }
 else if (_instance->BLEConnecterImpl_States_State == BLECONNECTERIMPL_STATES_CONNECTING_STATE) {
 if (BLEConnecterImpl_States_State_event_consumed == 0 && 1) {
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): transition Connecting -> CancelConnection event Connecter?Stop\n");
 BLEConnecterImpl_States_OnExit(BLECONNECTERIMPL_STATES_CONNECTING_STATE, _instance);
 _instance->BLEConnecterImpl_States_State = BLECONNECTERIMPL_STATES_CANCELCONNECTION_STATE;
 BLEConnecterImpl_States_OnEntry(BLECONNECTERIMPL_STATES_CANCELCONNECTION_STATE, _instance);
@@ -547,6 +573,7 @@ BLEConnecterImpl_States_State_event_consumed = 1;
 }
 else if (_instance->BLEConnecterImpl_States_State == BLECONNECTERIMPL_STATES_CONNECTED_STATE) {
 if (BLEConnecterImpl_States_State_event_consumed == 0 && 1) {
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): transition Connected -> Disconnecting event Connecter?Stop\n");
 BLEConnecterImpl_States_OnExit(BLECONNECTERIMPL_STATES_CONNECTED_STATE, _instance);
 _instance->BLEConnecterImpl_States_State = BLECONNECTERIMPL_STATES_DISCONNECTING_STATE;
 BLEConnecterImpl_States_OnEntry(BLECONNECTERIMPL_STATES_DISCONNECTING_STATE, _instance);
@@ -555,6 +582,7 @@ BLEConnecterImpl_States_State_event_consumed = 1;
 }
 else if (_instance->BLEConnecterImpl_States_State == BLECONNECTERIMPL_STATES_ENCRYPTED_STATE) {
 if (BLEConnecterImpl_States_State_event_consumed == 0 && 1) {
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): transition Encrypted -> Disconnecting event Connecter?Stop\n");
 BLEConnecterImpl_States_OnExit(BLECONNECTERIMPL_STATES_ENCRYPTED_STATE, _instance);
 _instance->BLEConnecterImpl_States_State = BLECONNECTERIMPL_STATES_DISCONNECTING_STATE;
 BLEConnecterImpl_States_OnEntry(BLECONNECTERIMPL_STATES_DISCONNECTING_STATE, _instance);
@@ -563,6 +591,7 @@ BLEConnecterImpl_States_State_event_consumed = 1;
 }
 else if (_instance->BLEConnecterImpl_States_State == BLECONNECTERIMPL_STATES_FAILURE_STATE) {
 if (BLEConnecterImpl_States_State_event_consumed == 0 && 1) {
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): internal event Connecter?Stop\n");
 BLEConnecterImpl_send_Connecter_Failure(_instance);
 BLEConnecterImpl_States_State_event_consumed = 1;
 }
@@ -573,10 +602,12 @@ BLEConnecterImpl_States_State_event_consumed = 1;
 }
 void BLEConnecterImpl_handle_Connecter_Connect(struct BLEConnecterImpl_Instance *_instance) {
 if(!(_instance->active)) return;
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): Connecter?Connect\n");
 //Region States
 uint8_t BLEConnecterImpl_States_State_event_consumed = 0;
 if (_instance->BLEConnecterImpl_States_State == BLECONNECTERIMPL_STATES_NOTCONNECTED_STATE) {
 if (BLEConnecterImpl_States_State_event_consumed == 0 && 1) {
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): transition NotConnected -> Connecting event Connecter?Connect\n");
 BLEConnecterImpl_States_OnExit(BLECONNECTERIMPL_STATES_NOTCONNECTED_STATE, _instance);
 _instance->BLEConnecterImpl_States_State = BLECONNECTERIMPL_STATES_CONNECTING_STATE;
 str2ba(_instance->BLEConnecterImpl_ConnectAddress_var,&_instance->BLEConnecterImpl_ConnectAddressBT_var);
@@ -586,20 +617,66 @@ BLEConnecterImpl_States_State_event_consumed = 1;
 }
 else if (_instance->BLEConnecterImpl_States_State == BLECONNECTERIMPL_STATES_CONNECTED_STATE) {
 if (BLEConnecterImpl_States_State_event_consumed == 0 && 1) {
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): internal event Connecter?Connect\n");
 BLEConnecterImpl_send_Connecter_Connected(_instance, _instance->BLEConnecterImpl_ConnectedHandle_var, _instance->BLEConnecterImpl_ConnectedAddressType_var, _instance->BLEConnecterImpl_ConnectedAddress_var);
 BLEConnecterImpl_States_State_event_consumed = 1;
 }
 }
 else if (_instance->BLEConnecterImpl_States_State == BLECONNECTERIMPL_STATES_ENCRYPTED_STATE) {
 if (BLEConnecterImpl_States_State_event_consumed == 0 && 1) {
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): internal event Connecter?Connect\n");
 BLEConnecterImpl_send_Connecter_Connected(_instance, _instance->BLEConnecterImpl_ConnectedHandle_var, _instance->BLEConnecterImpl_ConnectedAddressType_var, _instance->BLEConnecterImpl_ConnectedAddress_var);
 BLEConnecterImpl_States_State_event_consumed = 1;
 }
 }
 else if (_instance->BLEConnecterImpl_States_State == BLECONNECTERIMPL_STATES_FAILURE_STATE) {
 if (BLEConnecterImpl_States_State_event_consumed == 0 && 1) {
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): transition Failure -> Connecting event Connecter?Connect\n");
 BLEConnecterImpl_States_OnExit(BLECONNECTERIMPL_STATES_FAILURE_STATE, _instance);
 _instance->BLEConnecterImpl_States_State = BLECONNECTERIMPL_STATES_CONNECTING_STATE;
+BLEConnecterImpl_States_OnEntry(BLECONNECTERIMPL_STATES_CONNECTING_STATE, _instance);
+BLEConnecterImpl_States_State_event_consumed = 1;
+}
+}
+//End Region States
+//End dsregion States
+//Session list: 
+}
+void BLEConnecterImpl_handle_Connecter_Encrypt(struct BLEConnecterImpl_Instance *_instance) {
+if(!(_instance->active)) return;
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): Connecter?Encrypt\n");
+//Region States
+uint8_t BLEConnecterImpl_States_State_event_consumed = 0;
+if (_instance->BLEConnecterImpl_States_State == BLECONNECTERIMPL_STATES_CONNECTED_STATE) {
+if (BLEConnecterImpl_States_State_event_consumed == 0 && 1) {
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): internal event Connecter?Encrypt\n");
+BLEConnecterImpl_send_HCICommands_LEStartEncryption(_instance, _instance->BLEConnecterImpl_ConnectedHandle_var, _instance->BLEConnecterImpl_RandomNumber_var, _instance->BLEConnecterImpl_EncryptedDiversifier_var, _instance->BLEConnecterImpl_LongTermKey_var);
+BLEConnecterImpl_States_State_event_consumed = 1;
+}
+}
+else if (_instance->BLEConnecterImpl_States_State == BLECONNECTERIMPL_STATES_ENCRYPTED_STATE) {
+if (BLEConnecterImpl_States_State_event_consumed == 0 && 1) {
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): internal event Connecter?Encrypt\n");
+BLEConnecterImpl_send_Connecter_Encrypted(_instance);
+BLEConnecterImpl_States_State_event_consumed = 1;
+}
+}
+//End Region States
+//End dsregion States
+//Session list: 
+}
+void BLEConnecterImpl_handle_Connecter_ConnectToU(struct BLEConnecterImpl_Instance *_instance, uint8_t AddressType, bdaddr_t Address) {
+if(!(_instance->active)) return;
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): Connecter?ConnectToU\n");
+//Region States
+uint8_t BLEConnecterImpl_States_State_event_consumed = 0;
+if (_instance->BLEConnecterImpl_States_State == BLECONNECTERIMPL_STATES_NOTCONNECTED_STATE) {
+if (BLEConnecterImpl_States_State_event_consumed == 0 && 1) {
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): transition NotConnected -> Connecting event Connecter?ConnectToU\n");
+BLEConnecterImpl_States_OnExit(BLECONNECTERIMPL_STATES_NOTCONNECTED_STATE, _instance);
+_instance->BLEConnecterImpl_States_State = BLECONNECTERIMPL_STATES_CONNECTING_STATE;
+_instance->BLEConnecterImpl_ConnectAddressType_var = AddressType;
+_instance->BLEConnecterImpl_ConnectAddressBT_var = Address;
 BLEConnecterImpl_States_OnEntry(BLECONNECTERIMPL_STATES_CONNECTING_STATE, _instance);
 BLEConnecterImpl_States_State_event_consumed = 1;
 }
@@ -619,6 +696,7 @@ void register_BLEConnecterImpl_send_Connecter_Connected_listener(void (*_listene
 BLEConnecterImpl_send_Connecter_Connected_listener = _listener;
 }
 void BLEConnecterImpl_send_Connecter_Connected(struct BLEConnecterImpl_Instance *_instance, uint16_t Handle, uint8_t AddressType, bdaddr_t Address){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): Connecter!Connected\n");
 if (BLEConnecterImpl_send_Connecter_Connected_listener != 0x0) BLEConnecterImpl_send_Connecter_Connected_listener(_instance, Handle, AddressType, Address);
 if (external_BLEConnecterImpl_send_Connecter_Connected_listener != 0x0) external_BLEConnecterImpl_send_Connecter_Connected_listener(_instance, Handle, AddressType, Address);
 ;
@@ -632,6 +710,7 @@ void register_BLEConnecterImpl_send_Connecter_Stopped_listener(void (*_listener)
 BLEConnecterImpl_send_Connecter_Stopped_listener = _listener;
 }
 void BLEConnecterImpl_send_Connecter_Stopped(struct BLEConnecterImpl_Instance *_instance){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): Connecter!Stopped\n");
 if (BLEConnecterImpl_send_Connecter_Stopped_listener != 0x0) BLEConnecterImpl_send_Connecter_Stopped_listener(_instance);
 if (external_BLEConnecterImpl_send_Connecter_Stopped_listener != 0x0) external_BLEConnecterImpl_send_Connecter_Stopped_listener(_instance);
 ;
@@ -645,6 +724,7 @@ void register_BLEConnecterImpl_send_Connecter_Failure_listener(void (*_listener)
 BLEConnecterImpl_send_Connecter_Failure_listener = _listener;
 }
 void BLEConnecterImpl_send_Connecter_Failure(struct BLEConnecterImpl_Instance *_instance){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): Connecter!Failure\n");
 if (BLEConnecterImpl_send_Connecter_Failure_listener != 0x0) BLEConnecterImpl_send_Connecter_Failure_listener(_instance);
 if (external_BLEConnecterImpl_send_Connecter_Failure_listener != 0x0) external_BLEConnecterImpl_send_Connecter_Failure_listener(_instance);
 ;
@@ -658,6 +738,7 @@ void register_BLEConnecterImpl_send_Connecter_Encrypted_listener(void (*_listene
 BLEConnecterImpl_send_Connecter_Encrypted_listener = _listener;
 }
 void BLEConnecterImpl_send_Connecter_Encrypted(struct BLEConnecterImpl_Instance *_instance){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): Connecter!Encrypted\n");
 if (BLEConnecterImpl_send_Connecter_Encrypted_listener != 0x0) BLEConnecterImpl_send_Connecter_Encrypted_listener(_instance);
 if (external_BLEConnecterImpl_send_Connecter_Encrypted_listener != 0x0) external_BLEConnecterImpl_send_Connecter_Encrypted_listener(_instance);
 ;
@@ -671,6 +752,7 @@ void register_BLEConnecterImpl_send_Socket_Open_listener(void (*_listener)(struc
 BLEConnecterImpl_send_Socket_Open_listener = _listener;
 }
 void BLEConnecterImpl_send_Socket_Open(struct BLEConnecterImpl_Instance *_instance){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): Socket!Open\n");
 if (BLEConnecterImpl_send_Socket_Open_listener != 0x0) BLEConnecterImpl_send_Socket_Open_listener(_instance);
 if (external_BLEConnecterImpl_send_Socket_Open_listener != 0x0) external_BLEConnecterImpl_send_Socket_Open_listener(_instance);
 ;
@@ -684,6 +766,7 @@ void register_BLEConnecterImpl_send_Socket_Close_listener(void (*_listener)(stru
 BLEConnecterImpl_send_Socket_Close_listener = _listener;
 }
 void BLEConnecterImpl_send_Socket_Close(struct BLEConnecterImpl_Instance *_instance){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): Socket!Close\n");
 if (BLEConnecterImpl_send_Socket_Close_listener != 0x0) BLEConnecterImpl_send_Socket_Close_listener(_instance);
 if (external_BLEConnecterImpl_send_Socket_Close_listener != 0x0) external_BLEConnecterImpl_send_Socket_Close_listener(_instance);
 ;
@@ -697,6 +780,7 @@ void register_BLEConnecterImpl_send_HCICommands_Reset_listener(void (*_listener)
 BLEConnecterImpl_send_HCICommands_Reset_listener = _listener;
 }
 void BLEConnecterImpl_send_HCICommands_Reset(struct BLEConnecterImpl_Instance *_instance){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): HCICommands!Reset\n");
 if (BLEConnecterImpl_send_HCICommands_Reset_listener != 0x0) BLEConnecterImpl_send_HCICommands_Reset_listener(_instance);
 if (external_BLEConnecterImpl_send_HCICommands_Reset_listener != 0x0) external_BLEConnecterImpl_send_HCICommands_Reset_listener(_instance);
 ;
@@ -710,6 +794,7 @@ void register_BLEConnecterImpl_send_HCICommands_SetEventMask_listener(void (*_li
 BLEConnecterImpl_send_HCICommands_SetEventMask_listener = _listener;
 }
 void BLEConnecterImpl_send_HCICommands_SetEventMask(struct BLEConnecterImpl_Instance *_instance, set_event_mask_cp Mask){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): HCICommands!SetEventMask\n");
 if (BLEConnecterImpl_send_HCICommands_SetEventMask_listener != 0x0) BLEConnecterImpl_send_HCICommands_SetEventMask_listener(_instance, Mask);
 if (external_BLEConnecterImpl_send_HCICommands_SetEventMask_listener != 0x0) external_BLEConnecterImpl_send_HCICommands_SetEventMask_listener(_instance, Mask);
 ;
@@ -723,6 +808,7 @@ void register_BLEConnecterImpl_send_HCICommands_SetEventMaskAll_listener(void (*
 BLEConnecterImpl_send_HCICommands_SetEventMaskAll_listener = _listener;
 }
 void BLEConnecterImpl_send_HCICommands_SetEventMaskAll(struct BLEConnecterImpl_Instance *_instance){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): HCICommands!SetEventMaskAll\n");
 if (BLEConnecterImpl_send_HCICommands_SetEventMaskAll_listener != 0x0) BLEConnecterImpl_send_HCICommands_SetEventMaskAll_listener(_instance);
 if (external_BLEConnecterImpl_send_HCICommands_SetEventMaskAll_listener != 0x0) external_BLEConnecterImpl_send_HCICommands_SetEventMaskAll_listener(_instance);
 ;
@@ -736,6 +822,7 @@ void register_BLEConnecterImpl_send_HCICommands_SetLocalName_listener(void (*_li
 BLEConnecterImpl_send_HCICommands_SetLocalName_listener = _listener;
 }
 void BLEConnecterImpl_send_HCICommands_SetLocalName(struct BLEConnecterImpl_Instance *_instance, change_local_name_cp Name){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): HCICommands!SetLocalName\n");
 if (BLEConnecterImpl_send_HCICommands_SetLocalName_listener != 0x0) BLEConnecterImpl_send_HCICommands_SetLocalName_listener(_instance, Name);
 if (external_BLEConnecterImpl_send_HCICommands_SetLocalName_listener != 0x0) external_BLEConnecterImpl_send_HCICommands_SetLocalName_listener(_instance, Name);
 ;
@@ -749,6 +836,7 @@ void register_BLEConnecterImpl_send_HCICommands_Disconnect_listener(void (*_list
 BLEConnecterImpl_send_HCICommands_Disconnect_listener = _listener;
 }
 void BLEConnecterImpl_send_HCICommands_Disconnect(struct BLEConnecterImpl_Instance *_instance, uint16_t ConnectionHandle, uint8_t Reason){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): HCICommands!Disconnect\n");
 if (BLEConnecterImpl_send_HCICommands_Disconnect_listener != 0x0) BLEConnecterImpl_send_HCICommands_Disconnect_listener(_instance, ConnectionHandle, Reason);
 if (external_BLEConnecterImpl_send_HCICommands_Disconnect_listener != 0x0) external_BLEConnecterImpl_send_HCICommands_Disconnect_listener(_instance, ConnectionHandle, Reason);
 ;
@@ -762,6 +850,7 @@ void register_BLEConnecterImpl_send_HCICommands_SetLEEventMask_listener(void (*_
 BLEConnecterImpl_send_HCICommands_SetLEEventMask_listener = _listener;
 }
 void BLEConnecterImpl_send_HCICommands_SetLEEventMask(struct BLEConnecterImpl_Instance *_instance, set_event_mask_cp Mask){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): HCICommands!SetLEEventMask\n");
 if (BLEConnecterImpl_send_HCICommands_SetLEEventMask_listener != 0x0) BLEConnecterImpl_send_HCICommands_SetLEEventMask_listener(_instance, Mask);
 if (external_BLEConnecterImpl_send_HCICommands_SetLEEventMask_listener != 0x0) external_BLEConnecterImpl_send_HCICommands_SetLEEventMask_listener(_instance, Mask);
 ;
@@ -775,6 +864,7 @@ void register_BLEConnecterImpl_send_HCICommands_SetLEEventMaskAll_listener(void 
 BLEConnecterImpl_send_HCICommands_SetLEEventMaskAll_listener = _listener;
 }
 void BLEConnecterImpl_send_HCICommands_SetLEEventMaskAll(struct BLEConnecterImpl_Instance *_instance){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): HCICommands!SetLEEventMaskAll\n");
 if (BLEConnecterImpl_send_HCICommands_SetLEEventMaskAll_listener != 0x0) BLEConnecterImpl_send_HCICommands_SetLEEventMaskAll_listener(_instance);
 if (external_BLEConnecterImpl_send_HCICommands_SetLEEventMaskAll_listener != 0x0) external_BLEConnecterImpl_send_HCICommands_SetLEEventMaskAll_listener(_instance);
 ;
@@ -788,6 +878,7 @@ void register_BLEConnecterImpl_send_HCICommands_SetLEAdvertisementParameters_lis
 BLEConnecterImpl_send_HCICommands_SetLEAdvertisementParameters_listener = _listener;
 }
 void BLEConnecterImpl_send_HCICommands_SetLEAdvertisementParameters(struct BLEConnecterImpl_Instance *_instance, uint16_t MinInterval, uint16_t MaxInterval, uint8_t Type, uint8_t OwnAddressType, uint8_t PeerAddressType, bdaddr_t PeerAddress, uint8_t Channel, uint8_t FilterPolicy){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): HCICommands!SetLEAdvertisementParameters\n");
 if (BLEConnecterImpl_send_HCICommands_SetLEAdvertisementParameters_listener != 0x0) BLEConnecterImpl_send_HCICommands_SetLEAdvertisementParameters_listener(_instance, MinInterval, MaxInterval, Type, OwnAddressType, PeerAddressType, PeerAddress, Channel, FilterPolicy);
 if (external_BLEConnecterImpl_send_HCICommands_SetLEAdvertisementParameters_listener != 0x0) external_BLEConnecterImpl_send_HCICommands_SetLEAdvertisementParameters_listener(_instance, MinInterval, MaxInterval, Type, OwnAddressType, PeerAddressType, PeerAddress, Channel, FilterPolicy);
 ;
@@ -801,6 +892,7 @@ void register_BLEConnecterImpl_send_HCICommands_SetLEAdvertiseEnable_listener(vo
 BLEConnecterImpl_send_HCICommands_SetLEAdvertiseEnable_listener = _listener;
 }
 void BLEConnecterImpl_send_HCICommands_SetLEAdvertiseEnable(struct BLEConnecterImpl_Instance *_instance, uint8_t Enable){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): HCICommands!SetLEAdvertiseEnable\n");
 if (BLEConnecterImpl_send_HCICommands_SetLEAdvertiseEnable_listener != 0x0) BLEConnecterImpl_send_HCICommands_SetLEAdvertiseEnable_listener(_instance, Enable);
 if (external_BLEConnecterImpl_send_HCICommands_SetLEAdvertiseEnable_listener != 0x0) external_BLEConnecterImpl_send_HCICommands_SetLEAdvertiseEnable_listener(_instance, Enable);
 ;
@@ -814,6 +906,7 @@ void register_BLEConnecterImpl_send_HCICommands_SetLEAdvertisingData_listener(vo
 BLEConnecterImpl_send_HCICommands_SetLEAdvertisingData_listener = _listener;
 }
 void BLEConnecterImpl_send_HCICommands_SetLEAdvertisingData(struct BLEConnecterImpl_Instance *_instance, uint8_t Length, ble_adv_data_t Data){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): HCICommands!SetLEAdvertisingData\n");
 if (BLEConnecterImpl_send_HCICommands_SetLEAdvertisingData_listener != 0x0) BLEConnecterImpl_send_HCICommands_SetLEAdvertisingData_listener(_instance, Length, Data);
 if (external_BLEConnecterImpl_send_HCICommands_SetLEAdvertisingData_listener != 0x0) external_BLEConnecterImpl_send_HCICommands_SetLEAdvertisingData_listener(_instance, Length, Data);
 ;
@@ -827,6 +920,7 @@ void register_BLEConnecterImpl_send_HCICommands_SetLEScanResponseData_listener(v
 BLEConnecterImpl_send_HCICommands_SetLEScanResponseData_listener = _listener;
 }
 void BLEConnecterImpl_send_HCICommands_SetLEScanResponseData(struct BLEConnecterImpl_Instance *_instance, uint8_t Length, ble_adv_data_t Data){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): HCICommands!SetLEScanResponseData\n");
 if (BLEConnecterImpl_send_HCICommands_SetLEScanResponseData_listener != 0x0) BLEConnecterImpl_send_HCICommands_SetLEScanResponseData_listener(_instance, Length, Data);
 if (external_BLEConnecterImpl_send_HCICommands_SetLEScanResponseData_listener != 0x0) external_BLEConnecterImpl_send_HCICommands_SetLEScanResponseData_listener(_instance, Length, Data);
 ;
@@ -840,6 +934,7 @@ void register_BLEConnecterImpl_send_HCICommands_SetLEScanParameters_listener(voi
 BLEConnecterImpl_send_HCICommands_SetLEScanParameters_listener = _listener;
 }
 void BLEConnecterImpl_send_HCICommands_SetLEScanParameters(struct BLEConnecterImpl_Instance *_instance, uint8_t Type, uint16_t Interval, uint16_t Window, uint8_t OwnAddressType, uint8_t FilterPolicy){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): HCICommands!SetLEScanParameters\n");
 if (BLEConnecterImpl_send_HCICommands_SetLEScanParameters_listener != 0x0) BLEConnecterImpl_send_HCICommands_SetLEScanParameters_listener(_instance, Type, Interval, Window, OwnAddressType, FilterPolicy);
 if (external_BLEConnecterImpl_send_HCICommands_SetLEScanParameters_listener != 0x0) external_BLEConnecterImpl_send_HCICommands_SetLEScanParameters_listener(_instance, Type, Interval, Window, OwnAddressType, FilterPolicy);
 ;
@@ -853,6 +948,7 @@ void register_BLEConnecterImpl_send_HCICommands_SetLEScanEnable_listener(void (*
 BLEConnecterImpl_send_HCICommands_SetLEScanEnable_listener = _listener;
 }
 void BLEConnecterImpl_send_HCICommands_SetLEScanEnable(struct BLEConnecterImpl_Instance *_instance, uint8_t Enable, uint8_t FilterDuplicates){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): HCICommands!SetLEScanEnable\n");
 if (BLEConnecterImpl_send_HCICommands_SetLEScanEnable_listener != 0x0) BLEConnecterImpl_send_HCICommands_SetLEScanEnable_listener(_instance, Enable, FilterDuplicates);
 if (external_BLEConnecterImpl_send_HCICommands_SetLEScanEnable_listener != 0x0) external_BLEConnecterImpl_send_HCICommands_SetLEScanEnable_listener(_instance, Enable, FilterDuplicates);
 ;
@@ -866,6 +962,7 @@ void register_BLEConnecterImpl_send_HCICommands_LECreateConnection_listener(void
 BLEConnecterImpl_send_HCICommands_LECreateConnection_listener = _listener;
 }
 void BLEConnecterImpl_send_HCICommands_LECreateConnection(struct BLEConnecterImpl_Instance *_instance, uint16_t Interval, uint16_t Window, uint8_t FilterPolicy, uint8_t PeerAddressType, bdaddr_t PeerAddress, uint8_t OwnAddressType, uint16_t ConnIntervalMin, uint16_t ConnIntervalMax, uint16_t ConnLatency, uint16_t SupervisionTimeout, uint16_t CELengthMin, uint16_t CELengthMax){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): HCICommands!LECreateConnection\n");
 if (BLEConnecterImpl_send_HCICommands_LECreateConnection_listener != 0x0) BLEConnecterImpl_send_HCICommands_LECreateConnection_listener(_instance, Interval, Window, FilterPolicy, PeerAddressType, PeerAddress, OwnAddressType, ConnIntervalMin, ConnIntervalMax, ConnLatency, SupervisionTimeout, CELengthMin, CELengthMax);
 if (external_BLEConnecterImpl_send_HCICommands_LECreateConnection_listener != 0x0) external_BLEConnecterImpl_send_HCICommands_LECreateConnection_listener(_instance, Interval, Window, FilterPolicy, PeerAddressType, PeerAddress, OwnAddressType, ConnIntervalMin, ConnIntervalMax, ConnLatency, SupervisionTimeout, CELengthMin, CELengthMax);
 ;
@@ -879,6 +976,7 @@ void register_BLEConnecterImpl_send_HCICommands_LECreateConnectionCancel_listene
 BLEConnecterImpl_send_HCICommands_LECreateConnectionCancel_listener = _listener;
 }
 void BLEConnecterImpl_send_HCICommands_LECreateConnectionCancel(struct BLEConnecterImpl_Instance *_instance){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): HCICommands!LECreateConnectionCancel\n");
 if (BLEConnecterImpl_send_HCICommands_LECreateConnectionCancel_listener != 0x0) BLEConnecterImpl_send_HCICommands_LECreateConnectionCancel_listener(_instance);
 if (external_BLEConnecterImpl_send_HCICommands_LECreateConnectionCancel_listener != 0x0) external_BLEConnecterImpl_send_HCICommands_LECreateConnectionCancel_listener(_instance);
 ;
@@ -892,6 +990,7 @@ void register_BLEConnecterImpl_send_HCICommands_LERand_listener(void (*_listener
 BLEConnecterImpl_send_HCICommands_LERand_listener = _listener;
 }
 void BLEConnecterImpl_send_HCICommands_LERand(struct BLEConnecterImpl_Instance *_instance){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): HCICommands!LERand\n");
 if (BLEConnecterImpl_send_HCICommands_LERand_listener != 0x0) BLEConnecterImpl_send_HCICommands_LERand_listener(_instance);
 if (external_BLEConnecterImpl_send_HCICommands_LERand_listener != 0x0) external_BLEConnecterImpl_send_HCICommands_LERand_listener(_instance);
 ;
@@ -905,6 +1004,7 @@ void register_BLEConnecterImpl_send_HCICommands_LEEncrypt_listener(void (*_liste
 BLEConnecterImpl_send_HCICommands_LEEncrypt_listener = _listener;
 }
 void BLEConnecterImpl_send_HCICommands_LEEncrypt(struct BLEConnecterImpl_Instance *_instance, ble_random_number_t Key, ble_random_number_t Plaintext){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): HCICommands!LEEncrypt\n");
 if (BLEConnecterImpl_send_HCICommands_LEEncrypt_listener != 0x0) BLEConnecterImpl_send_HCICommands_LEEncrypt_listener(_instance, Key, Plaintext);
 if (external_BLEConnecterImpl_send_HCICommands_LEEncrypt_listener != 0x0) external_BLEConnecterImpl_send_HCICommands_LEEncrypt_listener(_instance, Key, Plaintext);
 ;
@@ -918,6 +1018,7 @@ void register_BLEConnecterImpl_send_HCICommands_LEStartEncryption_listener(void 
 BLEConnecterImpl_send_HCICommands_LEStartEncryption_listener = _listener;
 }
 void BLEConnecterImpl_send_HCICommands_LEStartEncryption(struct BLEConnecterImpl_Instance *_instance, uint16_t ConnectionHandle, ble_random_part_t Random, uint16_t EDIV, ble_random_number_t LTK){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): HCICommands!LEStartEncryption\n");
 if (BLEConnecterImpl_send_HCICommands_LEStartEncryption_listener != 0x0) BLEConnecterImpl_send_HCICommands_LEStartEncryption_listener(_instance, ConnectionHandle, Random, EDIV, LTK);
 if (external_BLEConnecterImpl_send_HCICommands_LEStartEncryption_listener != 0x0) external_BLEConnecterImpl_send_HCICommands_LEStartEncryption_listener(_instance, ConnectionHandle, Random, EDIV, LTK);
 ;
@@ -931,6 +1032,7 @@ void register_BLEConnecterImpl_send_SMP_SMPPairingRequest_listener(void (*_liste
 BLEConnecterImpl_send_SMP_SMPPairingRequest_listener = _listener;
 }
 void BLEConnecterImpl_send_SMP_SMPPairingRequest(struct BLEConnecterImpl_Instance *_instance, uint16_t Handle, uint8_t IOCapability, uint8_t OOBDataPresent, uint8_t Bonding, uint8_t MITM, uint8_t SecureConnection, uint8_t Keypress, uint8_t MaximumEncryptionKeySize, uint8_t InitiatorKeyDistribution, uint8_t ResponderKeyDistribution){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): SMP!SMPPairingRequest\n");
 if (BLEConnecterImpl_send_SMP_SMPPairingRequest_listener != 0x0) BLEConnecterImpl_send_SMP_SMPPairingRequest_listener(_instance, Handle, IOCapability, OOBDataPresent, Bonding, MITM, SecureConnection, Keypress, MaximumEncryptionKeySize, InitiatorKeyDistribution, ResponderKeyDistribution);
 if (external_BLEConnecterImpl_send_SMP_SMPPairingRequest_listener != 0x0) external_BLEConnecterImpl_send_SMP_SMPPairingRequest_listener(_instance, Handle, IOCapability, OOBDataPresent, Bonding, MITM, SecureConnection, Keypress, MaximumEncryptionKeySize, InitiatorKeyDistribution, ResponderKeyDistribution);
 ;
@@ -944,6 +1046,7 @@ void register_BLEConnecterImpl_send_SMP_SMPPairingResponse_listener(void (*_list
 BLEConnecterImpl_send_SMP_SMPPairingResponse_listener = _listener;
 }
 void BLEConnecterImpl_send_SMP_SMPPairingResponse(struct BLEConnecterImpl_Instance *_instance, uint16_t Handle, uint8_t IOCapability, uint8_t OOBDataPresent, uint8_t Bonding, uint8_t MITM, uint8_t SecureConnection, uint8_t Keypress, uint8_t MaximumEncryptionKeySize, uint8_t InitiatorKeyDistribution, uint8_t ResponderKeyDistribution){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): SMP!SMPPairingResponse\n");
 if (BLEConnecterImpl_send_SMP_SMPPairingResponse_listener != 0x0) BLEConnecterImpl_send_SMP_SMPPairingResponse_listener(_instance, Handle, IOCapability, OOBDataPresent, Bonding, MITM, SecureConnection, Keypress, MaximumEncryptionKeySize, InitiatorKeyDistribution, ResponderKeyDistribution);
 if (external_BLEConnecterImpl_send_SMP_SMPPairingResponse_listener != 0x0) external_BLEConnecterImpl_send_SMP_SMPPairingResponse_listener(_instance, Handle, IOCapability, OOBDataPresent, Bonding, MITM, SecureConnection, Keypress, MaximumEncryptionKeySize, InitiatorKeyDistribution, ResponderKeyDistribution);
 ;
@@ -957,6 +1060,7 @@ void register_BLEConnecterImpl_send_SMP_SMPPairingConfirm_listener(void (*_liste
 BLEConnecterImpl_send_SMP_SMPPairingConfirm_listener = _listener;
 }
 void BLEConnecterImpl_send_SMP_SMPPairingConfirm(struct BLEConnecterImpl_Instance *_instance, uint16_t Handle, ble_random_number_t ConfirmValue){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): SMP!SMPPairingConfirm\n");
 if (BLEConnecterImpl_send_SMP_SMPPairingConfirm_listener != 0x0) BLEConnecterImpl_send_SMP_SMPPairingConfirm_listener(_instance, Handle, ConfirmValue);
 if (external_BLEConnecterImpl_send_SMP_SMPPairingConfirm_listener != 0x0) external_BLEConnecterImpl_send_SMP_SMPPairingConfirm_listener(_instance, Handle, ConfirmValue);
 ;
@@ -970,6 +1074,7 @@ void register_BLEConnecterImpl_send_SMP_SMPPairingRandom_listener(void (*_listen
 BLEConnecterImpl_send_SMP_SMPPairingRandom_listener = _listener;
 }
 void BLEConnecterImpl_send_SMP_SMPPairingRandom(struct BLEConnecterImpl_Instance *_instance, uint16_t Handle, ble_random_number_t RandomValue){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): SMP!SMPPairingRandom\n");
 if (BLEConnecterImpl_send_SMP_SMPPairingRandom_listener != 0x0) BLEConnecterImpl_send_SMP_SMPPairingRandom_listener(_instance, Handle, RandomValue);
 if (external_BLEConnecterImpl_send_SMP_SMPPairingRandom_listener != 0x0) external_BLEConnecterImpl_send_SMP_SMPPairingRandom_listener(_instance, Handle, RandomValue);
 ;
@@ -983,6 +1088,7 @@ void register_BLEConnecterImpl_send_SMP_SMPPairingFailed_listener(void (*_listen
 BLEConnecterImpl_send_SMP_SMPPairingFailed_listener = _listener;
 }
 void BLEConnecterImpl_send_SMP_SMPPairingFailed(struct BLEConnecterImpl_Instance *_instance, uint16_t Handle, uint8_t Reason){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): SMP!SMPPairingFailed\n");
 if (BLEConnecterImpl_send_SMP_SMPPairingFailed_listener != 0x0) BLEConnecterImpl_send_SMP_SMPPairingFailed_listener(_instance, Handle, Reason);
 if (external_BLEConnecterImpl_send_SMP_SMPPairingFailed_listener != 0x0) external_BLEConnecterImpl_send_SMP_SMPPairingFailed_listener(_instance, Handle, Reason);
 ;
@@ -996,6 +1102,7 @@ void register_BLEConnecterImpl_send_SMP_SMPPairingPublicKey_listener(void (*_lis
 BLEConnecterImpl_send_SMP_SMPPairingPublicKey_listener = _listener;
 }
 void BLEConnecterImpl_send_SMP_SMPPairingPublicKey(struct BLEConnecterImpl_Instance *_instance, uint16_t Handle, smp_public_key_t KeyX, smp_public_key_t KeyY){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): SMP!SMPPairingPublicKey\n");
 if (BLEConnecterImpl_send_SMP_SMPPairingPublicKey_listener != 0x0) BLEConnecterImpl_send_SMP_SMPPairingPublicKey_listener(_instance, Handle, KeyX, KeyY);
 if (external_BLEConnecterImpl_send_SMP_SMPPairingPublicKey_listener != 0x0) external_BLEConnecterImpl_send_SMP_SMPPairingPublicKey_listener(_instance, Handle, KeyX, KeyY);
 ;
@@ -1009,6 +1116,7 @@ void register_BLEConnecterImpl_send_SMP_SMPPairingDHKeyCheck_listener(void (*_li
 BLEConnecterImpl_send_SMP_SMPPairingDHKeyCheck_listener = _listener;
 }
 void BLEConnecterImpl_send_SMP_SMPPairingDHKeyCheck(struct BLEConnecterImpl_Instance *_instance, uint16_t Handle, ble_random_number_t DHKeyCheck){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): SMP!SMPPairingDHKeyCheck\n");
 if (BLEConnecterImpl_send_SMP_SMPPairingDHKeyCheck_listener != 0x0) BLEConnecterImpl_send_SMP_SMPPairingDHKeyCheck_listener(_instance, Handle, DHKeyCheck);
 if (external_BLEConnecterImpl_send_SMP_SMPPairingDHKeyCheck_listener != 0x0) external_BLEConnecterImpl_send_SMP_SMPPairingDHKeyCheck_listener(_instance, Handle, DHKeyCheck);
 ;
@@ -1022,6 +1130,7 @@ void register_BLEConnecterImpl_send_SMP_SMPKeypressNotification_listener(void (*
 BLEConnecterImpl_send_SMP_SMPKeypressNotification_listener = _listener;
 }
 void BLEConnecterImpl_send_SMP_SMPKeypressNotification(struct BLEConnecterImpl_Instance *_instance, uint16_t Handle, uint8_t Type){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): SMP!SMPKeypressNotification\n");
 if (BLEConnecterImpl_send_SMP_SMPKeypressNotification_listener != 0x0) BLEConnecterImpl_send_SMP_SMPKeypressNotification_listener(_instance, Handle, Type);
 if (external_BLEConnecterImpl_send_SMP_SMPKeypressNotification_listener != 0x0) external_BLEConnecterImpl_send_SMP_SMPKeypressNotification_listener(_instance, Handle, Type);
 ;
@@ -1035,6 +1144,7 @@ void register_BLEConnecterImpl_send_SMP_SMPEncryptionInformation_listener(void (
 BLEConnecterImpl_send_SMP_SMPEncryptionInformation_listener = _listener;
 }
 void BLEConnecterImpl_send_SMP_SMPEncryptionInformation(struct BLEConnecterImpl_Instance *_instance, uint16_t Handle, ble_random_number_t LongTermKey){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): SMP!SMPEncryptionInformation\n");
 if (BLEConnecterImpl_send_SMP_SMPEncryptionInformation_listener != 0x0) BLEConnecterImpl_send_SMP_SMPEncryptionInformation_listener(_instance, Handle, LongTermKey);
 if (external_BLEConnecterImpl_send_SMP_SMPEncryptionInformation_listener != 0x0) external_BLEConnecterImpl_send_SMP_SMPEncryptionInformation_listener(_instance, Handle, LongTermKey);
 ;
@@ -1048,6 +1158,7 @@ void register_BLEConnecterImpl_send_SMP_SMPMasterIdentification_listener(void (*
 BLEConnecterImpl_send_SMP_SMPMasterIdentification_listener = _listener;
 }
 void BLEConnecterImpl_send_SMP_SMPMasterIdentification(struct BLEConnecterImpl_Instance *_instance, uint16_t Handle, uint16_t EDIV, ble_random_part_t Rand){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): SMP!SMPMasterIdentification\n");
 if (BLEConnecterImpl_send_SMP_SMPMasterIdentification_listener != 0x0) BLEConnecterImpl_send_SMP_SMPMasterIdentification_listener(_instance, Handle, EDIV, Rand);
 if (external_BLEConnecterImpl_send_SMP_SMPMasterIdentification_listener != 0x0) external_BLEConnecterImpl_send_SMP_SMPMasterIdentification_listener(_instance, Handle, EDIV, Rand);
 ;
@@ -1061,6 +1172,7 @@ void register_BLEConnecterImpl_send_SMP_SMPIdentityInformation_listener(void (*_
 BLEConnecterImpl_send_SMP_SMPIdentityInformation_listener = _listener;
 }
 void BLEConnecterImpl_send_SMP_SMPIdentityInformation(struct BLEConnecterImpl_Instance *_instance, uint16_t Handle, ble_random_number_t IdentityResolvingKey){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): SMP!SMPIdentityInformation\n");
 if (BLEConnecterImpl_send_SMP_SMPIdentityInformation_listener != 0x0) BLEConnecterImpl_send_SMP_SMPIdentityInformation_listener(_instance, Handle, IdentityResolvingKey);
 if (external_BLEConnecterImpl_send_SMP_SMPIdentityInformation_listener != 0x0) external_BLEConnecterImpl_send_SMP_SMPIdentityInformation_listener(_instance, Handle, IdentityResolvingKey);
 ;
@@ -1074,6 +1186,7 @@ void register_BLEConnecterImpl_send_SMP_SMPIdentityAddressInformation_listener(v
 BLEConnecterImpl_send_SMP_SMPIdentityAddressInformation_listener = _listener;
 }
 void BLEConnecterImpl_send_SMP_SMPIdentityAddressInformation(struct BLEConnecterImpl_Instance *_instance, uint16_t Handle, uint8_t AddressType, bdaddr_t Address){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): SMP!SMPIdentityAddressInformation\n");
 if (BLEConnecterImpl_send_SMP_SMPIdentityAddressInformation_listener != 0x0) BLEConnecterImpl_send_SMP_SMPIdentityAddressInformation_listener(_instance, Handle, AddressType, Address);
 if (external_BLEConnecterImpl_send_SMP_SMPIdentityAddressInformation_listener != 0x0) external_BLEConnecterImpl_send_SMP_SMPIdentityAddressInformation_listener(_instance, Handle, AddressType, Address);
 ;
@@ -1087,6 +1200,7 @@ void register_BLEConnecterImpl_send_SMP_SMPSigningInformation_listener(void (*_l
 BLEConnecterImpl_send_SMP_SMPSigningInformation_listener = _listener;
 }
 void BLEConnecterImpl_send_SMP_SMPSigningInformation(struct BLEConnecterImpl_Instance *_instance, uint16_t Handle, ble_random_number_t SignatureKey){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): SMP!SMPSigningInformation\n");
 if (BLEConnecterImpl_send_SMP_SMPSigningInformation_listener != 0x0) BLEConnecterImpl_send_SMP_SMPSigningInformation_listener(_instance, Handle, SignatureKey);
 if (external_BLEConnecterImpl_send_SMP_SMPSigningInformation_listener != 0x0) external_BLEConnecterImpl_send_SMP_SMPSigningInformation_listener(_instance, Handle, SignatureKey);
 ;
@@ -1100,6 +1214,7 @@ void register_BLEConnecterImpl_send_SMP_SMPSecurityRequest_listener(void (*_list
 BLEConnecterImpl_send_SMP_SMPSecurityRequest_listener = _listener;
 }
 void BLEConnecterImpl_send_SMP_SMPSecurityRequest(struct BLEConnecterImpl_Instance *_instance, uint16_t Handle, uint8_t Bonding, uint8_t MITM, uint8_t SecureConnection, uint8_t Keypress){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): SMP!SMPSecurityRequest\n");
 if (BLEConnecterImpl_send_SMP_SMPSecurityRequest_listener != 0x0) BLEConnecterImpl_send_SMP_SMPSecurityRequest_listener(_instance, Handle, Bonding, MITM, SecureConnection, Keypress);
 if (external_BLEConnecterImpl_send_SMP_SMPSecurityRequest_listener != 0x0) external_BLEConnecterImpl_send_SMP_SMPSecurityRequest_listener(_instance, Handle, Bonding, MITM, SecureConnection, Keypress);
 ;
@@ -1113,6 +1228,7 @@ void register_BLEConnecterImpl_send_ATT_ATTFindInformationRequest_listener(void 
 BLEConnecterImpl_send_ATT_ATTFindInformationRequest_listener = _listener;
 }
 void BLEConnecterImpl_send_ATT_ATTFindInformationRequest(struct BLEConnecterImpl_Instance *_instance, uint16_t ConnectionHandle, uint16_t StartingHandle, uint16_t EndingHandle){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): ATT!ATTFindInformationRequest\n");
 if (BLEConnecterImpl_send_ATT_ATTFindInformationRequest_listener != 0x0) BLEConnecterImpl_send_ATT_ATTFindInformationRequest_listener(_instance, ConnectionHandle, StartingHandle, EndingHandle);
 if (external_BLEConnecterImpl_send_ATT_ATTFindInformationRequest_listener != 0x0) external_BLEConnecterImpl_send_ATT_ATTFindInformationRequest_listener(_instance, ConnectionHandle, StartingHandle, EndingHandle);
 ;
@@ -1126,6 +1242,7 @@ void register_BLEConnecterImpl_send_ATT_ATTFindInformationResponse_listener(void
 BLEConnecterImpl_send_ATT_ATTFindInformationResponse_listener = _listener;
 }
 void BLEConnecterImpl_send_ATT_ATTFindInformationResponse(struct BLEConnecterImpl_Instance *_instance, uint16_t ConnectionHandle, uint8_t Format, ble_gatt_data_t InformationData){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): ATT!ATTFindInformationResponse\n");
 if (BLEConnecterImpl_send_ATT_ATTFindInformationResponse_listener != 0x0) BLEConnecterImpl_send_ATT_ATTFindInformationResponse_listener(_instance, ConnectionHandle, Format, InformationData);
 if (external_BLEConnecterImpl_send_ATT_ATTFindInformationResponse_listener != 0x0) external_BLEConnecterImpl_send_ATT_ATTFindInformationResponse_listener(_instance, ConnectionHandle, Format, InformationData);
 ;
@@ -1139,6 +1256,7 @@ void register_BLEConnecterImpl_send_ATT_ATTFindInformationError_listener(void (*
 BLEConnecterImpl_send_ATT_ATTFindInformationError_listener = _listener;
 }
 void BLEConnecterImpl_send_ATT_ATTFindInformationError(struct BLEConnecterImpl_Instance *_instance, uint16_t ConnectionHandle, uint16_t AttributeHandle, uint8_t Error){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): ATT!ATTFindInformationError\n");
 if (BLEConnecterImpl_send_ATT_ATTFindInformationError_listener != 0x0) BLEConnecterImpl_send_ATT_ATTFindInformationError_listener(_instance, ConnectionHandle, AttributeHandle, Error);
 if (external_BLEConnecterImpl_send_ATT_ATTFindInformationError_listener != 0x0) external_BLEConnecterImpl_send_ATT_ATTFindInformationError_listener(_instance, ConnectionHandle, AttributeHandle, Error);
 ;
@@ -1152,6 +1270,7 @@ void register_BLEConnecterImpl_send_ATT_ATTReadByTypeRequest_listener(void (*_li
 BLEConnecterImpl_send_ATT_ATTReadByTypeRequest_listener = _listener;
 }
 void BLEConnecterImpl_send_ATT_ATTReadByTypeRequest(struct BLEConnecterImpl_Instance *_instance, uint16_t ConnectionHandle, uint16_t StartingHandle, uint16_t EndingHandle, ble_uuid_t AttributeType){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): ATT!ATTReadByTypeRequest\n");
 if (BLEConnecterImpl_send_ATT_ATTReadByTypeRequest_listener != 0x0) BLEConnecterImpl_send_ATT_ATTReadByTypeRequest_listener(_instance, ConnectionHandle, StartingHandle, EndingHandle, AttributeType);
 if (external_BLEConnecterImpl_send_ATT_ATTReadByTypeRequest_listener != 0x0) external_BLEConnecterImpl_send_ATT_ATTReadByTypeRequest_listener(_instance, ConnectionHandle, StartingHandle, EndingHandle, AttributeType);
 ;
@@ -1165,6 +1284,7 @@ void register_BLEConnecterImpl_send_ATT_ATTReadByTypeResponse_listener(void (*_l
 BLEConnecterImpl_send_ATT_ATTReadByTypeResponse_listener = _listener;
 }
 void BLEConnecterImpl_send_ATT_ATTReadByTypeResponse(struct BLEConnecterImpl_Instance *_instance, uint16_t ConnectionHandle, uint8_t Length, ble_gatt_data_t AttributeDataList){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): ATT!ATTReadByTypeResponse\n");
 if (BLEConnecterImpl_send_ATT_ATTReadByTypeResponse_listener != 0x0) BLEConnecterImpl_send_ATT_ATTReadByTypeResponse_listener(_instance, ConnectionHandle, Length, AttributeDataList);
 if (external_BLEConnecterImpl_send_ATT_ATTReadByTypeResponse_listener != 0x0) external_BLEConnecterImpl_send_ATT_ATTReadByTypeResponse_listener(_instance, ConnectionHandle, Length, AttributeDataList);
 ;
@@ -1178,6 +1298,7 @@ void register_BLEConnecterImpl_send_ATT_ATTReadByTypeError_listener(void (*_list
 BLEConnecterImpl_send_ATT_ATTReadByTypeError_listener = _listener;
 }
 void BLEConnecterImpl_send_ATT_ATTReadByTypeError(struct BLEConnecterImpl_Instance *_instance, uint16_t ConnectionHandle, uint16_t AttributeHandle, uint8_t Error){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): ATT!ATTReadByTypeError\n");
 if (BLEConnecterImpl_send_ATT_ATTReadByTypeError_listener != 0x0) BLEConnecterImpl_send_ATT_ATTReadByTypeError_listener(_instance, ConnectionHandle, AttributeHandle, Error);
 if (external_BLEConnecterImpl_send_ATT_ATTReadByTypeError_listener != 0x0) external_BLEConnecterImpl_send_ATT_ATTReadByTypeError_listener(_instance, ConnectionHandle, AttributeHandle, Error);
 ;
@@ -1191,6 +1312,7 @@ void register_BLEConnecterImpl_send_ATT_ATTReadRequest_listener(void (*_listener
 BLEConnecterImpl_send_ATT_ATTReadRequest_listener = _listener;
 }
 void BLEConnecterImpl_send_ATT_ATTReadRequest(struct BLEConnecterImpl_Instance *_instance, uint16_t ConnectionHandle, uint16_t AttributeHandle){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): ATT!ATTReadRequest\n");
 if (BLEConnecterImpl_send_ATT_ATTReadRequest_listener != 0x0) BLEConnecterImpl_send_ATT_ATTReadRequest_listener(_instance, ConnectionHandle, AttributeHandle);
 if (external_BLEConnecterImpl_send_ATT_ATTReadRequest_listener != 0x0) external_BLEConnecterImpl_send_ATT_ATTReadRequest_listener(_instance, ConnectionHandle, AttributeHandle);
 ;
@@ -1204,6 +1326,7 @@ void register_BLEConnecterImpl_send_ATT_ATTReadResponse_listener(void (*_listene
 BLEConnecterImpl_send_ATT_ATTReadResponse_listener = _listener;
 }
 void BLEConnecterImpl_send_ATT_ATTReadResponse(struct BLEConnecterImpl_Instance *_instance, uint16_t ConnectionHandle, ble_gatt_data_t AttributeValue){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): ATT!ATTReadResponse\n");
 if (BLEConnecterImpl_send_ATT_ATTReadResponse_listener != 0x0) BLEConnecterImpl_send_ATT_ATTReadResponse_listener(_instance, ConnectionHandle, AttributeValue);
 if (external_BLEConnecterImpl_send_ATT_ATTReadResponse_listener != 0x0) external_BLEConnecterImpl_send_ATT_ATTReadResponse_listener(_instance, ConnectionHandle, AttributeValue);
 ;
@@ -1217,6 +1340,7 @@ void register_BLEConnecterImpl_send_ATT_ATTReadError_listener(void (*_listener)(
 BLEConnecterImpl_send_ATT_ATTReadError_listener = _listener;
 }
 void BLEConnecterImpl_send_ATT_ATTReadError(struct BLEConnecterImpl_Instance *_instance, uint16_t ConnectionHandle, uint16_t AttributeHandle, uint8_t Error){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): ATT!ATTReadError\n");
 if (BLEConnecterImpl_send_ATT_ATTReadError_listener != 0x0) BLEConnecterImpl_send_ATT_ATTReadError_listener(_instance, ConnectionHandle, AttributeHandle, Error);
 if (external_BLEConnecterImpl_send_ATT_ATTReadError_listener != 0x0) external_BLEConnecterImpl_send_ATT_ATTReadError_listener(_instance, ConnectionHandle, AttributeHandle, Error);
 ;
@@ -1230,6 +1354,7 @@ void register_BLEConnecterImpl_send_ATT_ATTReadByGroupTypeRequest_listener(void 
 BLEConnecterImpl_send_ATT_ATTReadByGroupTypeRequest_listener = _listener;
 }
 void BLEConnecterImpl_send_ATT_ATTReadByGroupTypeRequest(struct BLEConnecterImpl_Instance *_instance, uint16_t ConnectionHandle, uint16_t StartingHandle, uint16_t EndingHandle, ble_uuid_t AttributeGroupType){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): ATT!ATTReadByGroupTypeRequest\n");
 if (BLEConnecterImpl_send_ATT_ATTReadByGroupTypeRequest_listener != 0x0) BLEConnecterImpl_send_ATT_ATTReadByGroupTypeRequest_listener(_instance, ConnectionHandle, StartingHandle, EndingHandle, AttributeGroupType);
 if (external_BLEConnecterImpl_send_ATT_ATTReadByGroupTypeRequest_listener != 0x0) external_BLEConnecterImpl_send_ATT_ATTReadByGroupTypeRequest_listener(_instance, ConnectionHandle, StartingHandle, EndingHandle, AttributeGroupType);
 ;
@@ -1243,6 +1368,7 @@ void register_BLEConnecterImpl_send_ATT_ATTReadByGroupTypeResponse_listener(void
 BLEConnecterImpl_send_ATT_ATTReadByGroupTypeResponse_listener = _listener;
 }
 void BLEConnecterImpl_send_ATT_ATTReadByGroupTypeResponse(struct BLEConnecterImpl_Instance *_instance, uint16_t ConnectionHandle, uint8_t Length, ble_gatt_data_t AttributeDataList){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): ATT!ATTReadByGroupTypeResponse\n");
 if (BLEConnecterImpl_send_ATT_ATTReadByGroupTypeResponse_listener != 0x0) BLEConnecterImpl_send_ATT_ATTReadByGroupTypeResponse_listener(_instance, ConnectionHandle, Length, AttributeDataList);
 if (external_BLEConnecterImpl_send_ATT_ATTReadByGroupTypeResponse_listener != 0x0) external_BLEConnecterImpl_send_ATT_ATTReadByGroupTypeResponse_listener(_instance, ConnectionHandle, Length, AttributeDataList);
 ;
@@ -1256,6 +1382,7 @@ void register_BLEConnecterImpl_send_ATT_ATTReadByGroupTypeError_listener(void (*
 BLEConnecterImpl_send_ATT_ATTReadByGroupTypeError_listener = _listener;
 }
 void BLEConnecterImpl_send_ATT_ATTReadByGroupTypeError(struct BLEConnecterImpl_Instance *_instance, uint16_t ConnectionHandle, uint16_t AttributeHandle, uint8_t Error){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): ATT!ATTReadByGroupTypeError\n");
 if (BLEConnecterImpl_send_ATT_ATTReadByGroupTypeError_listener != 0x0) BLEConnecterImpl_send_ATT_ATTReadByGroupTypeError_listener(_instance, ConnectionHandle, AttributeHandle, Error);
 if (external_BLEConnecterImpl_send_ATT_ATTReadByGroupTypeError_listener != 0x0) external_BLEConnecterImpl_send_ATT_ATTReadByGroupTypeError_listener(_instance, ConnectionHandle, AttributeHandle, Error);
 ;
@@ -1269,6 +1396,7 @@ void register_BLEConnecterImpl_send_ATT_ATTWriteRequest_listener(void (*_listene
 BLEConnecterImpl_send_ATT_ATTWriteRequest_listener = _listener;
 }
 void BLEConnecterImpl_send_ATT_ATTWriteRequest(struct BLEConnecterImpl_Instance *_instance, uint16_t ConnectionHandle, uint16_t AttributeHandle, ble_gatt_data_t AttributeValue){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): ATT!ATTWriteRequest\n");
 if (BLEConnecterImpl_send_ATT_ATTWriteRequest_listener != 0x0) BLEConnecterImpl_send_ATT_ATTWriteRequest_listener(_instance, ConnectionHandle, AttributeHandle, AttributeValue);
 if (external_BLEConnecterImpl_send_ATT_ATTWriteRequest_listener != 0x0) external_BLEConnecterImpl_send_ATT_ATTWriteRequest_listener(_instance, ConnectionHandle, AttributeHandle, AttributeValue);
 ;
@@ -1282,6 +1410,7 @@ void register_BLEConnecterImpl_send_ATT_ATTWriteResponse_listener(void (*_listen
 BLEConnecterImpl_send_ATT_ATTWriteResponse_listener = _listener;
 }
 void BLEConnecterImpl_send_ATT_ATTWriteResponse(struct BLEConnecterImpl_Instance *_instance, uint16_t ConnectionHandle){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): ATT!ATTWriteResponse\n");
 if (BLEConnecterImpl_send_ATT_ATTWriteResponse_listener != 0x0) BLEConnecterImpl_send_ATT_ATTWriteResponse_listener(_instance, ConnectionHandle);
 if (external_BLEConnecterImpl_send_ATT_ATTWriteResponse_listener != 0x0) external_BLEConnecterImpl_send_ATT_ATTWriteResponse_listener(_instance, ConnectionHandle);
 ;
@@ -1295,6 +1424,7 @@ void register_BLEConnecterImpl_send_ATT_ATTWriteError_listener(void (*_listener)
 BLEConnecterImpl_send_ATT_ATTWriteError_listener = _listener;
 }
 void BLEConnecterImpl_send_ATT_ATTWriteError(struct BLEConnecterImpl_Instance *_instance, uint16_t ConnectionHandle, uint16_t AttributeHandle, uint8_t Error){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): ATT!ATTWriteError\n");
 if (BLEConnecterImpl_send_ATT_ATTWriteError_listener != 0x0) BLEConnecterImpl_send_ATT_ATTWriteError_listener(_instance, ConnectionHandle, AttributeHandle, Error);
 if (external_BLEConnecterImpl_send_ATT_ATTWriteError_listener != 0x0) external_BLEConnecterImpl_send_ATT_ATTWriteError_listener(_instance, ConnectionHandle, AttributeHandle, Error);
 ;
@@ -1308,6 +1438,7 @@ void register_BLEConnecterImpl_send_ATT_ATTWriteCommand_listener(void (*_listene
 BLEConnecterImpl_send_ATT_ATTWriteCommand_listener = _listener;
 }
 void BLEConnecterImpl_send_ATT_ATTWriteCommand(struct BLEConnecterImpl_Instance *_instance, uint16_t ConnectionHandle, uint16_t AttributeHandle, ble_gatt_data_t AttributeValue){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): ATT!ATTWriteCommand\n");
 if (BLEConnecterImpl_send_ATT_ATTWriteCommand_listener != 0x0) BLEConnecterImpl_send_ATT_ATTWriteCommand_listener(_instance, ConnectionHandle, AttributeHandle, AttributeValue);
 if (external_BLEConnecterImpl_send_ATT_ATTWriteCommand_listener != 0x0) external_BLEConnecterImpl_send_ATT_ATTWriteCommand_listener(_instance, ConnectionHandle, AttributeHandle, AttributeValue);
 ;
@@ -1321,6 +1452,7 @@ void register_BLEConnecterImpl_send_ATT_ATTHandleValueNotification_listener(void
 BLEConnecterImpl_send_ATT_ATTHandleValueNotification_listener = _listener;
 }
 void BLEConnecterImpl_send_ATT_ATTHandleValueNotification(struct BLEConnecterImpl_Instance *_instance, uint16_t ConnectionHandle, uint16_t AttributeHandle, ble_gatt_data_t AttributeValue){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): ATT!ATTHandleValueNotification\n");
 if (BLEConnecterImpl_send_ATT_ATTHandleValueNotification_listener != 0x0) BLEConnecterImpl_send_ATT_ATTHandleValueNotification_listener(_instance, ConnectionHandle, AttributeHandle, AttributeValue);
 if (external_BLEConnecterImpl_send_ATT_ATTHandleValueNotification_listener != 0x0) external_BLEConnecterImpl_send_ATT_ATTHandleValueNotification_listener(_instance, ConnectionHandle, AttributeHandle, AttributeValue);
 ;
@@ -1334,6 +1466,7 @@ void register_BLEConnecterImpl_send_ATT_ATTHandleValueIndication_listener(void (
 BLEConnecterImpl_send_ATT_ATTHandleValueIndication_listener = _listener;
 }
 void BLEConnecterImpl_send_ATT_ATTHandleValueIndication(struct BLEConnecterImpl_Instance *_instance, uint16_t ConnectionHandle, uint16_t AttributeHandle, ble_gatt_data_t AttributeValue){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): ATT!ATTHandleValueIndication\n");
 if (BLEConnecterImpl_send_ATT_ATTHandleValueIndication_listener != 0x0) BLEConnecterImpl_send_ATT_ATTHandleValueIndication_listener(_instance, ConnectionHandle, AttributeHandle, AttributeValue);
 if (external_BLEConnecterImpl_send_ATT_ATTHandleValueIndication_listener != 0x0) external_BLEConnecterImpl_send_ATT_ATTHandleValueIndication_listener(_instance, ConnectionHandle, AttributeHandle, AttributeValue);
 ;
@@ -1347,6 +1480,7 @@ void register_BLEConnecterImpl_send_ATT_ATTHandleValueConfirmation_listener(void
 BLEConnecterImpl_send_ATT_ATTHandleValueConfirmation_listener = _listener;
 }
 void BLEConnecterImpl_send_ATT_ATTHandleValueConfirmation(struct BLEConnecterImpl_Instance *_instance, uint16_t ConnectionHandle){
+BLEConnecterImpl_print_debug(_instance, " (BLEConnecterImpl): ATT!ATTHandleValueConfirmation\n");
 if (BLEConnecterImpl_send_ATT_ATTHandleValueConfirmation_listener != 0x0) BLEConnecterImpl_send_ATT_ATTHandleValueConfirmation_listener(_instance, ConnectionHandle);
 if (external_BLEConnecterImpl_send_ATT_ATTHandleValueConfirmation_listener != 0x0) external_BLEConnecterImpl_send_ATT_ATTHandleValueConfirmation_listener(_instance, ConnectionHandle);
 ;

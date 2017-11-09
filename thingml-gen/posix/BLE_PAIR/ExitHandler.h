@@ -25,6 +25,8 @@ extern "C" {
 
 // Definition of the instance struct:
 struct ExitHandler_Instance {
+bool debug;
+char * name;
 
 // Instances of different sessions
 bool active;

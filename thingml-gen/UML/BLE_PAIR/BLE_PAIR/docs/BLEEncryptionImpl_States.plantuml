@@ -1,0 +1,57 @@
+@startuml
+skinparam defaultTextAlignment left
+caption Behavior of thing BLEEncryptionImpl
+[*] --> States
+state States{
+state WaitForSocket{
+
+WaitForSocket --> Ready : Socket?Opened
+}
+state Ready{
+state Waiting{
+
+Waiting --> RandomFirstPart : Encrypter?GenerateRandomNumber\naction HCICommands!LERand()\n
+
+Waiting --> ConfirmFirstPart : e:Encrypter?GenerateConfirm\naction do \nRand = GenerateConfirm.Rand\nIAT = GenerateConfirm.IAT\nIA = GenerateConfirm.IA\nRAT = GenerateConfirm.RAT\nRA = GenerateConfirm.RA\nend\n
+
+Waiting --> GenerateSTK : e:Encrypter?GenerateSTK\naction do \nSrand = GenerateSTK.Srand\nMrand = GenerateSTK.Mrand\nend\n
+	Waiting : e:Encrypter?CheckConfirm / \naction do \nvar Result : Boolean = true\n'\n            uint8_t i;\n            for (i = 0; i < 16; i++)\n              ' & Result & ' = (' & Result & ' && (' & CheckConfirm.Received & '.bytes[i] == ' & CheckConfirm.Calculated & '.bytes[i]));\n          '\nEncrypter!CheckConfirmCompleted(Result)\nend\n
+}
+state RandomFirstPart{
+
+RandomFirstPart --> RandomSecondPart : e:HCIEvents?LERandCompleted[(LERandCompleted.Status == 0)]\naction do \n'memcpy(&' & GeneratedRandomNumber & '.bytes[0], &' & LERandCompleted.Random & '.bytes[0], 8);'\nHCICommands!LERand()\nend\n
+}
+state RandomSecondPart{
+
+RandomSecondPart --> Waiting : e:HCIEvents?LERandCompleted[(LERandCompleted.Status == 0)]\naction do \n'memcpy(&' & GeneratedRandomNumber & '.bytes[8], &' & LERandCompleted.Random & '.bytes[0], 8);'\nprint "[INFO]: Generated 128-bit random number on controller.\\n"\nEncrypter!GenerateRandomNumberCompleted(GeneratedRandomNumber)\nend\n
+}
+state ConfirmFirstPart{
+	ConfirmFirstPart : entry / do \nvar k : BLERandomNumber = '{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }'\nvar r : BLERandomNumber = Rand\nvar p1 : BLERandomNumber = GenerateP1()\nvar plaintext : BLERandomNumber\n'\n            // r XOR p1\n            uint8_t i;\n            for (i = 0; i < 16; i++)\n              ' & plaintext & '.bytes[i] = ' & r & '.bytes[i] ^ ' & p1 & '.bytes[i];\n          '\nHCICommands!LEEncrypt(...)\nend\n
+
+ConfirmFirstPart --> ConfirmSecondPart : e:HCIEvents?LEEncryptCompleted[(LEEncryptCompleted.Status == 0)]\naction do \nvar k : BLERandomNumber = '{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }'\nvar p2 : BLERandomNumber = GenerateP2()\nvar plaintext : BLERandomNumber\n'\n            // first_encrypted XOR p2\n            uint8_t i;\n            for (i = 0; i < 16; i++)\n              ' & plaintext & '.bytes[i] = ' & LEEncryptCompleted.Encrypted & '.bytes[i] ^ ' & p2 & '.bytes[i];\n          '\nHCICommands!LEEncrypt(...)\nend\n
+}
+state ConfirmSecondPart{
+
+ConfirmSecondPart --> Waiting : e:HCIEvents?LEEncryptCompleted[(LEEncryptCompleted.Status == 0)]\naction do \nprint "[INFO]: Encrypted Confirm on controller.\\n"\nEncrypter!GenerateConfirmCompleted(LEEncryptCompleted.Encrypted)\nend\n
+}
+state GenerateSTK{
+	GenerateSTK : entry / do \nvar k : BLERandomNumber = '{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }'\nvar r1 : BLERandomNumber = Srand\nvar r2 : BLERandomNumber = Mrand\nvar r : BLERandomNumber\n'\n            // Concatenate\n            ' & r & '.bytes[ 0] = ' & r2 & '.bytes[ 0];\n            ' & r & '.bytes[ 1] = ' & r2 & '.bytes[ 1];\n            ' & r & '.bytes[ 2] = ' & r2 & '.bytes[ 2];\n            ' & r & '.bytes[ 3] = ' & r2 & '.bytes[ 3];\n            ' & r & '.bytes[ 4] = ' & r2 & '.bytes[ 4];\n            ' & r & '.bytes[ 5] = ' & r2 & '.bytes[ 5];\n            ' & r & '.bytes[ 6] = ' & r2 & '.bytes[ 6];\n            ' & r & '.bytes[ 7] = ' & r2 & '.bytes[ 7];\n            ' & r & '.bytes[ 8] = ' & r1 & '.bytes[ 0];\n            ' & r & '.bytes[ 9] = ' & r1 & '.bytes[ 1];\n            ' & r & '.bytes[10] = ' & r1 & '.bytes[ 2];\n            ' & r & '.bytes[11] = ' & r1 & '.bytes[ 3];\n            ' & r & '.bytes[12] = ' & r1 & '.bytes[ 4];\n            ' & r & '.bytes[13] = ' & r1 & '.bytes[ 5];\n            ' & r & '.bytes[14] = ' & r1 & '.bytes[ 6];\n            ' & r & '.bytes[15] = ' & r1 & '.bytes[ 7];\n          '\nHCICommands!LEEncrypt(...)\nend\n
+
+GenerateSTK --> Waiting : e:HCIEvents?LEEncryptCompleted[(LEEncryptCompleted.Status == 0)]\naction do \nprint "[INFO]: Encrypted Confirm on controller.\\n"\nEncrypter!GenerateSTKCompleted(LEEncryptCompleted.Encrypted)\nend\n
+}
+[*] --> Waiting
+
+Ready --> Failed : e:HCIEvents?LERandCompleted[(LERandCompleted.Status > 0)]
+
+Ready --> Failed : e:HCIEvents?LEEncryptCompleted[(LEEncryptCompleted.Status > 0)]
+
+Ready --> Failed : Socket?Closed
+	Ready : Encrypter?Start / \naction Encrypter!Started()\n
+}
+state Failed{
+	Failed : entry / Encrypter!Failure()\n
+	Failed : Encrypter?Start / \naction Encrypter!Failure()\n
+}
+[*] --> WaitForSocket
+}
+@enduml

@@ -18,41 +18,6 @@ extern "C" {
  *****************************************************************************/
 
 
-// BEGIN: Code from the c_header annotation for type UUID
-#ifndef BLE_UUID_T_H
-#define BLE_UUID_T_H
-typedef struct { uint8_t bytes[16]; } ble_uuid_t;
-#endif
-// END: Code from the c_header annotation for type UUID
-
-
-// BEGIN: Code from the c_header annotation for type BTAddress
-#include <bluetooth/bluetooth.h>
-// END: Code from the c_header annotation for type BTAddress
-
-
-// BEGIN: Code from the c_header annotation for type BTLocalName
-#include <bluetooth/bluetooth.h>
-#include <bluetooth/hci.h>
-// END: Code from the c_header annotation for type BTLocalName
-
-
-// BEGIN: Code from the c_header annotation for type SMPPublicKey
-#ifndef SMP_PUBLIC_KEY_T_H
-#define SMP_PUBLIC_KEY_T_H
-typedef struct { uint8_t bytes[32]; } smp_public_key_t;
-#endif
-// END: Code from the c_header annotation for type SMPPublicKey
-
-
-// BEGIN: Code from the c_header annotation for type BLERandomPart
-#ifndef BLE_RANDOM_PART_T_H
-#define BLE_RANDOM_PART_T_H
-typedef struct { uint8_t bytes[8]; } ble_random_part_t;
-#endif
-// END: Code from the c_header annotation for type BLERandomPart
-
-
 // BEGIN: Code from the c_header annotation for type BLERandomNumber
 #ifndef BLE_RANDOM_NUMBER_T_H
 #define BLE_RANDOM_NUMBER_T_H
@@ -61,10 +26,12 @@ typedef struct { uint8_t bytes[16]; } ble_random_number_t;
 // END: Code from the c_header annotation for type BLERandomNumber
 
 
-// BEGIN: Code from the c_header annotation for type HCIEventMask
-#include <bluetooth/bluetooth.h>
-#include <bluetooth/hci.h>
-// END: Code from the c_header annotation for type HCIEventMask
+// BEGIN: Code from the c_header annotation for type UUID
+#ifndef BLE_UUID_T_H
+#define BLE_UUID_T_H
+typedef struct { uint8_t bytes[16]; } ble_uuid_t;
+#endif
+// END: Code from the c_header annotation for type UUID
 
 
 // BEGIN: Code from the c_header annotation for type GATTData
@@ -75,6 +42,20 @@ typedef struct { uint8_t length; uint8_t bytes[23]; } ble_gatt_data_t;
 // END: Code from the c_header annotation for type GATTData
 
 
+// BEGIN: Code from the c_header annotation for type SMPPublicKey
+#ifndef SMP_PUBLIC_KEY_T_H
+#define SMP_PUBLIC_KEY_T_H
+typedef struct { uint8_t bytes[32]; } smp_public_key_t;
+#endif
+// END: Code from the c_header annotation for type SMPPublicKey
+
+
+// BEGIN: Code from the c_header annotation for type HCIEventMask
+#include <bluetooth/bluetooth.h>
+#include <bluetooth/hci.h>
+// END: Code from the c_header annotation for type HCIEventMask
+
+
 // BEGIN: Code from the c_header annotation for type BLEAdvertiseData
 #ifndef BLE_ADV_DATA_T_H
 #define BLE_ADV_DATA_T_H
@@ -82,8 +63,29 @@ typedef struct { uint8_t bytes[31]; } ble_adv_data_t;
 #endif
 // END: Code from the c_header annotation for type BLEAdvertiseData
 
+
+// BEGIN: Code from the c_header annotation for type BTAddress
+#include <bluetooth/bluetooth.h>
+// END: Code from the c_header annotation for type BTAddress
+
+
+// BEGIN: Code from the c_header annotation for type BLERandomPart
+#ifndef BLE_RANDOM_PART_T_H
+#define BLE_RANDOM_PART_T_H
+typedef struct { uint8_t bytes[8]; } ble_random_part_t;
+#endif
+// END: Code from the c_header annotation for type BLERandomPart
+
+
+// BEGIN: Code from the c_header annotation for type BTLocalName
+#include <bluetooth/bluetooth.h>
+#include <bluetooth/hci.h>
+// END: Code from the c_header annotation for type BTLocalName
+
 // Definition of the instance struct:
 struct BLEConnecterImpl_Instance {
+bool debug;
+char * name;
 
 // Instances of different sessions
 bool active;
@@ -97,32 +99,32 @@ uint16_t id_ATT;
 // Variables for the current instance state
 int BLEConnecterImpl_States_State;
 // Variables for the properties of the instance
-ble_random_number_t BLEConnecterImpl_LongTermKey_var;
-uint8_t BLEConnecterImpl_ConnectedAddressType_var;
-uint8_t BLEConnecterImpl_ConnectAddressType_var;
-ble_random_part_t BLEConnecterImpl_RandomNumber_var;
-bdaddr_t BLEConnecterImpl_ConnectedAddress_var;
-uint16_t BLEConnecterImpl_EncryptedDiversifier_var;
 const char * BLEConnecterImpl_ConnectAddress_var;
 bdaddr_t BLEConnecterImpl_ConnectAddressBT_var;
+uint16_t BLEConnecterImpl_EncryptedDiversifier_var;
+bdaddr_t BLEConnecterImpl_ConnectedAddress_var;
+uint8_t BLEConnecterImpl_ConnectAddressType_var;
 int16_t BLEConnecterImpl_ConnectedHandle_var;
+ble_random_number_t BLEConnecterImpl_LongTermKey_var;
+uint8_t BLEConnecterImpl_ConnectedAddressType_var;
+ble_random_part_t BLEConnecterImpl_RandomNumber_var;
 
 };
 // Declaration of prototypes outgoing messages :
 void BLEConnecterImpl_States_OnEntry(int state, struct BLEConnecterImpl_Instance *_instance);
-void BLEConnecterImpl_handle_HCIEvents_DisconnectionCompleted(struct BLEConnecterImpl_Instance *_instance, uint8_t Status, uint16_t ConnectionHandle, uint8_t Reason);
-void BLEConnecterImpl_handle_HCIEvents_LEEnhancedConnectionComplete(struct BLEConnecterImpl_Instance *_instance, uint8_t Status, uint16_t ConnectionHandle, uint8_t Role, uint8_t PeerAddressType, bdaddr_t PeerAddress, bdaddr_t LocalResolvablePrivateAddress, bdaddr_t PeerResolvablePrivateAddress, uint16_t ConnInterval, uint16_t ConnLatency, uint16_t SupervisionTimeout, uint8_t MasterClockAccuracy);
 void BLEConnecterImpl_handle_HCIEvents_LEConnectionComplete(struct BLEConnecterImpl_Instance *_instance, uint8_t Status, uint16_t ConnectionHandle, uint8_t Role, uint8_t PeerAddressType, bdaddr_t PeerAddress, uint16_t ConnInterval, uint16_t ConnLatency, uint16_t SupervisionTimeout, uint8_t MasterClockAccuracy);
+void BLEConnecterImpl_handle_HCIEvents_LEEnhancedConnectionComplete(struct BLEConnecterImpl_Instance *_instance, uint8_t Status, uint16_t ConnectionHandle, uint8_t Role, uint8_t PeerAddressType, bdaddr_t PeerAddress, bdaddr_t LocalResolvablePrivateAddress, bdaddr_t PeerResolvablePrivateAddress, uint16_t ConnInterval, uint16_t ConnLatency, uint16_t SupervisionTimeout, uint8_t MasterClockAccuracy);
+void BLEConnecterImpl_handle_HCIEvents_DisconnectionCompleted(struct BLEConnecterImpl_Instance *_instance, uint8_t Status, uint16_t ConnectionHandle, uint8_t Reason);
 void BLEConnecterImpl_handle_HCIEvents_LEStartEncryptionStatus(struct BLEConnecterImpl_Instance *_instance, uint8_t NumberAllowedCommandPackets, uint8_t Status);
-void BLEConnecterImpl_handle_HCIEvents_LECreateConnectionCancelCompleted(struct BLEConnecterImpl_Instance *_instance, uint8_t NumberAllowedCommandPackets, uint8_t Status);
 void BLEConnecterImpl_handle_HCIEvents_DisconnectStatus(struct BLEConnecterImpl_Instance *_instance, uint8_t NumberAllowedCommandPackets, uint8_t Status);
 void BLEConnecterImpl_handle_HCIEvents_LECreateConnectionStatus(struct BLEConnecterImpl_Instance *_instance, uint8_t NumberAllowedCommandPackets, uint8_t Status);
+void BLEConnecterImpl_handle_HCIEvents_LECreateConnectionCancelCompleted(struct BLEConnecterImpl_Instance *_instance, uint8_t NumberAllowedCommandPackets, uint8_t Status);
 void BLEConnecterImpl_handle_HCIEvents_EncryptionChanged(struct BLEConnecterImpl_Instance *_instance, uint8_t Status, uint16_t ConnectionHandle, uint8_t Enabled);
-void BLEConnecterImpl_handle_Connecter_Encrypt(struct BLEConnecterImpl_Instance *_instance);
-void BLEConnecterImpl_handle_Connecter_ConnectToU(struct BLEConnecterImpl_Instance *_instance, uint8_t AddressType, bdaddr_t Address);
 void BLEConnecterImpl_handle_Connecter_ConnectTo(struct BLEConnecterImpl_Instance *_instance, uint8_t AddressType, bdaddr_t Address, ble_random_number_t LongTermKey, uint16_t EncryptedDiversifier, ble_random_part_t RandomNumber);
 void BLEConnecterImpl_handle_Connecter_Stop(struct BLEConnecterImpl_Instance *_instance);
 void BLEConnecterImpl_handle_Connecter_Connect(struct BLEConnecterImpl_Instance *_instance);
+void BLEConnecterImpl_handle_Connecter_Encrypt(struct BLEConnecterImpl_Instance *_instance);
+void BLEConnecterImpl_handle_Connecter_ConnectToU(struct BLEConnecterImpl_Instance *_instance, uint8_t AddressType, bdaddr_t Address);
 // Declaration of callbacks for incoming messages:
 void register_BLEConnecterImpl_send_Connecter_Connected_listener(void (*_listener)(struct BLEConnecterImpl_Instance *, uint16_t, uint8_t, bdaddr_t));
 void register_external_BLEConnecterImpl_send_Connecter_Connected_listener(void (*_listener)(struct BLEConnecterImpl_Instance *, uint16_t, uint8_t, bdaddr_t));
@@ -240,14 +242,14 @@ void register_BLEConnecterImpl_send_ATT_ATTHandleValueConfirmation_listener(void
 void register_external_BLEConnecterImpl_send_ATT_ATTHandleValueConfirmation_listener(void (*_listener)(struct BLEConnecterImpl_Instance *, uint16_t));
 
 // Definition of the states:
-#define BLECONNECTERIMPL_STATES_STATE 0
-#define BLECONNECTERIMPL_STATES_CONNECTING_STATE 1
-#define BLECONNECTERIMPL_STATES_CANCELCONNECTION_STATE 2
-#define BLECONNECTERIMPL_STATES_ENCRYPTED_STATE 3
-#define BLECONNECTERIMPL_STATES_CONNECTED_STATE 4
-#define BLECONNECTERIMPL_STATES_DISCONNECTING_STATE 5
-#define BLECONNECTERIMPL_STATES_NOTCONNECTED_STATE 6
-#define BLECONNECTERIMPL_STATES_FAILURE_STATE 7
+#define BLECONNECTERIMPL_STATES_DISCONNECTING_STATE 0
+#define BLECONNECTERIMPL_STATES_NOTCONNECTED_STATE 1
+#define BLECONNECTERIMPL_STATES_CONNECTED_STATE 2
+#define BLECONNECTERIMPL_STATES_FAILURE_STATE 3
+#define BLECONNECTERIMPL_STATES_CANCELCONNECTION_STATE 4
+#define BLECONNECTERIMPL_STATES_STATE 5
+#define BLECONNECTERIMPL_STATES_CONNECTING_STATE 6
+#define BLECONNECTERIMPL_STATES_ENCRYPTED_STATE 7
 
 
 

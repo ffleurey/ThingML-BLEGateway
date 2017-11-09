@@ -1,0 +1,577 @@
+@startuml
+caption Things used in configuration BLE_PAIR
+class BLEInitialiserImpl <<(T,#F94918)PSM>> {
+..Properties..
+-DeviceAddress : BTAddress
+..Port Initialiser..
+>>Start
+>>Stop
+<<Started
+<<Stopped
+<<Failure
+<<DeviceInitialised
+}
+class ModuleMsgs <<(F,#BC74ED)Fragment>> {
+..Messages..
+-Start()
+-Stop()
+-Started()
+-Stopped()
+-Failure()
+}
+class BLEInitialiserMsgs <<(F,#BC74ED)Fragment>> {
+..Messages..
+-DeviceInitialised(Address : BTAddress)
+}
+class HCISocket <<(F,#BC74ED)Fragment>> {
+..Port Socket..
+>>Opened
+>>Closed
+<<Open
+<<Close
+..Port HCICommands..
+<<Reset
+<<SetEventMask
+<<SetEventMaskAll
+<<SetLocalName
+<<Disconnect
+<<SetLEEventMask
+<<SetLEEventMaskAll
+<<SetLEAdvertisementParameters
+<<SetLEAdvertiseEnable
+<<SetLEAdvertisingData
+<<SetLEScanResponseData
+<<SetLEScanParameters
+<<SetLEScanEnable
+<<LECreateConnection
+<<LECreateConnectionCancel
+<<LERand
+<<LEEncrypt
+<<LEStartEncryption
+..Port HCIEvents..
+>>ResetCompleted
+>>SetEventMaskCompleted
+>>SetLocalNameCompleted
+>>DisconnectStatus
+>>DisconnectionCompleted
+>>SetLEEventMaskCompleted
+>>SetLEAdvertisementParametersCompleted
+>>SetLEAdvertiseEnableCompleted
+>>SetLEAdvertisingDataCompleted
+>>SetLEScanResponseDataCompleted
+>>SetLEScanParametersCompleted
+>>SetLEScanEnableCompleted
+>>LEAdvertisementReport
+>>LECreateConnectionStatus
+>>LECreateConnectionCancelCompleted
+>>LEConnectionComplete
+>>LEEnhancedConnectionComplete
+>>LERandCompleted
+>>LEEncryptCompleted
+>>EncryptionChanged
+>>LEStartEncryptionStatus
+}
+class HCISocketMsgs <<(F,#BC74ED)Fragment>> {
+..Messages..
+-Open()
+-Close()
+-Opened(Address : BTAddress)
+-Closed()
+}
+class HCIControllerMsgs <<(F,#BC74ED)Fragment>> {
+..Messages..
+-Reset()
+-ResetCompleted(NumberAllowedCommandPackets : ByteStatus : Byte)
+-SetEventMask(Mask : HCIEventMask)
+-SetEventMaskAll()
+-SetEventMaskCompleted(NumberAllowedCommandPackets : ByteStatus : Byte)
+-SetLocalName(Name : BTLocalName)
+-SetLocalNameCompleted(NumberAllowedCommandPackets : ByteStatus : Byte)
+-Disconnect(ConnectionHandle : UIntReason : BTDisconnectReason)
+-DisconnectStatus(NumberAllowedCommandPackets : ByteStatus : Byte)
+-DisconnectionCompleted(Status : ByteConnectionHandle : UIntReason : BTDisconnectReason)
+-EncryptionChanged(Status : ByteConnectionHandle : UIntEnabled : Byte)
+-SetLEEventMask(Mask : HCIEventMask)
+-SetLEEventMaskAll()
+-SetLEEventMaskCompleted(NumberAllowedCommandPackets : ByteStatus : Byte)
+-SetLEAdvertisementParameters(MinInterval : UIntMaxInterval : UIntType : BLEAdvertisingTypeOwnAddressType : BLEAddressTypePeerAddressType : BLEAddressTypePeerAddress : BTAddressChannel : BLEAdvertisingChannelFilterPolicy : BLEAdvertisingFilterPolicy)
+-SetLEAdvertisementParametersCompleted(NumberAllowedCommandPackets : ByteStatus : Byte)
+-SetLEAdvertiseEnable(Enable : Byte)
+-SetLEAdvertiseEnableCompleted(NumberAllowedCommandPackets : ByteStatus : Byte)
+-SetLEAdvertisingData(Length : ByteData : BLEAdvertiseData)
+-SetLEAdvertisingDataCompleted(NumberAllowedCommandPackets : ByteStatus : Byte)
+-SetLEScanResponseData(Length : ByteData : BLEAdvertiseData)
+-SetLEScanResponseDataCompleted(NumberAllowedCommandPackets : ByteStatus : Byte)
+-LEAdvertisementReport(Type : BLEAdvertisementReportTypeAddressType : BLEAddressTypeAddress : BTAddressLength : ByteData : BLEAdvertiseData)
+-SetLEScanParameters(Type : BLEScanTypeInterval : UIntWindow : UIntOwnAddressType : BLEAddressTypeFilterPolicy : BLEScanFilterPolicy)
+-SetLEScanParametersCompleted(NumberAllowedCommandPackets : ByteStatus : Byte)
+-SetLEScanEnable(Enable : ByteFilterDuplicates : Byte)
+-SetLEScanEnableCompleted(NumberAllowedCommandPackets : ByteStatus : Byte)
+-LECreateConnection(Interval : UIntWindow : UIntFilterPolicy : BLEInitiatorFilterPolicyPeerAddressType : BLEAddressTypePeerAddress : BTAddressOwnAddressType : BLEAddressTypeConnIntervalMin : UIntConnIntervalMax : UIntConnLatency : UIntSupervisionTimeout : UIntCELengthMin : UIntCELengthMax : UInt)
+-LECreateConnectionStatus(NumberAllowedCommandPackets : ByteStatus : Byte)
+-LECreateConnectionCancel()
+-LECreateConnectionCancelCompleted(NumberAllowedCommandPackets : ByteStatus : Byte)
+-LEConnectionComplete(Status : ByteConnectionHandle : UIntRole : BLELinkRolePeerAddressType : BLEAddressTypePeerAddress : BTAddressConnInterval : UIntConnLatency : UIntSupervisionTimeout : UIntMasterClockAccuracy : Byte)
+-LEEnhancedConnectionComplete(Status : ByteConnectionHandle : UIntRole : BLELinkRolePeerAddressType : BLEAddressTypePeerAddress : BTAddressLocalResolvablePrivateAddress : BTAddressPeerResolvablePrivateAddress : BTAddressConnInterval : UIntConnLatency : UIntSupervisionTimeout : UIntMasterClockAccuracy : Byte)
+-LERand()
+-LERandCompleted(NumberAllowedCommandPackets : ByteStatus : ByteRandom : BLERandomPart)
+-LEEncrypt(Key : BLERandomNumberPlaintext : BLERandomNumber)
+-LEEncryptCompleted(NumberAllowedCommandPackets : ByteStatus : ByteEncrypted : BLERandomNumber)
+-LEStartEncryption(ConnectionHandle : UIntRandom : BLERandomPartEDIV : UIntLTK : BLERandomNumber)
+-LEStartEncryptionStatus(NumberAllowedCommandPackets : ByteStatus : Byte)
+}
+class SMP <<(F,#BC74ED)Fragment>> {
+..Port SMP..
+>>SMPPairingRequest
+>>SMPPairingResponse
+>>SMPPairingConfirm
+>>SMPPairingRandom
+>>SMPPairingFailed
+>>SMPPairingPublicKey
+>>SMPPairingDHKeyCheck
+>>SMPKeypressNotification
+>>SMPEncryptionInformation
+>>SMPMasterIdentification
+>>SMPIdentityInformation
+>>SMPIdentityAddressInformation
+>>SMPSigningInformation
+>>SMPSecurityRequest
+<<SMPPairingRequest
+<<SMPPairingResponse
+<<SMPPairingConfirm
+<<SMPPairingRandom
+<<SMPPairingFailed
+<<SMPPairingPublicKey
+<<SMPPairingDHKeyCheck
+<<SMPKeypressNotification
+<<SMPEncryptionInformation
+<<SMPMasterIdentification
+<<SMPIdentityInformation
+<<SMPIdentityAddressInformation
+<<SMPSigningInformation
+<<SMPSecurityRequest
+}
+class SMPMsgs <<(F,#BC74ED)Fragment>> {
+..Messages..
+-SMPPairingRequest(Handle : UIntIOCapability : SMPIOCapabilitiesOOBDataPresent : BooleanBonding : BooleanMITM : BooleanSecureConnection : BooleanKeypress : BooleanMaximumEncryptionKeySize : ByteInitiatorKeyDistribution : SMPKeyDistributionResponderKeyDistribution : SMPKeyDistribution)
+-SMPPairingResponse(Handle : UIntIOCapability : SMPIOCapabilitiesOOBDataPresent : BooleanBonding : BooleanMITM : BooleanSecureConnection : BooleanKeypress : BooleanMaximumEncryptionKeySize : ByteInitiatorKeyDistribution : SMPKeyDistributionResponderKeyDistribution : SMPKeyDistribution)
+-SMPPairingConfirm(Handle : UIntConfirmValue : BLERandomNumber)
+-SMPPairingRandom(Handle : UIntRandomValue : BLERandomNumber)
+-SMPPairingFailed(Handle : UIntReason : SMPPairingFailReason)
+-SMPPairingPublicKey(Handle : UIntKeyX : SMPPublicKeyKeyY : SMPPublicKey)
+-SMPPairingDHKeyCheck(Handle : UIntDHKeyCheck : BLERandomNumber)
+-SMPKeypressNotification(Handle : UIntType : SMPKeypressNotification)
+-SMPEncryptionInformation(Handle : UIntLongTermKey : BLERandomNumber)
+-SMPMasterIdentification(Handle : UIntEDIV : UIntRand : BLERandomPart)
+-SMPIdentityInformation(Handle : UIntIdentityResolvingKey : BLERandomNumber)
+-SMPIdentityAddressInformation(Handle : UIntAddressType : BLEAddressTypeAddress : BTAddress)
+-SMPSigningInformation(Handle : UIntSignatureKey : BLERandomNumber)
+-SMPSecurityRequest(Handle : UIntBonding : BooleanMITM : BooleanSecureConnection : BooleanKeypress : Boolean)
+}
+class ATT <<(F,#BC74ED)Fragment>> {
+..Port ATT..
+>>ATTFindInformationRequest
+>>ATTFindInformationResponse
+>>ATTFindInformationError
+>>ATTReadByTypeRequest
+>>ATTReadByTypeResponse
+>>ATTReadByTypeError
+>>ATTReadRequest
+>>ATTReadResponse
+>>ATTReadError
+>>ATTReadByGroupTypeRequest
+>>ATTReadByGroupTypeResponse
+>>ATTReadByGroupTypeError
+>>ATTWriteRequest
+>>ATTWriteResponse
+>>ATTWriteError
+>>ATTWriteCommand
+>>ATTHandleValueNotification
+>>ATTHandleValueIndication
+>>ATTHandleValueConfirmation
+<<ATTFindInformationRequest
+<<ATTFindInformationResponse
+<<ATTFindInformationError
+<<ATTReadByTypeRequest
+<<ATTReadByTypeResponse
+<<ATTReadByTypeError
+<<ATTReadRequest
+<<ATTReadResponse
+<<ATTReadError
+<<ATTReadByGroupTypeRequest
+<<ATTReadByGroupTypeResponse
+<<ATTReadByGroupTypeError
+<<ATTWriteRequest
+<<ATTWriteResponse
+<<ATTWriteError
+<<ATTWriteCommand
+<<ATTHandleValueNotification
+<<ATTHandleValueIndication
+<<ATTHandleValueConfirmation
+}
+class ATTMsgs <<(F,#BC74ED)Fragment>> {
+..Messages..
+-ATTFindInformationRequest(ConnectionHandle : UIntStartingHandle : UIntEndingHandle : UInt)
+-ATTFindInformationResponse(ConnectionHandle : UIntFormat : ByteInformationData : GATTData)
+-ATTFindInformationError(ConnectionHandle : UIntAttributeHandle : UIntError : ATTErrorCode)
+-ATTReadByTypeRequest(ConnectionHandle : UIntStartingHandle : UIntEndingHandle : UIntAttributeType : UUID)
+-ATTReadByTypeResponse(ConnectionHandle : UIntLength : ByteAttributeDataList : GATTData)
+-ATTReadByTypeError(ConnectionHandle : UIntAttributeHandle : UIntError : ATTErrorCode)
+-ATTReadRequest(ConnectionHandle : UIntAttributeHandle : UInt)
+-ATTReadResponse(ConnectionHandle : UIntAttributeValue : GATTData)
+-ATTReadError(ConnectionHandle : UIntAttributeHandle : UIntError : ATTErrorCode)
+-ATTReadByGroupTypeRequest(ConnectionHandle : UIntStartingHandle : UIntEndingHandle : UIntAttributeGroupType : UUID)
+-ATTReadByGroupTypeResponse(ConnectionHandle : UIntLength : ByteAttributeDataList : GATTData)
+-ATTReadByGroupTypeError(ConnectionHandle : UIntAttributeHandle : UIntError : ATTErrorCode)
+-ATTWriteRequest(ConnectionHandle : UIntAttributeHandle : UIntAttributeValue : GATTData)
+-ATTWriteResponse(ConnectionHandle : UInt)
+-ATTWriteError(ConnectionHandle : UIntAttributeHandle : UIntError : ATTErrorCode)
+-ATTWriteCommand(ConnectionHandle : UIntAttributeHandle : UIntAttributeValue : GATTData)
+-ATTHandleValueNotification(ConnectionHandle : UIntAttributeHandle : UIntAttributeValue : GATTData)
+-ATTHandleValueIndication(ConnectionHandle : UIntAttributeHandle : UIntAttributeValue : GATTData)
+-ATTHandleValueConfirmation(ConnectionHandle : UInt)
+}
+class UUIDFunctions <<(F,#BC74ED)Fragment>> {
+..Functions..
+-ReadUUID(Length : UIntData : DataPointer) : UUID
+-MakeUUID(Text : String) : UUID
+-PrintUUID(ID : UUID) : void
+}
+class BLEEncryptionImpl <<(T,#F94918)PSM>> {
+..Properties..
+-GeneratedRandomNumber : BLERandomNumber
+-Rand : BLERandomNumber
+-IAT : BLEAddressType
+-IA : BTAddress
+-RAT : BLEAddressType
+-RA : BTAddress
+-Srand : BLERandomNumber
+-Mrand : BLERandomNumber
+..Port Encrypter..
+>>Start
+>>GenerateRandomNumber
+>>GenerateConfirm
+>>CheckConfirm
+>>GenerateSTK
+<<Started
+<<Failure
+<<GenerateRandomNumberCompleted
+<<GenerateConfirmCompleted
+<<CheckConfirmCompleted
+<<GenerateSTKCompleted
+..Functions..
+-GenerateP1() : BLERandomNumber
+-GenerateP2() : BLERandomNumber
+}
+class BLEEncryptionMsgs <<(F,#BC74ED)Fragment>> {
+..Messages..
+-GenerateRandomNumber()
+-GenerateRandomNumberCompleted(Random : BLERandomNumber)
+-GenerateConfirm(Rand : BLERandomNumberIAT : BLEAddressTypeIA : BTAddressRAT : BLEAddressTypeRA : BTAddress)
+-GenerateConfirmCompleted(Confirm : BLERandomNumber)
+-CheckConfirm(Received : BLERandomNumberCalculated : BLERandomNumber)
+-CheckConfirmCompleted(Correct : Boolean)
+-GenerateSTK(Srand : BLERandomNumberMrand : BLERandomNumber)
+-GenerateSTKCompleted(STK : BLERandomNumber)
+}
+class Main <<(T,#F94918)PSM>> {
+..Properties..
+-ConnectedAddressType : BLEAddressType
+-ConnectedAddress : BTAddress
+-ConnectedHandle : UInt
+-DeviceAddressType : BLEAddressType = BLEAddressType:PUBLIC
+-DeviceAddress : BTAddress
+-Mrand : BLERandomNumber
+-Srand : BLERandomNumber
+-Mconfirm : BLERandomNumber
+-Sconfirm : BLERandomNumber
+-PeerLTK : BLERandomNumber
+-PeerEDIV : UInt
+-PeerRandom : BLERandomPart
+-PeerIRK : BLERandomNumber
+-PeerIdentityAddressType : BLEAddressType
+-PeerIdentityAddress : BTAddress
+-OwnLTK : BLERandomNumber
+-OwnEDIV : UInt
+-OwnRandom : BLERandomPart
+-OwnIRK : BLERandomNumber
+-OwnIdentityAddressType : BLEAddressType
+-OwnIdentityAddress : BTAddress
+-HavePeerLTK : Boolean = false
+-HavePeerIdentification : Boolean = false
+-HavePeerIdentity : Boolean = false
+-HavePeerIdentityAddress : Boolean = false
+-HasPairedSuccessfully : Boolean = false
+..Port Signals..
+>>Interrupt
+<<Quit
+..Functions..
+-printBytes() : void
+}
+class BLEInitialiser <<(F,#BC74ED)Fragment>> {
+..Port Initialiser..
+>>Started
+>>Stopped
+>>Failure
+>>DeviceInitialised
+<<Start
+<<Stop
+}
+class BLEConnecter <<(F,#BC74ED)Fragment>> {
+..Port Connecter..
+>>Connected
+>>Stopped
+>>Failure
+>>Encrypted
+<<Connect
+<<ConnectTo
+<<ConnectToU
+<<Stop
+<<Encrypt
+}
+class BLEConnecterMsgs <<(F,#BC74ED)Fragment>> {
+..Messages..
+-Connect()
+-ConnectTo(AddressType : BLEAddressTypeAddress : BTAddressLongTermKey : BLERandomNumberEncryptedDiversifier : UIntRandomNumber : BLERandomPart)
+-ConnectToU(AddressType : BLEAddressTypeAddress : BTAddress)
+-Connected(Handle : UIntAddressType : BLEAddressTypeAddress : BTAddress)
+-Encrypt()
+-Encrypted()
+}
+class ExitHandlerMsgs <<(F,#BC74ED)Fragment>> {
+..Messages..
+-Interrupt()
+-Quit(code : ExitCode)
+}
+class BLEEncryption <<(F,#BC74ED)Fragment>> {
+..Port Encrypter..
+>>Started
+>>Failure
+>>GenerateRandomNumberCompleted
+>>GenerateConfirmCompleted
+>>CheckConfirmCompleted
+>>GenerateSTKCompleted
+<<Start
+<<GenerateRandomNumber
+<<GenerateConfirm
+<<CheckConfirm
+<<GenerateSTK
+}
+class ExitHandler <<(T,#F94918)PSM>> {
+..Port Signals..
+>>Quit
+<<Interrupt
+..Functions..
+-catch_sigint() : void
+}
+note left of ExitHandler : <b>@c_header</b> <color:royalBlue>"#include <stdlib.h>"</color>\n<b>@c_header</b> <color:royalBlue>"#include <signal.h>"</color>\n<b>@c_global</b> <color:royalBlue>"struct ExitHandler_Instance *_handler_instance;"</color>\n
+class HCISocketProxyImpl <<(T,#F94918)PSM>> {
+..Properties..
+-DevHandle : Int =  -1
+..Functions..
+-OpenSocket() : void
+-CloseSocket() : void
+-SocketIsOpen() : Byte
+-GetBTAddress() : BTAddress
+-SendCommand(Group : UIntCommand : UIntLength : ByteData : DataPointer) : void
+-SendACLData(Handle : UIntCID : UIntLength : UIntData : DataPointer) : void
+-StartSocketReader() : void
+}
+note left of HCISocketProxyImpl : <b>@c_header</b> <color:royalBlue>"#include <errno.h>"</color>\n<b>@c_header</b> <color:royalBlue>"#include <stdio.h>"</color>\n<b>@c_header</b> <color:royalBlue>"#include <sys/ioctl.h>"</color>\n<b>@c_header</b> <color:royalBlue>"#include <bluetooth/bluetooth.h>"</color>\n<b>@c_header</b> <color:royalBlue>"#include <bluetooth/hci.h>"</color>\n<b>@c_header</b> <color:royalBlue>"#include <bluetooth/hci_lib.h>"</color>\n
+class HCISocketProxy <<(F,#BC74ED)Fragment>> {
+..Properties..
+-Device : String
+..Port Socket..
+>>Open
+>>Close
+<<Opened
+<<Closed
+..Port Commands..
+>>Reset
+>>SetEventMask
+>>SetEventMaskAll
+>>SetLocalName
+>>Disconnect
+>>SetLEEventMask
+>>SetLEEventMaskAll
+>>SetLEAdvertisementParameters
+>>SetLEAdvertiseEnable
+>>SetLEAdvertisingData
+>>SetLEScanResponseData
+>>SetLEScanParameters
+>>SetLEScanEnable
+>>LECreateConnection
+>>LECreateConnectionCancel
+>>LERand
+>>LEEncrypt
+>>LEStartEncryption
+..Port Events..
+<<ResetCompleted
+<<SetEventMaskCompleted
+<<SetLocalNameCompleted
+<<DisconnectStatus
+<<DisconnectionCompleted
+<<SetLEEventMaskCompleted
+<<SetLEAdvertisementParametersCompleted
+<<SetLEAdvertiseEnableCompleted
+<<SetLEAdvertisingDataCompleted
+<<SetLEScanResponseDataCompleted
+<<SetLEScanParametersCompleted
+<<SetLEScanEnableCompleted
+<<LEAdvertisementReport
+<<LECreateConnectionStatus
+<<LECreateConnectionCancelCompleted
+<<LEConnectionComplete
+<<LEEnhancedConnectionComplete
+<<LERandCompleted
+<<LEEncryptCompleted
+<<EncryptionChanged
+<<LEStartEncryptionStatus
+..Functions..
+-OpenSocket() : void
+-CloseSocket() : void
+-SocketIsOpen() : Byte
+-GetBTAddress() : BTAddress
+-SendCommand(Group : UIntCommand : UIntLength : ByteData : DataPointer) : void
+-SendACLData(Handle : UIntCID : UIntLength : UIntData : DataPointer) : void
+-DecodeEvent(Event : ByteLength : ByteData : DataPointer) : void
+-OnCommandCompletedEvent(NumberAllowedCommandPackets : ByteGroup : UIntCommand : UIntData : DataPointer) : void
+-OnCommandStatusEvent(NumberAllowedCommandPackets : ByteGroup : UIntCommand : UIntStatus : Byte) : void
+-OnLEMetaEvent(SubEventCode : ByteLength : ByteData : DataPointer) : void
+-printBuffer(Data : DataPointerLength : UInt) : void
+-HandleACLData(Handle : UIntPacketBoundary : ACLPacketBoundaryFlagBroadcast : ACLBroadcastFlagLength : UIntData : DataPointer) : void
+-OnL2CAPData(Handle : UIntLength : UIntData : DataPointer) : void
+-OnSMPData(Handle : UIntLength : UIntData : DataPointer) : void
+-OnATTData(Handle : UIntLength : UIntData : DataPointer) : void
+}
+class SMPProxy <<(F,#BC74ED)Fragment>> {
+..Port SMP..
+>>SMPPairingRequest
+>>SMPPairingResponse
+>>SMPPairingConfirm
+>>SMPPairingRandom
+>>SMPPairingFailed
+>>SMPPairingPublicKey
+>>SMPPairingDHKeyCheck
+>>SMPKeypressNotification
+>>SMPEncryptionInformation
+>>SMPMasterIdentification
+>>SMPIdentityInformation
+>>SMPIdentityAddressInformation
+>>SMPSigningInformation
+>>SMPSecurityRequest
+<<SMPPairingRequest
+<<SMPPairingResponse
+<<SMPPairingConfirm
+<<SMPPairingRandom
+<<SMPPairingFailed
+<<SMPPairingPublicKey
+<<SMPPairingDHKeyCheck
+<<SMPKeypressNotification
+<<SMPEncryptionInformation
+<<SMPMasterIdentification
+<<SMPIdentityInformation
+<<SMPIdentityAddressInformation
+<<SMPSigningInformation
+<<SMPSecurityRequest
+}
+class ATTProxy <<(F,#BC74ED)Fragment>> {
+..Port ATT..
+>>ATTFindInformationRequest
+>>ATTFindInformationResponse
+>>ATTFindInformationError
+>>ATTReadByTypeRequest
+>>ATTReadByTypeResponse
+>>ATTReadByTypeError
+>>ATTReadRequest
+>>ATTReadResponse
+>>ATTReadError
+>>ATTReadByGroupTypeRequest
+>>ATTReadByGroupTypeResponse
+>>ATTReadByGroupTypeError
+>>ATTWriteRequest
+>>ATTWriteResponse
+>>ATTWriteError
+>>ATTWriteCommand
+>>ATTHandleValueNotification
+>>ATTHandleValueIndication
+>>ATTHandleValueConfirmation
+<<ATTFindInformationRequest
+<<ATTFindInformationResponse
+<<ATTFindInformationError
+<<ATTReadByTypeRequest
+<<ATTReadByTypeResponse
+<<ATTReadByTypeError
+<<ATTReadRequest
+<<ATTReadResponse
+<<ATTReadError
+<<ATTReadByGroupTypeRequest
+<<ATTReadByGroupTypeResponse
+<<ATTReadByGroupTypeError
+<<ATTWriteRequest
+<<ATTWriteResponse
+<<ATTWriteError
+<<ATTWriteCommand
+<<ATTHandleValueNotification
+<<ATTHandleValueIndication
+<<ATTHandleValueConfirmation
+}
+class BLEConnecterImpl <<(T,#F94918)PSM>> {
+..Properties..
+-ConnectAddress : String
+-ConnectAddressBT : BTAddress
+-ConnectAddressType : BLEAddressType
+-LongTermKey : BLERandomNumber
+-EncryptedDiversifier : UInt
+-RandomNumber : BLERandomPart
+-ConnectedHandle : Int
+-ConnectedAddressType : BLEAddressType
+-ConnectedAddress : BTAddress
+..Port Connecter..
+>>Connect
+>>ConnectTo
+>>ConnectToU
+>>Stop
+>>Encrypt
+<<Connected
+<<Stopped
+<<Failure
+<<Encrypted
+}
+ModuleMsgs <|-- BLEInitialiserImpl
+BLEInitialiserMsgs <|-- BLEInitialiserImpl
+HCISocket <|-- BLEInitialiserImpl
+HCISocketMsgs <|-- HCISocket
+HCIControllerMsgs <|-- HCISocket
+SMP <|-- HCISocket
+SMPMsgs <|-- SMP
+ATT <|-- HCISocket
+ATTMsgs <|-- ATT
+UUIDFunctions <|-- ATT
+ModuleMsgs <|-- BLEEncryptionImpl
+BLEEncryptionMsgs <|-- BLEEncryptionImpl
+HCISocket <|-- BLEEncryptionImpl
+BLEInitialiser <|-- Main
+ModuleMsgs <|-- BLEInitialiser
+BLEInitialiserMsgs <|-- BLEInitialiser
+BLEConnecter <|-- Main
+ModuleMsgs <|-- BLEConnecter
+BLEConnecterMsgs <|-- BLEConnecter
+ExitHandlerMsgs <|-- Main
+BLEEncryption <|-- Main
+ModuleMsgs <|-- BLEEncryption
+BLEEncryptionMsgs <|-- BLEEncryption
+HCISocket <|-- Main
+ExitHandlerMsgs <|-- ExitHandler
+HCISocketProxy <|-- HCISocketProxyImpl
+HCISocketMsgs <|-- HCISocketProxy
+HCIControllerMsgs <|-- HCISocketProxy
+SMPProxy <|-- HCISocketProxy
+SMPMsgs <|-- SMPProxy
+ATTProxy <|-- HCISocketProxy
+ATTMsgs <|-- ATTProxy
+UUIDFunctions <|-- ATTProxy
+ModuleMsgs <|-- BLEConnecterImpl
+BLEConnecterMsgs <|-- BLEConnecterImpl
+HCISocket <|-- BLEConnecterImpl
+@enduml

@@ -1,0 +1,549 @@
+[INFO]: Opening HCI socket...
+[INFO]: Initialising BLE Controller...
+[INFO]: HCI Socket initialised...
+[INFO]: Requested connection to 5C:31:3E:00:4B:6B...
+[INFO]: Normal connection complete
+[INFO]: Connected!
+[ERROR] Unhandled OnCommandStatusEvent 
+  Group=0x0008, Command=0x0016, NumberAllowedCommandPackets=0x01, Status=0x00
+  
+  
+[INFO]: Received Security request, requesting pairing...
+[ERROR] Unhandled OnLEMetaEvent 
+  SubEventCode=0x04, LENGTH=0x0b, DATA=00 40 00 01 00 00 00 00 00 00 00
+** LE Read Remote Used Features Complete Event p. 1245 / No error
+
+
+[INFO]: Confirm Pairing...
+[ERROR] Unhandled DecodeEvent 
+  EVENT=0x13, LENGTH=0x05, DATA=01 40 00 02 00
+** Number Of Completed Packets Event p.1176
+
+[INFO]: Generated 128-bit random number on controller.
+[INFO]: Encrypted Confirm on controller.
+[INFO]: Sent Mconfirm = [9f24551680bf01d3abd4296420da4e95]
+[ERROR] Unhandled DecodeEvent 
+  EVENT=0x13, LENGTH=0x05, DATA=01 40 00 02 00
+
+
+
+[INFO]: Got Sconfirm = [d6cd073eb6c8172941a0c80a99948f71], replied with Mrand = [dffd5ff4faa8e8887434ec22ef88b9b5]
+[INFO]: Got Srand = [5bb2db90d42092f7b8a3686d8083c1d0], confirming...
+[INFO]: Encrypted Confirm on controller.
+[INFO]: GenerateConfirmCompleted Sconfirm = [d6cd073eb6c8172941a0c80a99948f71], e.Confirm = [091b1e4d161d8de91fffc30b613aa2fa]
+[ERROR]: Pairing procedure failed.
+
+
+
+
+
+
+
+
+
+
+hci (HCISocketProxyImpl): Init
+hci (HCISocketProxyImpl): Start CloseSocket
+hci (HCISocketProxyImpl): CloseSocket Done.
+initialiser (BLEInitialiserImpl): Init
+initialiser (BLEInitialiserImpl): Enters States
+initialiser (BLEInitialiserImpl): Enters States:Closed
+encrypter (BLEEncryptionImpl): Init
+encrypter (BLEEncryptionImpl): Enters States
+encrypter (BLEEncryptionImpl): Enters States:WaitForSocket
+connecter (BLEConnecterImpl): Init
+connecter (BLEConnecterImpl): Enters States
+connecter (BLEConnecterImpl): Enters States:NotConnected
+handler (ExitHandler): Init
+handler (ExitHandler): Enters Handler
+handler (ExitHandler): Enters Handler:Waiting
+main (Main): Init
+main (Main): Enters States
+main (Main): Enters States:Initialise
+main (Main): Initialiser!Start
+initialiser (BLEInitialiserImpl): Initialiser?Start
+initialiser (BLEInitialiserImpl): transition Closed -> Opening event Initialiser?Start
+initialiser (BLEInitialiserImpl): Exits States:Closed
+initialiser (BLEInitialiserImpl): Enters States:Opening
+[INFO]: Opening HCI socket...
+initialiser (BLEInitialiserImpl): Socket!Open
+hci (HCISocketProxyImpl): Socket?Open
+hci (HCISocketProxyImpl): Start OpenSocket
+hci (HCISocketProxyImpl): Start StartSocketReader
+hci (HCISocketProxyImpl): OpenSocket Done.
+hci (HCISocketProxyImpl): Start SocketIsOpen
+hci (HCISocketProxyImpl): Start GetBTAddress
+hci (HCISocketProxyImpl): Socket!Opened
+hci (HCISocketProxyImpl): Start SocketIsOpen
+encrypter (BLEEncryptionImpl): Socket?Opened
+encrypter (BLEEncryptionImpl): transition WaitForSocket -> Ready event Socket?Opened
+encrypter (BLEEncryptionImpl): Exits States:WaitForSocket
+encrypter (BLEEncryptionImpl): Enters States
+encrypter (BLEEncryptionImpl): Enters States:Waiting
+initialiser (BLEInitialiserImpl): Socket?Opened
+initialiser (BLEInitialiserImpl): transition Opening -> Initialise event Socket?Opened
+initialiser (BLEInitialiserImpl): Exits States:Opening
+initialiser (BLEInitialiserImpl): Enters States:Initialise
+[INFO]: Initialising BLE Controller...
+initialiser (BLEInitialiserImpl): HCICommands!Reset
+hci (HCISocketProxyImpl): Start SocketIsOpen
+hci (HCISocketProxyImpl): Commands?Reset
+hci (HCISocketProxyImpl): Start SendCommand
+hci (HCISocketProxyImpl): SendCommand Done.
+hci (HCISocketProxyImpl): Start SocketIsOpen
+hci (HCISocketProxyImpl): Start DecodeEvent
+hci (HCISocketProxyImpl): Start OnCommandCompletedEvent
+hci (HCISocketProxyImpl): Events!ResetCompleted
+hci (HCISocketProxyImpl): OnCommandCompletedEvent Done.
+hci (HCISocketProxyImpl): DecodeEvent Done.
+initialiser (BLEInitialiserImpl): HCIEvents?ResetCompleted
+initialiser (BLEInitialiserImpl): internal event HCIEvents?ResetCompleted
+initialiser (BLEInitialiserImpl): HCICommands!SetEventMaskAll
+hci (HCISocketProxyImpl): Start SocketIsOpen
+hci (HCISocketProxyImpl): Commands?SetEventMaskAll
+hci (HCISocketProxyImpl): Start SendCommand
+hci (HCISocketProxyImpl): SendCommand Done.
+hci (HCISocketProxyImpl): Start SocketIsOpen
+hci (HCISocketProxyImpl): Start DecodeEvent
+hci (HCISocketProxyImpl): Start OnCommandCompletedEvent
+hci (HCISocketProxyImpl): Events!SetEventMaskCompleted
+hci (HCISocketProxyImpl): OnCommandCompletedEvent Done.
+hci (HCISocketProxyImpl): DecodeEvent Done.
+initialiser (BLEInitialiserImpl): HCIEvents?SetEventMaskCompleted
+initialiser (BLEInitialiserImpl): internal event HCIEvents?SetEventMaskCompleted
+initialiser (BLEInitialiserImpl): HCICommands!SetLEEventMaskAll
+hci (HCISocketProxyImpl): Start SocketIsOpen
+hci (HCISocketProxyImpl): Commands?SetLEEventMaskAll
+hci (HCISocketProxyImpl): Start SendCommand
+hci (HCISocketProxyImpl): SendCommand Done.
+hci (HCISocketProxyImpl): Start SocketIsOpen
+hci (HCISocketProxyImpl): Start DecodeEvent
+hci (HCISocketProxyImpl): Start OnCommandCompletedEvent
+hci (HCISocketProxyImpl): Events!SetLEEventMaskCompleted
+hci (HCISocketProxyImpl): OnCommandCompletedEvent Done.
+hci (HCISocketProxyImpl): DecodeEvent Done.
+initialiser (BLEInitialiserImpl): HCIEvents?SetLEEventMaskCompleted
+initialiser (BLEInitialiserImpl): transition Initialise -> Open event HCIEvents?SetLEEventMaskCompleted
+initialiser (BLEInitialiserImpl): Exits States:Initialise
+initialiser (BLEInitialiserImpl): Enters States:Open
+[INFO]: HCI Socket initialised...
+initialiser (BLEInitialiserImpl): Initialiser!Started
+initialiser (BLEInitialiserImpl): Initialiser!DeviceInitialised
+hci (HCISocketProxyImpl): Start SocketIsOpen
+hci (HCISocketProxyImpl): Start SocketIsOpen
+main (Main): Initialiser?DeviceInitialised
+main (Main): transition Initialise -> Connect event Initialiser?DeviceInitialised
+main (Main): Exits States:Initialise
+main (Main): Enters States:Connect
+main (Main): Connecter!Connect
+hci (HCISocketProxyImpl): Start SocketIsOpen
+connecter (BLEConnecterImpl): Connecter?Connect
+connecter (BLEConnecterImpl): transition NotConnected -> Connecting event Connecter?Connect
+connecter (BLEConnecterImpl): Exits States:NotConnected
+connecter (BLEConnecterImpl): Enters States:Connecting
+connecter (BLEConnecterImpl): HCICommands!LECreateConnection
+hci (HCISocketProxyImpl): Start SocketIsOpen
+hci (HCISocketProxyImpl): Commands?LECreateConnection
+hci (HCISocketProxyImpl): Start SendCommand
+hci (HCISocketProxyImpl): SendCommand Done.
+hci (HCISocketProxyImpl): Start SocketIsOpen
+hci (HCISocketProxyImpl): Start DecodeEvent
+hci (HCISocketProxyImpl): Start OnCommandStatusEvent
+hci (HCISocketProxyImpl): Events!LECreateConnectionStatus
+hci (HCISocketProxyImpl): Events!LEStartEncryptionStatus
+connecter (BLEConnecterImpl): HCIEvents?LECreateConnectionStatus
+connecter (BLEConnecterImpl): internal event HCIEvents?LECreateConnectionStatus
+[INFO]: Requested connection to hci (HCISocketProxyImpl): OnCommandStatusEvent Done.
+hci (HCISocketProxyImpl): DecodeEvent Done.
+5C:31:3E:00:4B:6B...
+hci (HCISocketProxyImpl): Start SocketIsOpen
+connecter (BLEConnecterImpl): HCIEvents?LEStartEncryptionStatus
+main (Main): HCIEvents?LEStartEncryptionStatus
+hci (HCISocketProxyImpl): Start SocketIsOpen
+hci (HCISocketProxyImpl): Start DecodeEvent
+hci (HCISocketProxyImpl): Start OnLEMetaEvent
+hci (HCISocketProxyImpl): Events!LEConnectionComplete
+hci (HCISocketProxyImpl): OnLEMetaEvent Done.
+hci (HCISocketProxyImpl): DecodeEvent Done.
+connecter (BLEConnecterImpl): HCIEvents?LEConnectionComplete
+connecter (BLEConnecterImpl): transition Connecting -> Connected event HCIEvents?LEConnectionComplete
+connecter (BLEConnecterImpl): Exits States:Connecting
+[INFO]: Normal connection complete
+connecter (BLEConnecterImpl): Enters States:Connected
+[INFO]: Connected!
+connecter (BLEConnecterImpl): Connecter!Connected
+hci (HCISocketProxyImpl): Start SocketIsOpen
+main (Main): Connecter?Connected
+main (Main): transition Connect -> Pairing event Connecter?Connected
+main (Main): Exits States:Connect
+main (Main): Enters States
+main (Main): Enters States:Request
+hci (HCISocketProxyImpl): Start SocketIsOpen
+hci (HCISocketProxyImpl): Start DecodeEvent
+hci (HCISocketProxyImpl): Start OnCommandStatusEvent
+hci (HCISocketProxyImpl): OnCommandStatusEvent Done.
+hci (HCISocketProxyImpl): DecodeEvent Done.
+hci (HCISocketProxyImpl): Start HandleACLData
+  [HandleACLData] ACLPacketBoundaryFlag=2, ACLBroadcastFlag=0, Length=6
+  [HandleACLData] Data = [hci (HCISocketProxyImpl): Start printBuffer
+02 00 06 00 0b 01hci (HCISocketProxyImpl): printBuffer Done.
+]
+hci (HCISocketProxyImpl): Start OnSMPData
+hci (HCISocketProxyImpl): SMP!SMPSecurityRequest
+hci (HCISocketProxyImpl): OnSMPData Done.
+hci (HCISocketProxyImpl): HandleACLData Done.
+main (Main): SMP?SMPSecurityRequest
+main (Main): internal event SMP?SMPSecurityRequest
+[INFO]: Received Security request, requesting pairing...
+main (Main): SMP!SMPPairingRequest
+hci (HCISocketProxyImpl): Start SocketIsOpen
+hci (HCISocketProxyImpl): SMP?SMPPairingRequest
+hci (HCISocketProxyImpl): Start SendACLData
+hci (HCISocketProxyImpl): SendACLData Done.
+hci (HCISocketProxyImpl): Start SocketIsOpen
+hci (HCISocketProxyImpl): Start DecodeEvent
+hci (HCISocketProxyImpl): Start OnLEMetaEvent
+hci (HCISocketProxyImpl): OnLEMetaEvent Done.
+hci (HCISocketProxyImpl): DecodeEvent Done.
+hci (HCISocketProxyImpl): Start HandleACLData
+  [HandleACLData] ACLPacketBoundaryFlag=0, ACLBroadcastFlag=0, Length=11
+  [HandleACLData] Data = [hci (HCISocketProxyImpl): Start printBuffer
+07 00 06 00 01 03 00 01 10 05 07hci (HCISocketProxyImpl): printBuffer Done.
+]
+hci (HCISocketProxyImpl): Start OnSMPData
+hci (HCISocketProxyImpl): SMP!SMPPairingRequest
+hci (HCISocketProxyImpl): OnSMPData Done.
+hci (HCISocketProxyImpl): HandleACLData Done.
+hci (HCISocketProxyImpl): Start SocketIsOpen
+hci (HCISocketProxyImpl): Start HandleACLData
+  [HandleACLData] ACLPacketBoundaryFlag=0, ACLBroadcastFlag=0, Length=7
+  [HandleACLData] Data = [hci (HCISocketProxyImpl): Start printBuffer
+03 00 04 00 02 05 02hci (HCISocketProxyImpl): printBuffer Done.
+]
+hci (HCISocketProxyImpl): Start OnATTData
+[ERROR] Got unknown ATTData packet !!!
+hci (HCISocketProxyImpl): OnATTData Done.
+hci (HCISocketProxyImpl): HandleACLData Done.
+hci (HCISocketProxyImpl): Start HandleACLData
+  [HandleACLData] ACLPacketBoundaryFlag=2, ACLBroadcastFlag=0, Length=11
+  [HandleACLData] Data = [hci (HCISocketProxyImpl): Start printBuffer
+07 00 06 00 02 03 00 01 10 03 03hci (HCISocketProxyImpl): printBuffer Done.
+]
+hci (HCISocketProxyImpl): Start OnSMPData
+hci (HCISocketProxyImpl): SMP!SMPPairingResponse
+hci (HCISocketProxyImpl): OnSMPData Done.
+hci (HCISocketProxyImpl): HandleACLData Done.
+main (Main): SMP?SMPPairingResponse
+main (Main): transition Request -> Confirm event SMP?SMPPairingResponse
+main (Main): Exits States:Request
+main (Main): Enters States
+main (Main): Enters States:SendMconfirm
+[INFO]: Confirm Pairing...
+main (Main): Encrypter!GenerateRandomNumber
+hci (HCISocketProxyImpl): Start SocketIsOpen
+encrypter (BLEEncryptionImpl): Encrypter?GenerateRandomNumber
+encrypter (BLEEncryptionImpl): transition Waiting -> RandomFirstPart event Encrypter?GenerateRandomNumber
+encrypter (BLEEncryptionImpl): Exits States:Waiting
+encrypter (BLEEncryptionImpl): HCICommands!LERand
+encrypter (BLEEncryptionImpl): Enters States:RandomFirstPart
+hci (HCISocketProxyImpl): Start SocketIsOpen
+hci (HCISocketProxyImpl): Commands?LERand
+hci (HCISocketProxyImpl): Start SendCommand
+hci (HCISocketProxyImpl): SendCommand Done.
+hci (HCISocketProxyImpl): Start SocketIsOpen
+hci (HCISocketProxyImpl): Start HandleACLData
+  [HandleACLData] ACLPacketBoundaryFlag=0, ACLBroadcastFlag=0, Length=21
+  [HandleACLData] Data = [hci (HCISocketProxyImpl): Start printBuffer
+11 00 06 00 03 e4 1b 5b a8 97 b3 f2 83 ef af 5d fe b3 e7 0f 38hci (HCISocketProxyImpl): printBuffer Done.
+]
+hci (HCISocketProxyImpl): Start OnSMPData
+hci (HCISocketProxyImpl): SMP!SMPPairingConfirm
+hci (HCISocketProxyImpl): OnSMPData Done.
+hci (HCISocketProxyImpl): HandleACLData Done.
+hci (HCISocketProxyImpl): Start DecodeEvent
+hci (HCISocketProxyImpl): DecodeEvent Done.
+hci (HCISocketProxyImpl): Start HandleACLData
+  [HandleACLData] ACLPacketBoundaryFlag=2, ACLBroadcastFlag=0, Length=11
+  [HandleACLData] Data = [hci (HCISocketProxyImpl): Start printBuffer
+07 00 06 00 02 03 00 01 10 01 03hci (HCISocketProxyImpl): printBuffer Done.
+]
+hci (HCISocketProxyImpl): Start OnSMPData
+hci (HCISocketProxyImpl): SMP!SMPPairingResponse
+hci (HCISocketProxyImpl): OnSMPData Done.
+hci (HCISocketProxyImpl): HandleACLData Done.
+hci (HCISocketProxyImpl): Start DecodeEvent
+hci (HCISocketProxyImpl): Start OnCommandCompletedEvent
+hci (HCISocketProxyImpl): Events!LERandCompleted
+hci (HCISocketProxyImpl): OnCommandCompletedEvent Done.
+hci (HCISocketProxyImpl): DecodeEvent Done.
+main (Main): SMP?SMPPairingConfirm
+hci (HCISocketProxyImpl): Start SocketIsOpen
+main (Main): SMP?SMPPairingResponse
+hci (HCISocketProxyImpl): Start SocketIsOpen
+encrypter (BLEEncryptionImpl): HCIEvents?LERandCompleted
+encrypter (BLEEncryptionImpl): transition RandomFirstPart -> RandomSecondPart event HCIEvents?LERandCompleted
+encrypter (BLEEncryptionImpl): Exits States:RandomFirstPart
+encrypter (BLEEncryptionImpl): HCICommands!LERand
+encrypter (BLEEncryptionImpl): Enters States:RandomSecondPart
+hci (HCISocketProxyImpl): Start SocketIsOpen
+hci (HCISocketProxyImpl): Commands?LERand
+hci (HCISocketProxyImpl): Start SendCommand
+hci (HCISocketProxyImpl): SendCommand Done.
+hci (HCISocketProxyImpl): Start SocketIsOpen
+hci (HCISocketProxyImpl): Start DecodeEvent
+hci (HCISocketProxyImpl): Start OnCommandCompletedEvent
+hci (HCISocketProxyImpl): Events!LERandCompleted
+hci (HCISocketProxyImpl): OnCommandCompletedEvent Done.
+hci (HCISocketProxyImpl): DecodeEvent Done.
+encrypter (BLEEncryptionImpl): HCIEvents?LERandCompleted
+encrypter (BLEEncryptionImpl): transition RandomSecondPart -> Waiting event HCIEvents?LERandCompleted
+encrypter (BLEEncryptionImpl): Exits States:RandomSecondPart
+[INFO]: Generated 128-bit random number on controller.
+encrypter (BLEEncryptionImpl): Encrypter!GenerateRandomNumberCompleted
+encrypter (BLEEncryptionImpl): Enters States:Waiting
+hci (HCISocketProxyImpl): Start SocketIsOpen
+main (Main): Encrypter?GenerateRandomNumberCompleted
+main (Main): internal event Encrypter?GenerateRandomNumberCompleted
+main (Main): Encrypter!GenerateConfirm
+hci (HCISocketProxyImpl): Start SocketIsOpen
+encrypter (BLEEncryptionImpl): Encrypter?GenerateConfirm
+encrypter (BLEEncryptionImpl): transition Waiting -> ConfirmFirstPart event Encrypter?GenerateConfirm
+encrypter (BLEEncryptionImpl): Exits States:Waiting
+encrypter (BLEEncryptionImpl): Enters States:ConfirmFirstPart
+encrypter (BLEEncryptionImpl): Start GenerateP1
+encrypter (BLEEncryptionImpl): HCICommands!LEEncrypt
+hci (HCISocketProxyImpl): Start SocketIsOpen
+hci (HCISocketProxyImpl): Commands?LEEncrypt
+hci (HCISocketProxyImpl): Start SendCommand
+hci (HCISocketProxyImpl): SendCommand Done.
+hci (HCISocketProxyImpl): Start SocketIsOpen
+hci (HCISocketProxyImpl): Start DecodeEvent
+hci (HCISocketProxyImpl): Start OnCommandCompletedEvent
+hci (HCISocketProxyImpl): Events!LEEncryptCompleted
+hci (HCISocketProxyImpl): OnCommandCompletedEvent Done.
+hci (HCISocketProxyImpl): DecodeEvent Done.
+encrypter (BLEEncryptionImpl): HCIEvents?LEEncryptCompleted
+encrypter (BLEEncryptionImpl): transition ConfirmFirstPart -> ConfirmSecondPart event HCIEvents?LEEncryptCompleted
+encrypter (BLEEncryptionImpl): Exits States:ConfirmFirstPart
+encrypter (BLEEncryptionImpl): Start GenerateP2
+encrypter (BLEEncryptionImpl): HCICommands!LEEncrypt
+encrypter (BLEEncryptionImpl): Enters States:ConfirmSecondPart
+hci (HCISocketProxyImpl): Start SocketIsOpen
+hci (HCISocketProxyImpl): Commands?LEEncrypt
+hci (HCISocketProxyImpl): Start SendCommand
+hci (HCISocketProxyImpl): SendCommand Done.
+hci (HCISocketProxyImpl): Start SocketIsOpen
+hci (HCISocketProxyImpl): Start DecodeEvent
+hci (HCISocketProxyImpl): DecodeEvent Done.
+hci (HCISocketProxyImpl): Start HandleACLData
+  [HandleACLData] ACLPacketBoundaryFlag=2, ACLBroadcastFlag=0, Length=7
+  [HandleACLData] Data = [hci (HCISocketProxyImpl): Start printBuffer
+03 00 04 00 03 17 00hci (HCISocketProxyImpl): printBuffer Done.
+]
+hci (HCISocketProxyImpl): Start OnATTData
+[ERROR] Got unknown ATTData packet !!!
+hci (HCISocketProxyImpl): OnATTData Done.
+hci (HCISocketProxyImpl): HandleACLData Done.
+hci (HCISocketProxyImpl): Start DecodeEvent
+hci (HCISocketProxyImpl): Start OnCommandCompletedEvent
+hci (HCISocketProxyImpl): Events!LEEncryptCompleted
+hci (HCISocketProxyImpl): OnCommandCompletedEvent Done.
+hci (HCISocketProxyImpl): DecodeEvent Done.
+encrypter (BLEEncryptionImpl): HCIEvents?LEEncryptCompleted
+encrypter (BLEEncryptionImpl): transition ConfirmSecondPart -> Waiting event HCIEvents?LEEncryptCompleted
+encrypter (BLEEncryptionImpl): Exits States:ConfirmSecondPart
+[INFO]: Encrypted Confirm on controller.
+encrypter (BLEEncryptionImpl): Encrypter!GenerateConfirmCompleted
+encrypter (BLEEncryptionImpl): Enters States:Waiting
+hci (HCISocketProxyImpl): Start SocketIsOpen
+main (Main): Encrypter?GenerateConfirmCompleted
+main (Main): transition SendMconfirm -> GetSconfirm event Encrypter?GenerateConfirmCompleted
+main (Main): Exits States:SendMconfirm
+main (Main): SMP!SMPPairingConfirm
+[INFO]: Sent Mconfirm.
+main (Main): Enters States:GetSconfirm
+hci (HCISocketProxyImpl): Start SocketIsOpen
+hci (HCISocketProxyImpl): SMP?SMPPairingConfirm
+hci (HCISocketProxyImpl): Start SendACLData
+hci (HCISocketProxyImpl): SendACLData Done.
+hci (HCISocketProxyImpl): Start SocketIsOpen
+hci (HCISocketProxyImpl): Start HandleACLData
+  [HandleACLData] ACLPacketBoundaryFlag=2, ACLBroadcastFlag=0, Length=21
+  [HandleACLData] Data = [hci (HCISocketProxyImpl): Start printBuffer
+11 00 06 00 03 64 c5 99 17 fe 54 42 7c 20 50 48 d2 9a c7 6e adhci (HCISocketProxyImpl): printBuffer Done.
+]
+hci (HCISocketProxyImpl): Start OnSMPData
+hci (HCISocketProxyImpl): SMP!SMPPairingConfirm
+hci (HCISocketProxyImpl): OnSMPData Done.
+hci (HCISocketProxyImpl): HandleACLData Done.
+main (Main): SMP?SMPPairingConfirm
+main (Main): transition GetSconfirm -> GetSrandom event SMP?SMPPairingConfirm
+main (Main): Exits States:GetSconfirm
+[INFO]: Got Sconfirm, replied with Mrand.
+main (Main): SMP!SMPPairingRandom
+main (Main): Enters States:GetSrandom
+hci (HCISocketProxyImpl): Start SocketIsOpen
+hci (HCISocketProxyImpl): SMP?SMPPairingRandom
+hci (HCISocketProxyImpl): Start SendACLData
+hci (HCISocketProxyImpl): SendACLData Done.
+hci (HCISocketProxyImpl): Start SocketIsOpen
+hci (HCISocketProxyImpl): Start DecodeEvent
+hci (HCISocketProxyImpl): DecodeEvent Done.
+hci (HCISocketProxyImpl): Start HandleACLData
+  [HandleACLData] ACLPacketBoundaryFlag=0, ACLBroadcastFlag=0, Length=11
+  [HandleACLData] Data = [hci (HCISocketProxyImpl): Start printBuffer
+07 00 04 00 10 01 00 ff ff 00 28hci (HCISocketProxyImpl): printBuffer Done.
+]
+hci (HCISocketProxyImpl): Start OnATTData
+hci (HCISocketProxyImpl): Start ReadUUID
+hci (HCISocketProxyImpl): ATT!ATTReadByGroupTypeRequest
+hci (HCISocketProxyImpl): OnATTData Done.
+hci (HCISocketProxyImpl): HandleACLData Done.
+hci (HCISocketProxyImpl): Start HandleACLData
+  [HandleACLData] ACLPacketBoundaryFlag=0, ACLBroadcastFlag=0, Length=21
+  [HandleACLData] Data = [hci (HCISocketProxyImpl): Start printBuffer
+11 00 06 00 04 48 25 23 17 ac b7 a8 a7 28 94 ec 26 72 c5 56 c7hci (HCISocketProxyImpl): printBuffer Done.
+]
+hci (HCISocketProxyImpl): Start OnSMPData
+hci (HCISocketProxyImpl): SMP!SMPPairingRandom
+hci (HCISocketProxyImpl): OnSMPData Done.
+hci (HCISocketProxyImpl): HandleACLData Done.
+hci (HCISocketProxyImpl): Start HandleACLData
+  [HandleACLData] ACLPacketBoundaryFlag=2, ACLBroadcastFlag=0, Length=21
+  [HandleACLData] Data = [hci (HCISocketProxyImpl): Start printBuffer
+11 00 06 00 03 64 c5 99 17 fe 54 42 7c 20 50 48 d2 9a c7 6e adhci (HCISocketProxyImpl): printBuffer Done.
+]
+hci (HCISocketProxyImpl): Start OnSMPData
+hci (HCISocketProxyImpl): SMP!SMPPairingConfirm
+hci (HCISocketProxyImpl): OnSMPData Done.
+hci (HCISocketProxyImpl): HandleACLData Done.
+hci (HCISocketProxyImpl): Start SocketIsOpen
+main (Main): SMP?SMPPairingRandom
+main (Main): internal event SMP?SMPPairingRandom
+[INFO]: Got Srand, confirming...
+main (Main): Encrypter!GenerateConfirm
+hci (HCISocketProxyImpl): Start SocketIsOpen
+main (Main): SMP?SMPPairingConfirm
+hci (HCISocketProxyImpl): Start SocketIsOpen
+encrypter (BLEEncryptionImpl): Encrypter?GenerateConfirm
+encrypter (BLEEncryptionImpl): transition Waiting -> ConfirmFirstPart event Encrypter?GenerateConfirm
+encrypter (BLEEncryptionImpl): Exits States:Waiting
+encrypter (BLEEncryptionImpl): Enters States:ConfirmFirstPart
+encrypter (BLEEncryptionImpl): Start GenerateP1
+encrypter (BLEEncryptionImpl): HCICommands!LEEncrypt
+hci (HCISocketProxyImpl): Start SocketIsOpen
+hci (HCISocketProxyImpl): Commands?LEEncrypt
+hci (HCISocketProxyImpl): Start SendCommand
+hci (HCISocketProxyImpl): SendCommand Done.
+hci (HCISocketProxyImpl): Start SocketIsOpen
+hci (HCISocketProxyImpl): Start DecodeEvent
+hci (HCISocketProxyImpl): Start OnCommandCompletedEvent
+hci (HCISocketProxyImpl): Events!LEEncryptCompleted
+hci (HCISocketProxyImpl): OnCommandCompletedEvent Done.
+hci (HCISocketProxyImpl): DecodeEvent Done.
+encrypter (BLEEncryptionImpl): HCIEvents?LEEncryptCompleted
+encrypter (BLEEncryptionImpl): transition ConfirmFirstPart -> ConfirmSecondPart event HCIEvents?LEEncryptCompleted
+encrypter (BLEEncryptionImpl): Exits States:ConfirmFirstPart
+encrypter (BLEEncryptionImpl): Start GenerateP2
+encrypter (BLEEncryptionImpl): HCICommands!LEEncrypt
+encrypter (BLEEncryptionImpl): Enters States:ConfirmSecondPart
+hci (HCISocketProxyImpl): Start SocketIsOpen
+hci (HCISocketProxyImpl): Commands?LEEncrypt
+hci (HCISocketProxyImpl): Start SendCommand
+hci (HCISocketProxyImpl): SendCommand Done.
+hci (HCISocketProxyImpl): Start SocketIsOpen
+hci (HCISocketProxyImpl): Start DecodeEvent
+hci (HCISocketProxyImpl): Start OnCommandCompletedEvent
+hci (HCISocketProxyImpl): Events!LEEncryptCompleted
+hci (HCISocketProxyImpl): OnCommandCompletedEvent Done.
+hci (HCISocketProxyImpl): DecodeEvent Done.
+encrypter (BLEEncryptionImpl): HCIEvents?LEEncryptCompleted
+encrypter (BLEEncryptionImpl): transition ConfirmSecondPart -> Waiting event HCIEvents?LEEncryptCompleted
+encrypter (BLEEncryptionImpl): Exits States:ConfirmSecondPart
+[INFO]: Encrypted Confirm on controller.
+encrypter (BLEEncryptionImpl): Encrypter!GenerateConfirmCompleted
+encrypter (BLEEncryptionImpl): Enters States:Waiting
+hci (HCISocketProxyImpl): Start SocketIsOpen
+main (Main): Encrypter?GenerateConfirmCompleted
+main (Main): transition GetSrandom -> GetSconfirm event Encrypter?GenerateConfirmCompleted
+main (Main): Exits States:GetSrandom
+main (Main): Encrypter!CheckConfirm
+main (Main): Enters States:GetSconfirm
+hci (HCISocketProxyImpl): Start SocketIsOpen
+encrypter (BLEEncryptionImpl): Encrypter?CheckConfirm
+encrypter (BLEEncryptionImpl): internal event Encrypter?CheckConfirm
+encrypter (BLEEncryptionImpl): Encrypter!CheckConfirmCompleted
+hci (HCISocketProxyImpl): Start SocketIsOpen
+main (Main): Encrypter?CheckConfirmCompleted
+main (Main): transition Confirm -> PairFailed event Encrypter?CheckConfirmCompleted
+main (Main): Exits States:GetSconfirm
+main (Main): Enters States:PairFailed
+[ERROR]: Pairing procedure failed.
+main (Main): Connecter!Stop
+hci (HCISocketProxyImpl): Start SocketIsOpen
+connecter (BLEConnecterImpl): Connecter?Stop
+connecter (BLEConnecterImpl): transition Connected -> Disconnecting event Connecter?Stop
+connecter (BLEConnecterImpl): Exits States:Connected
+connecter (BLEConnecterImpl): Enters States:Disconnecting
+connecter (BLEConnecterImpl): HCICommands!Disconnect
+hci (HCISocketProxyImpl): Start SocketIsOpen
+hci (HCISocketProxyImpl): Commands?Disconnect
+hci (HCISocketProxyImpl): Start SendCommand
+hci (HCISocketProxyImpl): SendCommand Done.
+hci (HCISocketProxyImpl): Start SocketIsOpen
+hci (HCISocketProxyImpl): Start DecodeEvent
+hci (HCISocketProxyImpl): Start OnCommandStatusEvent
+hci (HCISocketProxyImpl): Events!DisconnectStatus
+hci (HCISocketProxyImpl): OnCommandStatusEvent Done.
+hci (HCISocketProxyImpl): DecodeEvent Done.
+connecter (BLEConnecterImpl): HCIEvents?DisconnectStatus
+connecter (BLEConnecterImpl): internal event HCIEvents?DisconnectStatus
+[INFO]: Closing connection...
+hci (HCISocketProxyImpl): Start SocketIsOpen
+hci (HCISocketProxyImpl): Start DecodeEvent
+hci (HCISocketProxyImpl): DecodeEvent Done.
+hci (HCISocketProxyImpl): Start DecodeEvent
+hci (HCISocketProxyImpl): Events!DisconnectionCompleted
+hci (HCISocketProxyImpl): DecodeEvent Done.
+connecter (BLEConnecterImpl): HCIEvents?DisconnectionCompleted
+connecter (BLEConnecterImpl): transition Disconnecting -> NotConnected event HCIEvents?DisconnectionCompleted
+connecter (BLEConnecterImpl): Exits States:Disconnecting
+connecter (BLEConnecterImpl): Connecter!Stopped
+connecter (BLEConnecterImpl): Enters States:NotConnected
+hci (HCISocketProxyImpl): Start SocketIsOpen
+main (Main): Connecter?Stopped
+main (Main): transition Pairing -> Uninitialise event Connecter?Stopped
+main (Main): Exits States:PairFailed
+main (Main): Enters States:Uninitialise
+main (Main): Initialiser!Stop
+hci (HCISocketProxyImpl): Start SocketIsOpen
+initialiser (BLEInitialiserImpl): Initialiser?Stop
+initialiser (BLEInitialiserImpl): transition Open -> Closing event Initialiser?Stop
+initialiser (BLEInitialiserImpl): Exits States:Open
+initialiser (BLEInitialiserImpl): Enters States:Closing
+[INFO]: Closing HCI socket...
+initialiser (BLEInitialiserImpl): Socket!Close
+hci (HCISocketProxyImpl): Start SocketIsOpen
+hci (HCISocketProxyImpl): Socket?Close
+hci (HCISocketProxyImpl): Socket!Closed
+hci (HCISocketProxyImpl): Start CloseSocket
+hci (HCISocketProxyImpl): CloseSocket Done.
+encrypter (BLEEncryptionImpl): Socket?Closed
+encrypter (BLEEncryptionImpl): transition Ready -> Failed event Socket?Closed
+encrypter (BLEEncryptionImpl): Exits States:Waiting
+encrypter (BLEEncryptionImpl): Enters States:Failed
+encrypter (BLEEncryptionImpl): Encrypter!Failure
+initialiser (BLEInitialiserImpl): Socket?Closed
+initialiser (BLEInitialiserImpl): transition Closing -> Closed event Socket?Closed
+initialiser (BLEInitialiserImpl): Exits States:Closing
+initialiser (BLEInitialiserImpl): Initialiser!Stopped
+initialiser (BLEInitialiserImpl): Enters States:Closed
+main (Main): Initialiser?Stopped
+main (Main): transition Uninitialise -> Quit event Initialiser?Stopped
+main (Main): Exits States:Uninitialise
+main (Main): Enters States:Quit
+[INFO]: Finished, quitting...
+main (Main): Signals!Quit
+handler (ExitHandler): Signals?Quit
+handler (ExitHandler): internal event Signals?Quit
+Exiting!

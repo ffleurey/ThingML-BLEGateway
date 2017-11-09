@@ -18,41 +18,6 @@ extern "C" {
  *****************************************************************************/
 
 
-// BEGIN: Code from the c_header annotation for type UUID
-#ifndef BLE_UUID_T_H
-#define BLE_UUID_T_H
-typedef struct { uint8_t bytes[16]; } ble_uuid_t;
-#endif
-// END: Code from the c_header annotation for type UUID
-
-
-// BEGIN: Code from the c_header annotation for type BTAddress
-#include <bluetooth/bluetooth.h>
-// END: Code from the c_header annotation for type BTAddress
-
-
-// BEGIN: Code from the c_header annotation for type BTLocalName
-#include <bluetooth/bluetooth.h>
-#include <bluetooth/hci.h>
-// END: Code from the c_header annotation for type BTLocalName
-
-
-// BEGIN: Code from the c_header annotation for type SMPPublicKey
-#ifndef SMP_PUBLIC_KEY_T_H
-#define SMP_PUBLIC_KEY_T_H
-typedef struct { uint8_t bytes[32]; } smp_public_key_t;
-#endif
-// END: Code from the c_header annotation for type SMPPublicKey
-
-
-// BEGIN: Code from the c_header annotation for type BLERandomPart
-#ifndef BLE_RANDOM_PART_T_H
-#define BLE_RANDOM_PART_T_H
-typedef struct { uint8_t bytes[8]; } ble_random_part_t;
-#endif
-// END: Code from the c_header annotation for type BLERandomPart
-
-
 // BEGIN: Code from the c_header annotation for type BLERandomNumber
 #ifndef BLE_RANDOM_NUMBER_T_H
 #define BLE_RANDOM_NUMBER_T_H
@@ -61,10 +26,12 @@ typedef struct { uint8_t bytes[16]; } ble_random_number_t;
 // END: Code from the c_header annotation for type BLERandomNumber
 
 
-// BEGIN: Code from the c_header annotation for type HCIEventMask
-#include <bluetooth/bluetooth.h>
-#include <bluetooth/hci.h>
-// END: Code from the c_header annotation for type HCIEventMask
+// BEGIN: Code from the c_header annotation for type UUID
+#ifndef BLE_UUID_T_H
+#define BLE_UUID_T_H
+typedef struct { uint8_t bytes[16]; } ble_uuid_t;
+#endif
+// END: Code from the c_header annotation for type UUID
 
 
 // BEGIN: Code from the c_header annotation for type GATTData
@@ -75,6 +42,20 @@ typedef struct { uint8_t length; uint8_t bytes[23]; } ble_gatt_data_t;
 // END: Code from the c_header annotation for type GATTData
 
 
+// BEGIN: Code from the c_header annotation for type SMPPublicKey
+#ifndef SMP_PUBLIC_KEY_T_H
+#define SMP_PUBLIC_KEY_T_H
+typedef struct { uint8_t bytes[32]; } smp_public_key_t;
+#endif
+// END: Code from the c_header annotation for type SMPPublicKey
+
+
+// BEGIN: Code from the c_header annotation for type HCIEventMask
+#include <bluetooth/bluetooth.h>
+#include <bluetooth/hci.h>
+// END: Code from the c_header annotation for type HCIEventMask
+
+
 // BEGIN: Code from the c_header annotation for type BLEAdvertiseData
 #ifndef BLE_ADV_DATA_T_H
 #define BLE_ADV_DATA_T_H
@@ -82,8 +63,29 @@ typedef struct { uint8_t bytes[31]; } ble_adv_data_t;
 #endif
 // END: Code from the c_header annotation for type BLEAdvertiseData
 
+
+// BEGIN: Code from the c_header annotation for type BTAddress
+#include <bluetooth/bluetooth.h>
+// END: Code from the c_header annotation for type BTAddress
+
+
+// BEGIN: Code from the c_header annotation for type BLERandomPart
+#ifndef BLE_RANDOM_PART_T_H
+#define BLE_RANDOM_PART_T_H
+typedef struct { uint8_t bytes[8]; } ble_random_part_t;
+#endif
+// END: Code from the c_header annotation for type BLERandomPart
+
+
+// BEGIN: Code from the c_header annotation for type BTLocalName
+#include <bluetooth/bluetooth.h>
+#include <bluetooth/hci.h>
+// END: Code from the c_header annotation for type BTLocalName
+
 // Definition of the instance struct:
 struct BLEEncryptionImpl_Instance {
+bool debug;
+char * name;
 
 // Instances of different sessions
 bool active;
@@ -98,27 +100,27 @@ uint16_t id_ATT;
 int BLEEncryptionImpl_States_State;
 int BLEEncryptionImpl_States_Ready_State;
 // Variables for the properties of the instance
-ble_random_number_t BLEEncryptionImpl_GeneratedRandomNumber_var;
-bdaddr_t BLEEncryptionImpl_IA_var;
 ble_random_number_t BLEEncryptionImpl_Srand_var;
+bdaddr_t BLEEncryptionImpl_IA_var;
 ble_random_number_t BLEEncryptionImpl_Mrand_var;
 ble_random_number_t BLEEncryptionImpl_Rand_var;
-uint8_t BLEEncryptionImpl_IAT_var;
 uint8_t BLEEncryptionImpl_RAT_var;
+ble_random_number_t BLEEncryptionImpl_GeneratedRandomNumber_var;
+uint8_t BLEEncryptionImpl_IAT_var;
 bdaddr_t BLEEncryptionImpl_RA_var;
 
 };
 // Declaration of prototypes outgoing messages :
 void BLEEncryptionImpl_States_OnEntry(int state, struct BLEEncryptionImpl_Instance *_instance);
+void BLEEncryptionImpl_handle_HCIEvents_LERandCompleted(struct BLEEncryptionImpl_Instance *_instance, uint8_t NumberAllowedCommandPackets, uint8_t Status, ble_random_part_t Random);
+void BLEEncryptionImpl_handle_HCIEvents_LEEncryptCompleted(struct BLEEncryptionImpl_Instance *_instance, uint8_t NumberAllowedCommandPackets, uint8_t Status, ble_random_number_t Encrypted);
 void BLEEncryptionImpl_handle_Socket_Closed(struct BLEEncryptionImpl_Instance *_instance);
 void BLEEncryptionImpl_handle_Socket_Opened(struct BLEEncryptionImpl_Instance *_instance, bdaddr_t Address);
-void BLEEncryptionImpl_handle_HCIEvents_LEEncryptCompleted(struct BLEEncryptionImpl_Instance *_instance, uint8_t NumberAllowedCommandPackets, uint8_t Status, ble_random_number_t Encrypted);
-void BLEEncryptionImpl_handle_HCIEvents_LERandCompleted(struct BLEEncryptionImpl_Instance *_instance, uint8_t NumberAllowedCommandPackets, uint8_t Status, ble_random_part_t Random);
-void BLEEncryptionImpl_handle_Encrypter_GenerateRandomNumber(struct BLEEncryptionImpl_Instance *_instance);
-void BLEEncryptionImpl_handle_Encrypter_GenerateSTK(struct BLEEncryptionImpl_Instance *_instance, ble_random_number_t Srand, ble_random_number_t Mrand);
+void BLEEncryptionImpl_handle_Encrypter_CheckConfirm(struct BLEEncryptionImpl_Instance *_instance, ble_random_number_t Received, ble_random_number_t Calculated);
 void BLEEncryptionImpl_handle_Encrypter_Start(struct BLEEncryptionImpl_Instance *_instance);
 void BLEEncryptionImpl_handle_Encrypter_GenerateConfirm(struct BLEEncryptionImpl_Instance *_instance, ble_random_number_t Rand, uint8_t IAT, bdaddr_t IA, uint8_t RAT, bdaddr_t RA);
-void BLEEncryptionImpl_handle_Encrypter_CheckConfirm(struct BLEEncryptionImpl_Instance *_instance, ble_random_number_t Received, ble_random_number_t Calculated);
+void BLEEncryptionImpl_handle_Encrypter_GenerateRandomNumber(struct BLEEncryptionImpl_Instance *_instance);
+void BLEEncryptionImpl_handle_Encrypter_GenerateSTK(struct BLEEncryptionImpl_Instance *_instance, ble_random_number_t Srand, ble_random_number_t Mrand);
 // Declaration of callbacks for incoming messages:
 void register_BLEEncryptionImpl_send_Encrypter_Started_listener(void (*_listener)(struct BLEEncryptionImpl_Instance *));
 void register_external_BLEEncryptionImpl_send_Encrypter_Started_listener(void (*_listener)(struct BLEEncryptionImpl_Instance *));
@@ -240,16 +242,16 @@ void register_BLEEncryptionImpl_send_ATT_ATTHandleValueConfirmation_listener(voi
 void register_external_BLEEncryptionImpl_send_ATT_ATTHandleValueConfirmation_listener(void (*_listener)(struct BLEEncryptionImpl_Instance *, uint16_t));
 
 // Definition of the states:
-#define BLEENCRYPTIONIMPL_STATES_READY_CONFIRMSECONDPART_STATE 0
-#define BLEENCRYPTIONIMPL_STATES_WAITFORSOCKET_STATE 1
-#define BLEENCRYPTIONIMPL_STATES_STATE 2
+#define BLEENCRYPTIONIMPL_STATES_STATE 0
+#define BLEENCRYPTIONIMPL_STATES_READY_STATE 1
+#define BLEENCRYPTIONIMPL_STATES_WAITFORSOCKET_STATE 2
 #define BLEENCRYPTIONIMPL_STATES_READY_WAITING_STATE 3
-#define BLEENCRYPTIONIMPL_STATES_READY_STATE 4
-#define BLEENCRYPTIONIMPL_STATES_READY_GENERATESTK_STATE 5
-#define BLEENCRYPTIONIMPL_STATES_READY_CONFIRMFIRSTPART_STATE 6
-#define BLEENCRYPTIONIMPL_STATES_READY_RANDOMSECONDPART_STATE 7
-#define BLEENCRYPTIONIMPL_STATES_FAILED_STATE 8
-#define BLEENCRYPTIONIMPL_STATES_READY_RANDOMFIRSTPART_STATE 9
+#define BLEENCRYPTIONIMPL_STATES_READY_CONFIRMFIRSTPART_STATE 4
+#define BLEENCRYPTIONIMPL_STATES_READY_RANDOMSECONDPART_STATE 5
+#define BLEENCRYPTIONIMPL_STATES_READY_RANDOMFIRSTPART_STATE 6
+#define BLEENCRYPTIONIMPL_STATES_FAILED_STATE 7
+#define BLEENCRYPTIONIMPL_STATES_READY_CONFIRMSECONDPART_STATE 8
+#define BLEENCRYPTIONIMPL_STATES_READY_GENERATESTK_STATE 9
 
 
 

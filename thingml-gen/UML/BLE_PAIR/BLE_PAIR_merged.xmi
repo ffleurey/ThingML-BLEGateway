@@ -92,17 +92,6 @@
         <actions xsi:type="thingML:ExternStatement" statement="printf(&quot;'{ &quot;);&#xA;&#xA;    int16_t i;&#xA;    for (i = 0; i &lt; length; i++) printf(&quot;0x%2.2X, &quot;,data[i]);&#xA;&#xA;    printf(&quot;}'\\n&quot;);"/>
       </body>
     </functions>
-    <functions name="printBLERandomNumber">
-      <parameters name="n">
-        <typeRef type="//@types.35"/>
-      </parameters>
-      <body xsi:type="thingML:ActionBlock">
-        <actions xsi:type="thingML:ExternStatement" statement="&#x9;printf(&quot;[&quot;);&#xA;  &#x9;&#x9;int i = 0;&#xA;  &#x9;&#x9;for (i=0; i&lt;16;i++) {&#xA;  &#x9;&#x9;&#x9;printf(&quot;%02x&quot;, ">
-          <segments xsi:type="thingML:PropertyReference" property="//@types.0/@functions.1/@parameters.0"/>
-          <segments xsi:type="thingML:ExternExpression" expression=".bytes[i]);&#xA;  &#x9;&#x9;&#x9;//if (i&lt;15) printf(&quot;, &quot;);&#xA;  &#x9;&#x9;}&#xA;  &#x9;&#x9;printf(&quot;]&quot;);&#xA;  &#x9;"/>
-        </actions>
-      </body>
-    </functions>
     <behaviour name="States" initial="//@types.0/@behaviour/@substate.0">
       <substate name="Initialise">
         <entry xsi:type="thingML:SendAction" port="//@types.15/@ports.0" message="//@types.29/@messages.0"/>
@@ -168,13 +157,12 @@
         <outgoing target="//@types.0/@behaviour/@substate.4">
           <event xsi:type="thingML:ReceiveMessage" port="//@types.21/@ports.0" message="//@types.29/@messages.4"/>
         </outgoing>
-        <substate name="DONOTHING"/>
         <substate name="Request">
-          <outgoing target="//@types.0/@behaviour/@substate.2/@substate.2">
+          <internal>
             <event xsi:type="thingML:ReceiveMessage" port="//@types.49/@ports.0" message="//@types.53/@messages.13"/>
             <action xsi:type="thingML:ActionBlock">
               <actions xsi:type="thingML:PrintAction">
-                <msg xsi:type="thingML:StringLiteral" stringValue="[INFO]: Received Security request, requesting pairing ...\n"/>
+                <msg xsi:type="thingML:StringLiteral" stringValue="[INFO]: Received Security request, requesting pairing...\n"/>
               </actions>
               <actions xsi:type="thingML:LocalVariable" name="IOCapability">
                 <typeRef type="//@types.57"/>
@@ -194,7 +182,7 @@
               </actions>
               <actions xsi:type="thingML:LocalVariable" name="SecureConnection">
                 <typeRef type="//@types.6"/>
-                <init xsi:type="thingML:BooleanLiteral" boolValue="true"/>
+                <init xsi:type="thingML:BooleanLiteral"/>
               </actions>
               <actions xsi:type="thingML:LocalVariable" name="Keypress">
                 <typeRef type="//@types.6"/>
@@ -206,43 +194,99 @@
               </actions>
               <actions xsi:type="thingML:LocalVariable" name="InitiatorKeyDistribution">
                 <typeRef type="//@types.58"/>
-                <init xsi:type="thingML:EnumLiteralRef" enum="//@types.58" literal="//@types.58/@literals.5"/>
+                <init xsi:type="thingML:EnumLiteralRef" enum="//@types.58" literal="//@types.58/@literals.3"/>
               </actions>
               <actions xsi:type="thingML:LocalVariable" name="ResponderKeyDistribution">
                 <typeRef type="//@types.58"/>
-                <init xsi:type="thingML:EnumLiteralRef" enum="//@types.58" literal="//@types.58/@literals.7"/>
+                <init xsi:type="thingML:EnumLiteralRef" enum="//@types.58" literal="//@types.58/@literals.3"/>
+              </actions>
+              <actions xsi:type="thingML:SendAction" port="//@types.49/@ports.0" message="//@types.53/@messages.0">
+                <parameters xsi:type="thingML:PropertyReference" property="//@types.0/@properties.2"/>
+                <parameters xsi:type="thingML:PropertyReference" property="//@types.0/@behaviour/@substate.2/@substate.0/@internal.0/@action/@actions.1"/>
+                <parameters xsi:type="thingML:PropertyReference" property="//@types.0/@behaviour/@substate.2/@substate.0/@internal.0/@action/@actions.2"/>
+                <parameters xsi:type="thingML:PropertyReference" property="//@types.0/@behaviour/@substate.2/@substate.0/@internal.0/@action/@actions.3"/>
+                <parameters xsi:type="thingML:PropertyReference" property="//@types.0/@behaviour/@substate.2/@substate.0/@internal.0/@action/@actions.4"/>
+                <parameters xsi:type="thingML:PropertyReference" property="//@types.0/@behaviour/@substate.2/@substate.0/@internal.0/@action/@actions.5"/>
+                <parameters xsi:type="thingML:PropertyReference" property="//@types.0/@behaviour/@substate.2/@substate.0/@internal.0/@action/@actions.6"/>
+                <parameters xsi:type="thingML:PropertyReference" property="//@types.0/@behaviour/@substate.2/@substate.0/@internal.0/@action/@actions.7"/>
+                <parameters xsi:type="thingML:PropertyReference" property="//@types.0/@behaviour/@substate.2/@substate.0/@internal.0/@action/@actions.8"/>
+                <parameters xsi:type="thingML:PropertyReference" property="//@types.0/@behaviour/@substate.2/@substate.0/@internal.0/@action/@actions.9"/>
               </actions>
             </action>
-          </outgoing>
-        </substate>
-        <substate name="RequestSent">
-          <entry xsi:type="thingML:PrintAction">
-            <msg xsi:type="thingML:StringLiteral" stringValue="Waiting for Pairing confirm #1...\n"/>
-          </entry>
-          <outgoing target="//@types.0/@behaviour/@substate.2/@substate.3">
+          </internal>
+          <outgoing target="//@types.0/@behaviour/@substate.2/@substate.1">
             <event xsi:type="thingML:ReceiveMessage" name="e" port="//@types.49/@ports.0" message="//@types.53/@messages.1"/>
-          </outgoing>
-        </substate>
-        <substate name="RequestSent2">
-          <entry xsi:type="thingML:PrintAction">
-            <msg xsi:type="thingML:StringLiteral" stringValue="Waiting for Pairing confirm #2...\n"/>
-          </entry>
-          <outgoing target="//@types.0/@behaviour/@substate.2/@substate.4">
-            <event xsi:type="thingML:ReceiveMessage" name="e" port="//@types.49/@ports.0" message="//@types.53/@messages.1"/>
-          </outgoing>
-        </substate>
-        <substate xsi:type="thingML:CompositeState" name="Confirm" initial="//@types.0/@behaviour/@substate.2/@substate.4/@substate.0">
-          <outgoing target="//@types.0/@behaviour/@substate.2/@substate.5">
-            <event xsi:type="thingML:ReceiveMessage" name="e" port="//@types.24/@ports.0" message="//@types.23/@messages.5"/>
             <guard xsi:type="thingML:ExpressionGroup">
-              <term xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.4/@outgoing.0/@event" parameter="//@types.23/@messages.5/@parameters.0"/>
+              <term xsi:type="thingML:AndExpression">
+                <lhs xsi:type="thingML:AndExpression">
+                  <lhs xsi:type="thingML:AndExpression">
+                    <lhs xsi:type="thingML:AndExpression">
+                      <lhs xsi:type="thingML:AndExpression">
+                        <lhs xsi:type="thingML:AndExpression">
+                          <lhs xsi:type="thingML:AndExpression">
+                            <lhs xsi:type="thingML:AndExpression">
+                              <lhs xsi:type="thingML:EqualsExpression">
+                                <lhs xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.0/@outgoing.0/@event" parameter="//@types.53/@messages.1/@parameters.1"/>
+                                <rhs xsi:type="thingML:EnumLiteralRef" enum="//@types.57" literal="//@types.57/@literals.3"/>
+                              </lhs>
+                              <rhs xsi:type="thingML:EqualsExpression">
+                                <lhs xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.0/@outgoing.0/@event" parameter="//@types.53/@messages.1/@parameters.2"/>
+                                <rhs xsi:type="thingML:BooleanLiteral"/>
+                              </rhs>
+                            </lhs>
+                            <rhs xsi:type="thingML:EqualsExpression">
+                              <lhs xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.0/@outgoing.0/@event" parameter="//@types.53/@messages.1/@parameters.3"/>
+                              <rhs xsi:type="thingML:BooleanLiteral" boolValue="true"/>
+                            </rhs>
+                          </lhs>
+                          <rhs xsi:type="thingML:EqualsExpression">
+                            <lhs xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.0/@outgoing.0/@event" parameter="//@types.53/@messages.1/@parameters.4"/>
+                            <rhs xsi:type="thingML:BooleanLiteral"/>
+                          </rhs>
+                        </lhs>
+                        <rhs xsi:type="thingML:EqualsExpression">
+                          <lhs xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.0/@outgoing.0/@event" parameter="//@types.53/@messages.1/@parameters.5"/>
+                          <rhs xsi:type="thingML:BooleanLiteral"/>
+                        </rhs>
+                      </lhs>
+                      <rhs xsi:type="thingML:EqualsExpression">
+                        <lhs xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.0/@outgoing.0/@event" parameter="//@types.53/@messages.1/@parameters.6"/>
+                        <rhs xsi:type="thingML:BooleanLiteral"/>
+                      </rhs>
+                    </lhs>
+                    <rhs xsi:type="thingML:EqualsExpression">
+                      <lhs xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.0/@outgoing.0/@event" parameter="//@types.53/@messages.1/@parameters.7"/>
+                      <rhs xsi:type="thingML:IntegerLiteral" intValue="16"/>
+                    </rhs>
+                  </lhs>
+                  <rhs xsi:type="thingML:EqualsExpression">
+                    <lhs xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.0/@outgoing.0/@event" parameter="//@types.53/@messages.1/@parameters.8"/>
+                    <rhs xsi:type="thingML:EnumLiteralRef" enum="//@types.58" literal="//@types.58/@literals.3"/>
+                  </rhs>
+                </lhs>
+                <rhs xsi:type="thingML:EqualsExpression">
+                  <lhs xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.0/@outgoing.0/@event" parameter="//@types.53/@messages.1/@parameters.9"/>
+                  <rhs xsi:type="thingML:EnumLiteralRef" enum="//@types.58" literal="//@types.58/@literals.3"/>
+                </rhs>
+              </term>
             </guard>
           </outgoing>
-          <outgoing target="//@types.0/@behaviour/@substate.2/@substate.7">
+          <outgoing target="//@types.0/@behaviour/@substate.2/@substate.4">
+            <event xsi:type="thingML:ReceiveMessage" port="//@types.49/@ports.0" message="//@types.53/@messages.1"/>
+          </outgoing>
+        </substate>
+        <substate xsi:type="thingML:CompositeState" name="Confirm" initial="//@types.0/@behaviour/@substate.2/@substate.1/@substate.0">
+          <outgoing target="//@types.0/@behaviour/@substate.2/@substate.2">
+            <event xsi:type="thingML:ReceiveMessage" name="e" port="//@types.24/@ports.0" message="//@types.23/@messages.5"/>
+            <guard xsi:type="thingML:ExpressionGroup">
+              <term xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.1/@outgoing.0/@event" parameter="//@types.23/@messages.5/@parameters.0"/>
+            </guard>
+          </outgoing>
+          <outgoing target="//@types.0/@behaviour/@substate.2/@substate.4">
             <event xsi:type="thingML:ReceiveMessage" name="e" port="//@types.24/@ports.0" message="//@types.23/@messages.5"/>
             <guard xsi:type="thingML:ExpressionGroup">
               <term xsi:type="thingML:NotExpression">
-                <term xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.4/@outgoing.1/@event" parameter="//@types.23/@messages.5/@parameters.0"/>
+                <term xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.1/@outgoing.1/@event" parameter="//@types.23/@messages.5/@parameters.0"/>
               </term>
             </guard>
           </outgoing>
@@ -257,7 +301,7 @@
               <event xsi:type="thingML:ReceiveMessage" name="e" port="//@types.24/@ports.0" message="//@types.23/@messages.1"/>
               <action xsi:type="thingML:ActionBlock">
                 <actions xsi:type="thingML:VariableAssignment" property="//@types.0/@properties.5">
-                  <expression xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.4/@substate.0/@internal.0/@event" parameter="//@types.23/@messages.1/@parameters.0"/>
+                  <expression xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.1/@substate.0/@internal.0/@event" parameter="//@types.23/@messages.1/@parameters.0"/>
                 </actions>
                 <actions xsi:type="thingML:SendAction" port="//@types.24/@ports.0" message="//@types.23/@messages.2">
                   <parameters xsi:type="thingML:PropertyReference" property="//@types.0/@properties.5"/>
@@ -268,49 +312,31 @@
                 </actions>
               </action>
             </internal>
-            <outgoing target="//@types.0/@behaviour/@substate.2/@substate.4/@substate.1">
+            <outgoing target="//@types.0/@behaviour/@substate.2/@substate.1/@substate.1">
               <event xsi:type="thingML:ReceiveMessage" name="e" port="//@types.24/@ports.0" message="//@types.23/@messages.3"/>
               <action xsi:type="thingML:ActionBlock">
                 <actions xsi:type="thingML:VariableAssignment" property="//@types.0/@properties.7">
-                  <expression xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.4/@substate.0/@outgoing.0/@event" parameter="//@types.23/@messages.3/@parameters.0"/>
+                  <expression xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.1/@substate.0/@outgoing.0/@event" parameter="//@types.23/@messages.3/@parameters.0"/>
                 </actions>
                 <actions xsi:type="thingML:SendAction" port="//@types.49/@ports.0" message="//@types.53/@messages.2">
                   <parameters xsi:type="thingML:PropertyReference" property="//@types.0/@properties.2"/>
                   <parameters xsi:type="thingML:PropertyReference" property="//@types.0/@properties.7"/>
                 </actions>
                 <actions xsi:type="thingML:PrintAction">
-                  <msg xsi:type="thingML:StringLiteral" stringValue="[INFO]: Sent Mconfirm = "/>
-                </actions>
-                <actions xsi:type="thingML:FunctionCallStatement" function="//@types.0/@functions.1">
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.0/@properties.7"/>
-                </actions>
-                <actions xsi:type="thingML:PrintAction">
-                  <msg xsi:type="thingML:StringLiteral" stringValue="\n"/>
+                  <msg xsi:type="thingML:StringLiteral" stringValue="[INFO]: Sent Mconfirm.\n"/>
                 </actions>
               </action>
             </outgoing>
           </substate>
           <substate name="GetSconfirm">
-            <outgoing target="//@types.0/@behaviour/@substate.2/@substate.4/@substate.2">
+            <outgoing target="//@types.0/@behaviour/@substate.2/@substate.1/@substate.2">
               <event xsi:type="thingML:ReceiveMessage" name="e" port="//@types.49/@ports.0" message="//@types.53/@messages.2"/>
               <action xsi:type="thingML:ActionBlock">
                 <actions xsi:type="thingML:VariableAssignment" property="//@types.0/@properties.8">
-                  <expression xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.4/@substate.1/@outgoing.0/@event" parameter="//@types.53/@messages.2/@parameters.1"/>
+                  <expression xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.1/@substate.1/@outgoing.0/@event" parameter="//@types.53/@messages.2/@parameters.1"/>
                 </actions>
                 <actions xsi:type="thingML:PrintAction">
-                  <msg xsi:type="thingML:StringLiteral" stringValue="[INFO]: Got Sconfirm = "/>
-                </actions>
-                <actions xsi:type="thingML:FunctionCallStatement" function="//@types.0/@functions.1">
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.0/@properties.8"/>
-                </actions>
-                <actions xsi:type="thingML:PrintAction">
-                  <msg xsi:type="thingML:StringLiteral" stringValue=", replied with Mrand = "/>
-                </actions>
-                <actions xsi:type="thingML:FunctionCallStatement" function="//@types.0/@functions.1">
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.0/@properties.5"/>
-                </actions>
-                <actions xsi:type="thingML:PrintAction">
-                  <msg xsi:type="thingML:StringLiteral" stringValue="\n"/>
+                  <msg xsi:type="thingML:StringLiteral" stringValue="[INFO]: Got Sconfirm, replied with Mrand.\n"/>
                 </actions>
                 <actions xsi:type="thingML:SendAction" port="//@types.49/@ports.0" message="//@types.53/@messages.3">
                   <parameters xsi:type="thingML:PropertyReference" property="//@types.0/@properties.2"/>
@@ -324,16 +350,10 @@
               <event xsi:type="thingML:ReceiveMessage" name="e" port="//@types.49/@ports.0" message="//@types.53/@messages.3"/>
               <action xsi:type="thingML:ActionBlock">
                 <actions xsi:type="thingML:VariableAssignment" property="//@types.0/@properties.6">
-                  <expression xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.4/@substate.2/@internal.0/@event" parameter="//@types.53/@messages.3/@parameters.1"/>
+                  <expression xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.1/@substate.2/@internal.0/@event" parameter="//@types.53/@messages.3/@parameters.1"/>
                 </actions>
                 <actions xsi:type="thingML:PrintAction">
-                  <msg xsi:type="thingML:StringLiteral" stringValue="[INFO]: Got Srand = "/>
-                </actions>
-                <actions xsi:type="thingML:FunctionCallStatement" function="//@types.0/@functions.1">
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.0/@properties.6"/>
-                </actions>
-                <actions xsi:type="thingML:PrintAction">
-                  <msg xsi:type="thingML:StringLiteral" stringValue=", confirming...\n"/>
+                  <msg xsi:type="thingML:StringLiteral" stringValue="[INFO]: Got Srand, confirming...\n"/>
                 </actions>
                 <actions xsi:type="thingML:SendAction" port="//@types.24/@ports.0" message="//@types.23/@messages.2">
                   <parameters xsi:type="thingML:PropertyReference" property="//@types.0/@properties.6"/>
@@ -344,27 +364,12 @@
                 </actions>
               </action>
             </internal>
-            <outgoing target="//@types.0/@behaviour/@substate.2/@substate.4/@substate.1">
+            <outgoing target="//@types.0/@behaviour/@substate.2/@substate.1/@substate.1">
               <event xsi:type="thingML:ReceiveMessage" name="e" port="//@types.24/@ports.0" message="//@types.23/@messages.3"/>
               <action xsi:type="thingML:ActionBlock">
-                <actions xsi:type="thingML:PrintAction">
-                  <msg xsi:type="thingML:StringLiteral" stringValue="[INFO]: GenerateConfirmCompleted Sconfirm = "/>
-                </actions>
-                <actions xsi:type="thingML:FunctionCallStatement" function="//@types.0/@functions.1">
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.0/@properties.8"/>
-                </actions>
-                <actions xsi:type="thingML:PrintAction">
-                  <msg xsi:type="thingML:StringLiteral" stringValue=", e.Confirm = "/>
-                </actions>
-                <actions xsi:type="thingML:FunctionCallStatement" function="//@types.0/@functions.1">
-                  <parameters xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.4/@substate.2/@outgoing.0/@event" parameter="//@types.23/@messages.3/@parameters.0"/>
-                </actions>
-                <actions xsi:type="thingML:PrintAction">
-                  <msg xsi:type="thingML:StringLiteral" stringValue="\n"/>
-                </actions>
                 <actions xsi:type="thingML:SendAction" port="//@types.24/@ports.0" message="//@types.23/@messages.4">
                   <parameters xsi:type="thingML:PropertyReference" property="//@types.0/@properties.8"/>
-                  <parameters xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.4/@substate.2/@outgoing.0/@event" parameter="//@types.23/@messages.3/@parameters.0"/>
+                  <parameters xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.1/@substate.2/@outgoing.0/@event" parameter="//@types.23/@messages.3/@parameters.0"/>
                 </actions>
               </action>
             </outgoing>
@@ -396,9 +401,9 @@
               </actions>
               <actions xsi:type="thingML:SendAction" port="//@types.27/@ports.1" message="//@types.48/@messages.37">
                 <parameters xsi:type="thingML:PropertyReference" property="//@types.0/@properties.2"/>
-                <parameters xsi:type="thingML:PropertyReference" property="//@types.0/@behaviour/@substate.2/@substate.5/@internal.0/@action/@actions.1"/>
-                <parameters xsi:type="thingML:PropertyReference" property="//@types.0/@behaviour/@substate.2/@substate.5/@internal.0/@action/@actions.2"/>
-                <parameters xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.5/@internal.0/@event" parameter="//@types.23/@messages.7/@parameters.0"/>
+                <parameters xsi:type="thingML:PropertyReference" property="//@types.0/@behaviour/@substate.2/@substate.2/@internal.0/@action/@actions.1"/>
+                <parameters xsi:type="thingML:PropertyReference" property="//@types.0/@behaviour/@substate.2/@substate.2/@internal.0/@action/@actions.2"/>
+                <parameters xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.2/@internal.0/@event" parameter="//@types.23/@messages.7/@parameters.0"/>
               </actions>
             </action>
           </internal>
@@ -406,7 +411,7 @@
             <event xsi:type="thingML:ReceiveMessage" name="e" port="//@types.27/@ports.2" message="//@types.48/@messages.38"/>
             <guard xsi:type="thingML:ExpressionGroup">
               <term xsi:type="thingML:EqualsExpression">
-                <lhs xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.5/@internal.1/@event" parameter="//@types.48/@messages.38/@parameters.1"/>
+                <lhs xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.2/@internal.1/@event" parameter="//@types.48/@messages.38/@parameters.1"/>
                 <rhs xsi:type="thingML:IntegerLiteral"/>
               </term>
             </guard>
@@ -414,53 +419,53 @@
               <msg xsi:type="thingML:StringLiteral" stringValue="[INFO]: Waiting for encryption...\n"/>
             </action>
           </internal>
-          <outgoing target="//@types.0/@behaviour/@substate.2/@substate.7">
+          <outgoing target="//@types.0/@behaviour/@substate.2/@substate.4">
             <event xsi:type="thingML:ReceiveMessage" name="e" port="//@types.27/@ports.2" message="//@types.48/@messages.38"/>
             <guard xsi:type="thingML:ExpressionGroup">
               <term xsi:type="thingML:GreaterExpression">
-                <lhs xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.5/@outgoing.0/@event" parameter="//@types.48/@messages.38/@parameters.1"/>
+                <lhs xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.2/@outgoing.0/@event" parameter="//@types.48/@messages.38/@parameters.1"/>
                 <rhs xsi:type="thingML:IntegerLiteral"/>
               </term>
             </guard>
           </outgoing>
-          <outgoing target="//@types.0/@behaviour/@substate.2/@substate.6">
+          <outgoing target="//@types.0/@behaviour/@substate.2/@substate.3">
             <event xsi:type="thingML:ReceiveMessage" name="e" port="//@types.27/@ports.2" message="//@types.48/@messages.10"/>
             <guard xsi:type="thingML:ExpressionGroup">
               <term xsi:type="thingML:AndExpression">
                 <lhs xsi:type="thingML:EqualsExpression">
-                  <lhs xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.5/@outgoing.1/@event" parameter="//@types.48/@messages.10/@parameters.0"/>
+                  <lhs xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.2/@outgoing.1/@event" parameter="//@types.48/@messages.10/@parameters.0"/>
                   <rhs xsi:type="thingML:ExternExpression" expression="0x00"/>
                 </lhs>
                 <rhs xsi:type="thingML:EqualsExpression">
-                  <lhs xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.5/@outgoing.1/@event" parameter="//@types.48/@messages.10/@parameters.2"/>
+                  <lhs xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.2/@outgoing.1/@event" parameter="//@types.48/@messages.10/@parameters.2"/>
                   <rhs xsi:type="thingML:ExternExpression" expression="0x01"/>
                 </rhs>
               </term>
             </guard>
           </outgoing>
-          <outgoing target="//@types.0/@behaviour/@substate.2/@substate.7">
+          <outgoing target="//@types.0/@behaviour/@substate.2/@substate.4">
             <event xsi:type="thingML:ReceiveMessage" name="e" port="//@types.27/@ports.2" message="//@types.48/@messages.10"/>
             <guard xsi:type="thingML:ExpressionGroup">
               <term xsi:type="thingML:OrExpression">
                 <lhs xsi:type="thingML:GreaterExpression">
-                  <lhs xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.5/@outgoing.2/@event" parameter="//@types.48/@messages.10/@parameters.0"/>
+                  <lhs xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.2/@outgoing.2/@event" parameter="//@types.48/@messages.10/@parameters.0"/>
                   <rhs xsi:type="thingML:ExternExpression" expression="0x00"/>
                 </lhs>
                 <rhs xsi:type="thingML:NotEqualsExpression">
-                  <lhs xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.5/@outgoing.2/@event" parameter="//@types.48/@messages.10/@parameters.2"/>
+                  <lhs xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.2/@outgoing.2/@event" parameter="//@types.48/@messages.10/@parameters.2"/>
                   <rhs xsi:type="thingML:ExternExpression" expression="0x01"/>
                 </rhs>
               </term>
             </guard>
           </outgoing>
         </substate>
-        <substate xsi:type="thingML:CompositeState" name="ExchangeKeys" initial="//@types.0/@behaviour/@substate.2/@substate.6/@substate.0">
+        <substate xsi:type="thingML:CompositeState" name="ExchangeKeys" initial="//@types.0/@behaviour/@substate.2/@substate.3/@substate.0">
           <substate name="WaitForPeerKeys">
             <internal>
               <event xsi:type="thingML:ReceiveMessage" name="e" port="//@types.49/@ports.0" message="//@types.53/@messages.8"/>
               <action xsi:type="thingML:ActionBlock">
                 <actions xsi:type="thingML:VariableAssignment" property="//@types.0/@properties.9">
-                  <expression xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.6/@substate.0/@internal.0/@event" parameter="//@types.53/@messages.8/@parameters.1"/>
+                  <expression xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.3/@substate.0/@internal.0/@event" parameter="//@types.53/@messages.8/@parameters.1"/>
                 </actions>
                 <actions xsi:type="thingML:VariableAssignment" property="//@types.0/@properties.21">
                   <expression xsi:type="thingML:BooleanLiteral" boolValue="true"/>
@@ -471,10 +476,10 @@
               <event xsi:type="thingML:ReceiveMessage" name="e" port="//@types.49/@ports.0" message="//@types.53/@messages.9"/>
               <action xsi:type="thingML:ActionBlock">
                 <actions xsi:type="thingML:VariableAssignment" property="//@types.0/@properties.10">
-                  <expression xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.6/@substate.0/@internal.1/@event" parameter="//@types.53/@messages.9/@parameters.1"/>
+                  <expression xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.3/@substate.0/@internal.1/@event" parameter="//@types.53/@messages.9/@parameters.1"/>
                 </actions>
                 <actions xsi:type="thingML:VariableAssignment" property="//@types.0/@properties.11">
-                  <expression xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.6/@substate.0/@internal.1/@event" parameter="//@types.53/@messages.9/@parameters.2"/>
+                  <expression xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.3/@substate.0/@internal.1/@event" parameter="//@types.53/@messages.9/@parameters.2"/>
                 </actions>
                 <actions xsi:type="thingML:VariableAssignment" property="//@types.0/@properties.22">
                   <expression xsi:type="thingML:BooleanLiteral" boolValue="true"/>
@@ -485,7 +490,7 @@
               <event xsi:type="thingML:ReceiveMessage" name="e" port="//@types.49/@ports.0" message="//@types.53/@messages.10"/>
               <action xsi:type="thingML:ActionBlock">
                 <actions xsi:type="thingML:VariableAssignment" property="//@types.0/@properties.12">
-                  <expression xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.6/@substate.0/@internal.2/@event" parameter="//@types.53/@messages.10/@parameters.1"/>
+                  <expression xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.3/@substate.0/@internal.2/@event" parameter="//@types.53/@messages.10/@parameters.1"/>
                 </actions>
                 <actions xsi:type="thingML:VariableAssignment" property="//@types.0/@properties.23">
                   <expression xsi:type="thingML:BooleanLiteral" boolValue="true"/>
@@ -496,17 +501,17 @@
               <event xsi:type="thingML:ReceiveMessage" name="e" port="//@types.49/@ports.0" message="//@types.53/@messages.11"/>
               <action xsi:type="thingML:ActionBlock">
                 <actions xsi:type="thingML:VariableAssignment" property="//@types.0/@properties.13">
-                  <expression xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.6/@substate.0/@internal.3/@event" parameter="//@types.53/@messages.11/@parameters.1"/>
+                  <expression xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.3/@substate.0/@internal.3/@event" parameter="//@types.53/@messages.11/@parameters.1"/>
                 </actions>
                 <actions xsi:type="thingML:VariableAssignment" property="//@types.0/@properties.14">
-                  <expression xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.6/@substate.0/@internal.3/@event" parameter="//@types.53/@messages.11/@parameters.2"/>
+                  <expression xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.3/@substate.0/@internal.3/@event" parameter="//@types.53/@messages.11/@parameters.2"/>
                 </actions>
                 <actions xsi:type="thingML:VariableAssignment" property="//@types.0/@properties.24">
                   <expression xsi:type="thingML:BooleanLiteral" boolValue="true"/>
                 </actions>
               </action>
             </internal>
-            <outgoing target="//@types.0/@behaviour/@substate.2/@substate.6/@substate.1">
+            <outgoing target="//@types.0/@behaviour/@substate.2/@substate.3/@substate.1">
               <guard xsi:type="thingML:ExpressionGroup">
                 <term xsi:type="thingML:AndExpression">
                   <lhs xsi:type="thingML:AndExpression">
@@ -521,35 +526,35 @@
               </guard>
             </outgoing>
           </substate>
-          <substate xsi:type="thingML:CompositeState" name="GenerateOwnKeys" initial="//@types.0/@behaviour/@substate.2/@substate.6/@substate.1/@substate.0">
+          <substate xsi:type="thingML:CompositeState" name="GenerateOwnKeys" initial="//@types.0/@behaviour/@substate.2/@substate.3/@substate.1/@substate.0">
             <entry xsi:type="thingML:PrintAction">
               <msg xsi:type="thingML:StringLiteral" stringValue="[INFO]: Got all peer keys, generating own...\n"/>
             </entry>
             <substate name="GenerateLTK">
               <entry xsi:type="thingML:SendAction" port="//@types.24/@ports.0" message="//@types.23/@messages.0"/>
-              <outgoing target="//@types.0/@behaviour/@substate.2/@substate.6/@substate.1/@substate.1">
+              <outgoing target="//@types.0/@behaviour/@substate.2/@substate.3/@substate.1/@substate.1">
                 <event xsi:type="thingML:ReceiveMessage" name="e" port="//@types.24/@ports.0" message="//@types.23/@messages.1"/>
                 <action xsi:type="thingML:ActionBlock">
                   <actions xsi:type="thingML:VariableAssignment" property="//@types.0/@properties.15">
-                    <expression xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.6/@substate.1/@substate.0/@outgoing.0/@event" parameter="//@types.23/@messages.1/@parameters.0"/>
+                    <expression xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.3/@substate.1/@substate.0/@outgoing.0/@event" parameter="//@types.23/@messages.1/@parameters.0"/>
                   </actions>
                 </action>
               </outgoing>
             </substate>
             <substate name="GenerateEDIVRand">
               <entry xsi:type="thingML:SendAction" port="//@types.24/@ports.0" message="//@types.23/@messages.0"/>
-              <outgoing target="//@types.0/@behaviour/@substate.2/@substate.6/@substate.1/@substate.2">
+              <outgoing target="//@types.0/@behaviour/@substate.2/@substate.3/@substate.1/@substate.2">
                 <event xsi:type="thingML:ReceiveMessage" name="e" port="//@types.24/@ports.0" message="//@types.23/@messages.1"/>
                 <action xsi:type="thingML:ActionBlock">
                   <actions xsi:type="thingML:VariableAssignment" property="//@types.0/@properties.16">
                     <expression xsi:type="thingML:ExternExpression" expression="*((uint16_t*)&amp;">
-                      <segments xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.6/@substate.1/@substate.1/@outgoing.0/@event" parameter="//@types.23/@messages.1/@parameters.0"/>
+                      <segments xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.3/@substate.1/@substate.1/@outgoing.0/@event" parameter="//@types.23/@messages.1/@parameters.0"/>
                       <segments xsi:type="thingML:ExternExpression" expression=".bytes[0])"/>
                     </expression>
                   </actions>
                   <actions xsi:type="thingML:VariableAssignment" property="//@types.0/@properties.17">
                     <expression xsi:type="thingML:ExternExpression" expression="*((ble_random_part_t*)&amp;">
-                      <segments xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.6/@substate.1/@substate.1/@outgoing.0/@event" parameter="//@types.23/@messages.1/@parameters.0"/>
+                      <segments xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.3/@substate.1/@substate.1/@outgoing.0/@event" parameter="//@types.23/@messages.1/@parameters.0"/>
                       <segments xsi:type="thingML:ExternExpression" expression=".bytes[2])"/>
                     </expression>
                   </actions>
@@ -558,11 +563,11 @@
             </substate>
             <substate name="GenerateIRK">
               <entry xsi:type="thingML:SendAction" port="//@types.24/@ports.0" message="//@types.23/@messages.0"/>
-              <outgoing target="//@types.0/@behaviour/@substate.2/@substate.6/@substate.1/@substate.3">
+              <outgoing target="//@types.0/@behaviour/@substate.2/@substate.3/@substate.1/@substate.3">
                 <event xsi:type="thingML:ReceiveMessage" name="e" port="//@types.24/@ports.0" message="//@types.23/@messages.1"/>
                 <action xsi:type="thingML:ActionBlock">
                   <actions xsi:type="thingML:VariableAssignment" property="//@types.0/@properties.18">
-                    <expression xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.6/@substate.1/@substate.2/@outgoing.0/@event" parameter="//@types.23/@messages.1/@parameters.0"/>
+                    <expression xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour/@substate.2/@substate.3/@substate.1/@substate.2/@outgoing.0/@event" parameter="//@types.23/@messages.1/@parameters.0"/>
                   </actions>
                 </action>
               </outgoing>
@@ -927,20 +932,6 @@
             <rhs xsi:type="thingML:IntegerLiteral"/>
           </condition>
           <action xsi:type="thingML:ActionBlock">
-            <actions xsi:type="thingML:ExternStatement" statement="printf(&quot;[HCI-CMD Grp:0x%04x Cmd:%04x -> ] &quot;, ">
-              <segments xsi:type="thingML:PropertyReference" property="//@types.13/@functions.4/@parameters.0"/>
-              <segments xsi:type="thingML:ExternExpression" expression=", ">
-                <segments xsi:type="thingML:PropertyReference" property="//@types.13/@functions.4/@parameters.1"/>
-                <segments xsi:type="thingML:ExternExpression" expression=");"/>
-              </segments>
-            </actions>
-            <actions xsi:type="thingML:FunctionCallStatement" function="//@types.28/@functions.6">
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.13/@functions.4/@parameters.3"/>
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.13/@functions.4/@parameters.2"/>
-            </actions>
-            <actions xsi:type="thingML:PrintAction">
-              <msg xsi:type="thingML:StringLiteral" stringValue="\n"/>
-            </actions>
             <actions xsi:type="thingML:ExternStatement" statement="&#xA;        if (hci_send_cmd(">
               <segments xsi:type="thingML:PropertyReference" property="//@types.13/@properties.0"/>
               <segments xsi:type="thingML:ExternExpression" expression=", ">
@@ -988,20 +979,6 @@
             <rhs xsi:type="thingML:IntegerLiteral"/>
           </condition>
           <action xsi:type="thingML:ActionBlock">
-            <actions xsi:type="thingML:ExternStatement" statement="printf(&quot;[HCI-ACL h:0x%04x CID:0x%04x  -> ] &quot;, ">
-              <segments xsi:type="thingML:PropertyReference" property="//@types.13/@functions.5/@parameters.0"/>
-              <segments xsi:type="thingML:ExternExpression" expression=", ">
-                <segments xsi:type="thingML:PropertyReference" property="//@types.13/@functions.5/@parameters.1"/>
-                <segments xsi:type="thingML:ExternExpression" expression=");"/>
-              </segments>
-            </actions>
-            <actions xsi:type="thingML:FunctionCallStatement" function="//@types.28/@functions.6">
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.13/@functions.5/@parameters.3"/>
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.13/@functions.5/@parameters.2"/>
-            </actions>
-            <actions xsi:type="thingML:PrintAction">
-              <msg xsi:type="thingML:StringLiteral" stringValue="\n"/>
-            </actions>
             <actions xsi:type="thingML:ExternStatement" statement="&#xA;        uint8_t buffer[HCI_MAX_ACL_SIZE];&#xA;        buffer[0] = HCI_ACLDATA_PKT;&#xA;        *((uint16_t*)&amp;buffer[1]) = ">
               <segments xsi:type="thingML:PropertyReference" property="//@types.13/@functions.5/@parameters.0"/>
               <segments xsi:type="thingML:ExternExpression" expression=" &amp; 0x0FFF;&#xA;        *((uint16_t*)&amp;buffer[3]) = ">
@@ -1119,7 +1096,7 @@
                 </segments>
               </segments>
             </actions>
-            <actions xsi:type="thingML:FunctionCallStatement" function="//@types.28/@functions.7">
+            <actions xsi:type="thingML:FunctionCallStatement" function="//@types.28/@functions.6">
               <parameters xsi:type="thingML:PropertyReference" property="//@types.13/@functions.6/@body/@actions.1"/>
               <parameters xsi:type="thingML:PropertyReference" property="//@types.13/@functions.6/@body/@actions.2"/>
               <parameters xsi:type="thingML:PropertyReference" property="//@types.13/@functions.6/@body/@actions.7"/>
@@ -2820,29 +2797,6 @@
         <typeRef type="//@types.5"/>
       </parameters>
     </functions>
-    <functions name="printBuffer">
-      <parameters name="Data">
-        <typeRef type="//@types.5"/>
-      </parameters>
-      <parameters name="Length">
-        <typeRef type="//@types.3"/>
-      </parameters>
-      <body xsi:type="thingML:ActionBlock">
-        <actions xsi:type="thingML:ExternStatement" statement="&#xA;  &#x9;&#x9;int i = 0;&#xA;  &#x9;&#x9;for (i=0; i&lt;">
-          <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.6/@parameters.1"/>
-          <segments xsi:type="thingML:ExternExpression" expression=";i++) {&#xA;  &#x9;&#x9;&#x9;printf(&quot;%02x&quot;, ">
-            <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.6/@parameters.0"/>
-            <segments xsi:type="thingML:ExternExpression" expression="[i]);&#xA;  &#x9;&#x9;&#x9;if (i&lt;">
-              <segments xsi:type="thingML:MinusExpression">
-                <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.6/@parameters.1"/>
-                <rhs xsi:type="thingML:IntegerLiteral" intValue="1"/>
-              </segments>
-              <segments xsi:type="thingML:ExternExpression" expression=") printf(&quot; &quot;);&#xA;  &#x9;&#x9;}&#xA;  &#x9;&#x9;&#xA;  &#x9;"/>
-            </segments>
-          </segments>
-        </actions>
-      </body>
-    </functions>
     <functions name="DecodeEvent">
       <parameters name="Event">
         <typeRef type="//@types.1"/>
@@ -2854,231 +2808,190 @@
         <typeRef type="//@types.5"/>
       </parameters>
       <body xsi:type="thingML:ActionBlock">
-        <actions xsi:type="thingML:LocalVariable" name="handled">
-          <typeRef type="//@types.6"/>
-          <init xsi:type="thingML:BooleanLiteral"/>
-        </actions>
         <actions xsi:type="thingML:ConditionalAction">
           <condition xsi:type="thingML:EqualsExpression">
-            <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.0"/>
+            <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.6/@parameters.0"/>
             <rhs xsi:type="thingML:ExternExpression" expression="0x05"/>
           </condition>
           <action xsi:type="thingML:ActionBlock">
             <actions xsi:type="thingML:LocalVariable" name="Status">
               <typeRef type="//@types.1"/>
               <init xsi:type="thingML:ExternExpression" expression="">
-                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.2"/>
+                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.6/@parameters.2"/>
                 <segments xsi:type="thingML:ExternExpression" expression="[0]"/>
               </init>
             </actions>
             <actions xsi:type="thingML:LocalVariable" name="ConnectionHandle">
               <typeRef type="//@types.3"/>
               <init xsi:type="thingML:ExternExpression" expression="(*((uint16_t*)&amp;">
-                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.2"/>
+                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.6/@parameters.2"/>
                 <segments xsi:type="thingML:ExternExpression" expression="[1]) &amp; 0x0FFF)"/>
               </init>
             </actions>
             <actions xsi:type="thingML:LocalVariable" name="Reason">
               <typeRef type="//@types.45"/>
               <init xsi:type="thingML:ExternExpression" expression="">
-                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.2"/>
+                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.6/@parameters.2"/>
                 <segments xsi:type="thingML:ExternExpression" expression="[3]"/>
               </init>
             </actions>
-            <actions xsi:type="thingML:VariableAssignment" property="//@types.28/@functions.7/@body/@actions.0">
-              <expression xsi:type="thingML:BooleanLiteral" boolValue="true"/>
-            </actions>
             <actions xsi:type="thingML:SendAction" port="//@types.28/@ports.2" message="//@types.48/@messages.9">
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@body/@actions.1/@action/@actions.0"/>
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@body/@actions.1/@action/@actions.1"/>
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@body/@actions.1/@action/@actions.2"/>
+              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.6/@body/@actions.0/@action/@actions.0"/>
+              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.6/@body/@actions.0/@action/@actions.1"/>
+              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.6/@body/@actions.0/@action/@actions.2"/>
             </actions>
           </action>
         </actions>
         <actions xsi:type="thingML:ConditionalAction">
           <condition xsi:type="thingML:EqualsExpression">
-            <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.0"/>
+            <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.6/@parameters.0"/>
             <rhs xsi:type="thingML:ExternExpression" expression="0x08"/>
           </condition>
           <action xsi:type="thingML:ActionBlock">
             <actions xsi:type="thingML:LocalVariable" name="Status">
               <typeRef type="//@types.1"/>
               <init xsi:type="thingML:ExternExpression" expression="">
-                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.2"/>
+                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.6/@parameters.2"/>
                 <segments xsi:type="thingML:ExternExpression" expression="[0]"/>
               </init>
             </actions>
             <actions xsi:type="thingML:LocalVariable" name="ConnectionHandle">
               <typeRef type="//@types.3"/>
               <init xsi:type="thingML:ExternExpression" expression="(*((uint16_t*)&amp;">
-                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.2"/>
+                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.6/@parameters.2"/>
                 <segments xsi:type="thingML:ExternExpression" expression="[1]) &amp; 0x0FFF)"/>
               </init>
             </actions>
             <actions xsi:type="thingML:LocalVariable" name="Enabled">
               <typeRef type="//@types.1"/>
               <init xsi:type="thingML:ExternExpression" expression="">
-                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.2"/>
+                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.6/@parameters.2"/>
                 <segments xsi:type="thingML:ExternExpression" expression="[3]"/>
               </init>
             </actions>
-            <actions xsi:type="thingML:VariableAssignment" property="//@types.28/@functions.7/@body/@actions.0">
-              <expression xsi:type="thingML:BooleanLiteral" boolValue="true"/>
-            </actions>
             <actions xsi:type="thingML:SendAction" port="//@types.28/@ports.2" message="//@types.48/@messages.10">
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@body/@actions.2/@action/@actions.0"/>
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@body/@actions.2/@action/@actions.1"/>
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@body/@actions.2/@action/@actions.2"/>
+              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.6/@body/@actions.1/@action/@actions.0"/>
+              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.6/@body/@actions.1/@action/@actions.1"/>
+              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.6/@body/@actions.1/@action/@actions.2"/>
             </actions>
           </action>
         </actions>
         <actions xsi:type="thingML:ConditionalAction">
           <condition xsi:type="thingML:EqualsExpression">
-            <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.0"/>
+            <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.6/@parameters.0"/>
             <rhs xsi:type="thingML:ExternExpression" expression="0x0E"/>
           </condition>
           <action xsi:type="thingML:ActionBlock">
             <actions xsi:type="thingML:LocalVariable" name="NumberAllowedCommandPackets">
               <typeRef type="//@types.1"/>
               <init xsi:type="thingML:ExternExpression" expression="">
-                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.2"/>
+                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.6/@parameters.2"/>
                 <segments xsi:type="thingML:ExternExpression" expression="[0]"/>
               </init>
             </actions>
             <actions xsi:type="thingML:LocalVariable" name="Group">
               <typeRef type="//@types.3"/>
               <init xsi:type="thingML:ExternExpression" expression="(*((uint16_t*)&amp;">
-                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.2"/>
+                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.6/@parameters.2"/>
                 <segments xsi:type="thingML:ExternExpression" expression="[1]) >> 10)"/>
               </init>
             </actions>
             <actions xsi:type="thingML:LocalVariable" name="Command">
               <typeRef type="//@types.3"/>
               <init xsi:type="thingML:ExternExpression" expression="(*((uint16_t*)&amp;">
-                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.2"/>
+                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.6/@parameters.2"/>
                 <segments xsi:type="thingML:ExternExpression" expression="[1]) &amp; 0x03FF)"/>
               </init>
             </actions>
             <actions xsi:type="thingML:LocalVariable" name="ReturnData">
               <typeRef type="//@types.5"/>
               <init xsi:type="thingML:ExternExpression" expression="&amp;">
-                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.2"/>
+                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.6/@parameters.2"/>
                 <segments xsi:type="thingML:ExternExpression" expression="[3]"/>
               </init>
             </actions>
-            <actions xsi:type="thingML:VariableAssignment" property="//@types.28/@functions.7/@body/@actions.0">
-              <expression xsi:type="thingML:BooleanLiteral" boolValue="true"/>
-            </actions>
-            <actions xsi:type="thingML:FunctionCallStatement" function="//@types.28/@functions.8">
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@body/@actions.3/@action/@actions.0"/>
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@body/@actions.3/@action/@actions.1"/>
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@body/@actions.3/@action/@actions.2"/>
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@body/@actions.3/@action/@actions.3"/>
+            <actions xsi:type="thingML:FunctionCallStatement" function="//@types.28/@functions.7">
+              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.6/@body/@actions.2/@action/@actions.0"/>
+              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.6/@body/@actions.2/@action/@actions.1"/>
+              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.6/@body/@actions.2/@action/@actions.2"/>
+              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.6/@body/@actions.2/@action/@actions.3"/>
             </actions>
           </action>
         </actions>
         <actions xsi:type="thingML:ConditionalAction">
           <condition xsi:type="thingML:EqualsExpression">
-            <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.0"/>
+            <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.6/@parameters.0"/>
             <rhs xsi:type="thingML:ExternExpression" expression="0x0F"/>
           </condition>
           <action xsi:type="thingML:ActionBlock">
             <actions xsi:type="thingML:LocalVariable" name="Status">
               <typeRef type="//@types.1"/>
               <init xsi:type="thingML:ExternExpression" expression="">
-                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.2"/>
+                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.6/@parameters.2"/>
                 <segments xsi:type="thingML:ExternExpression" expression="[0]"/>
               </init>
             </actions>
             <actions xsi:type="thingML:LocalVariable" name="NumberAllowedCommandPackets">
               <typeRef type="//@types.1"/>
               <init xsi:type="thingML:ExternExpression" expression="">
-                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.2"/>
+                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.6/@parameters.2"/>
                 <segments xsi:type="thingML:ExternExpression" expression="[1]"/>
               </init>
             </actions>
             <actions xsi:type="thingML:LocalVariable" name="Group">
               <typeRef type="//@types.3"/>
               <init xsi:type="thingML:ExternExpression" expression="(*((uint16_t*)&amp;">
-                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.2"/>
+                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.6/@parameters.2"/>
                 <segments xsi:type="thingML:ExternExpression" expression="[2]) >> 10)"/>
               </init>
             </actions>
             <actions xsi:type="thingML:LocalVariable" name="Command">
               <typeRef type="//@types.3"/>
               <init xsi:type="thingML:ExternExpression" expression="(*((uint16_t*)&amp;">
-                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.2"/>
+                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.6/@parameters.2"/>
                 <segments xsi:type="thingML:ExternExpression" expression="[2]) &amp; 0x03FF)"/>
               </init>
             </actions>
-            <actions xsi:type="thingML:VariableAssignment" property="//@types.28/@functions.7/@body/@actions.0">
-              <expression xsi:type="thingML:BooleanLiteral" boolValue="true"/>
-            </actions>
-            <actions xsi:type="thingML:FunctionCallStatement" function="//@types.28/@functions.9">
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@body/@actions.4/@action/@actions.1"/>
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@body/@actions.4/@action/@actions.2"/>
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@body/@actions.4/@action/@actions.3"/>
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@body/@actions.4/@action/@actions.0"/>
+            <actions xsi:type="thingML:FunctionCallStatement" function="//@types.28/@functions.8">
+              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.6/@body/@actions.3/@action/@actions.1"/>
+              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.6/@body/@actions.3/@action/@actions.2"/>
+              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.6/@body/@actions.3/@action/@actions.3"/>
+              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.6/@body/@actions.3/@action/@actions.0"/>
             </actions>
           </action>
         </actions>
         <actions xsi:type="thingML:ConditionalAction">
           <condition xsi:type="thingML:EqualsExpression">
-            <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.0"/>
+            <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.6/@parameters.0"/>
             <rhs xsi:type="thingML:ExternExpression" expression="0x3E"/>
           </condition>
           <action xsi:type="thingML:ActionBlock">
             <actions xsi:type="thingML:LocalVariable" name="SubEventCode">
               <typeRef type="//@types.1"/>
               <init xsi:type="thingML:ExternExpression" expression="">
-                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.2"/>
+                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.6/@parameters.2"/>
                 <segments xsi:type="thingML:ExternExpression" expression="[0]"/>
               </init>
             </actions>
             <actions xsi:type="thingML:LocalVariable" name="NewLength">
               <typeRef type="//@types.1"/>
               <init xsi:type="thingML:MinusExpression">
-                <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.1"/>
+                <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.6/@parameters.1"/>
                 <rhs xsi:type="thingML:IntegerLiteral" intValue="1"/>
               </init>
             </actions>
             <actions xsi:type="thingML:LocalVariable" name="NewData">
               <typeRef type="//@types.5"/>
               <init xsi:type="thingML:ExternExpression" expression="&amp;">
-                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.2"/>
+                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.6/@parameters.2"/>
                 <segments xsi:type="thingML:ExternExpression" expression="[1]"/>
               </init>
             </actions>
-            <actions xsi:type="thingML:VariableAssignment" property="//@types.28/@functions.7/@body/@actions.0">
-              <expression xsi:type="thingML:BooleanLiteral" boolValue="true"/>
+            <actions xsi:type="thingML:FunctionCallStatement" function="//@types.28/@functions.9">
+              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.6/@body/@actions.4/@action/@actions.0"/>
+              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.6/@body/@actions.4/@action/@actions.1"/>
+              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.6/@body/@actions.4/@action/@actions.2"/>
             </actions>
-            <actions xsi:type="thingML:FunctionCallStatement" function="//@types.28/@functions.10">
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@body/@actions.5/@action/@actions.0"/>
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@body/@actions.5/@action/@actions.1"/>
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@body/@actions.5/@action/@actions.2"/>
-            </actions>
-          </action>
-        </actions>
-        <actions xsi:type="thingML:ConditionalAction">
-          <condition xsi:type="thingML:NotExpression">
-            <term xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@body/@actions.0"/>
-          </condition>
-          <action xsi:type="thingML:ActionBlock">
-            <actions xsi:type="thingML:PrintAction">
-              <msg xsi:type="thingML:StringLiteral" stringValue="[ERROR] Unhandled DecodeEvent \n"/>
-            </actions>
-            <actions xsi:type="thingML:ExternStatement" statement="printf(&quot;  EVENT=0x%02x, LENGTH=0x%02x, DATA=&quot;, ">
-              <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.0"/>
-              <segments xsi:type="thingML:ExternExpression" expression=", ">
-                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.1"/>
-                <segments xsi:type="thingML:ExternExpression" expression=" );"/>
-              </segments>
-            </actions>
-            <actions xsi:type="thingML:FunctionCallStatement" function="//@types.28/@functions.6">
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.2"/>
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.1"/>
-            </actions>
-            <actions xsi:type="thingML:ExternStatement" statement="printf(&quot;\n&quot;);"/>
           </action>
         </actions>
       </body>
@@ -3097,57 +3010,47 @@
         <typeRef type="//@types.5"/>
       </parameters>
       <body xsi:type="thingML:ActionBlock">
-        <actions xsi:type="thingML:LocalVariable" name="handled">
-          <typeRef type="//@types.6"/>
-          <init xsi:type="thingML:BooleanLiteral"/>
-        </actions>
         <actions xsi:type="thingML:ConditionalAction">
           <condition xsi:type="thingML:EqualsExpression">
-            <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.1"/>
+            <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.1"/>
             <rhs xsi:type="thingML:ExternExpression" expression="0x03"/>
           </condition>
           <action xsi:type="thingML:ActionBlock">
             <actions xsi:type="thingML:ConditionalAction">
               <condition xsi:type="thingML:EqualsExpression">
-                <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.2"/>
+                <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.2"/>
                 <rhs xsi:type="thingML:ExternExpression" expression="0x0003"/>
               </condition>
               <action xsi:type="thingML:ActionBlock">
                 <actions xsi:type="thingML:LocalVariable" name="Status">
                   <typeRef type="//@types.1"/>
                   <init xsi:type="thingML:ExternExpression" expression="">
-                    <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.3"/>
+                    <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.3"/>
                     <segments xsi:type="thingML:ExternExpression" expression="[0]"/>
                   </init>
                 </actions>
-                <actions xsi:type="thingML:VariableAssignment" property="//@types.28/@functions.8/@body/@actions.0">
-                  <expression xsi:type="thingML:BooleanLiteral" boolValue="true"/>
-                </actions>
                 <actions xsi:type="thingML:SendAction" port="//@types.28/@ports.2" message="//@types.48/@messages.1">
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.0"/>
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@body/@actions.1/@action/@actions.0/@action/@actions.0"/>
+                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.0"/>
+                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@body/@actions.0/@action/@actions.0/@action/@actions.0"/>
                 </actions>
               </action>
             </actions>
             <actions xsi:type="thingML:ConditionalAction">
               <condition xsi:type="thingML:EqualsExpression">
-                <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.2"/>
+                <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.2"/>
                 <rhs xsi:type="thingML:ExternExpression" expression="0x0001"/>
               </condition>
               <action xsi:type="thingML:ActionBlock">
                 <actions xsi:type="thingML:LocalVariable" name="Status">
                   <typeRef type="//@types.1"/>
                   <init xsi:type="thingML:ExternExpression" expression="">
-                    <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.3"/>
+                    <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.3"/>
                     <segments xsi:type="thingML:ExternExpression" expression="[0]"/>
                   </init>
                 </actions>
-                <actions xsi:type="thingML:VariableAssignment" property="//@types.28/@functions.8/@body/@actions.0">
-                  <expression xsi:type="thingML:BooleanLiteral" boolValue="true"/>
-                </actions>
                 <actions xsi:type="thingML:SendAction" port="//@types.28/@ports.2" message="//@types.48/@messages.4">
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.0"/>
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@body/@actions.1/@action/@actions.1/@action/@actions.0"/>
+                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.0"/>
+                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@body/@actions.0/@action/@actions.1/@action/@actions.0"/>
                 </actions>
               </action>
             </actions>
@@ -3155,251 +3058,216 @@
         </actions>
         <actions xsi:type="thingML:ConditionalAction">
           <condition xsi:type="thingML:EqualsExpression">
-            <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.1"/>
+            <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.1"/>
             <rhs xsi:type="thingML:ExternExpression" expression="0x08"/>
           </condition>
           <action xsi:type="thingML:ActionBlock">
             <actions xsi:type="thingML:ConditionalAction">
               <condition xsi:type="thingML:EqualsExpression">
-                <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.2"/>
+                <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.2"/>
                 <rhs xsi:type="thingML:ExternExpression" expression="0x0001"/>
               </condition>
               <action xsi:type="thingML:ActionBlock">
                 <actions xsi:type="thingML:LocalVariable" name="Status">
                   <typeRef type="//@types.1"/>
                   <init xsi:type="thingML:ExternExpression" expression="">
-                    <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.3"/>
+                    <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.3"/>
                     <segments xsi:type="thingML:ExternExpression" expression="[0]"/>
                   </init>
                 </actions>
-                <actions xsi:type="thingML:VariableAssignment" property="//@types.28/@functions.8/@body/@actions.0">
-                  <expression xsi:type="thingML:BooleanLiteral" boolValue="true"/>
-                </actions>
                 <actions xsi:type="thingML:SendAction" port="//@types.28/@ports.2" message="//@types.48/@messages.13">
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.0"/>
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@body/@actions.2/@action/@actions.0/@action/@actions.0"/>
+                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.0"/>
+                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@body/@actions.1/@action/@actions.0/@action/@actions.0"/>
                 </actions>
               </action>
             </actions>
             <actions xsi:type="thingML:ConditionalAction">
               <condition xsi:type="thingML:EqualsExpression">
-                <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.2"/>
+                <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.2"/>
                 <rhs xsi:type="thingML:ExternExpression" expression="0x0006"/>
               </condition>
               <action xsi:type="thingML:ActionBlock">
                 <actions xsi:type="thingML:LocalVariable" name="Status">
                   <typeRef type="//@types.1"/>
                   <init xsi:type="thingML:ExternExpression" expression="">
-                    <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.3"/>
+                    <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.3"/>
                     <segments xsi:type="thingML:ExternExpression" expression="[0]"/>
                   </init>
                 </actions>
-                <actions xsi:type="thingML:VariableAssignment" property="//@types.28/@functions.8/@body/@actions.0">
-                  <expression xsi:type="thingML:BooleanLiteral" boolValue="true"/>
-                </actions>
                 <actions xsi:type="thingML:SendAction" port="//@types.28/@ports.2" message="//@types.48/@messages.15">
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.0"/>
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@body/@actions.2/@action/@actions.1/@action/@actions.0"/>
+                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.0"/>
+                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@body/@actions.1/@action/@actions.1/@action/@actions.0"/>
                 </actions>
               </action>
             </actions>
             <actions xsi:type="thingML:ConditionalAction">
               <condition xsi:type="thingML:EqualsExpression">
-                <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.2"/>
+                <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.2"/>
                 <rhs xsi:type="thingML:ExternExpression" expression="0x0008"/>
               </condition>
               <action xsi:type="thingML:ActionBlock">
                 <actions xsi:type="thingML:LocalVariable" name="Status">
                   <typeRef type="//@types.1"/>
                   <init xsi:type="thingML:ExternExpression" expression="">
-                    <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.3"/>
+                    <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.3"/>
                     <segments xsi:type="thingML:ExternExpression" expression="[0]"/>
                   </init>
                 </actions>
-                <actions xsi:type="thingML:VariableAssignment" property="//@types.28/@functions.8/@body/@actions.0">
-                  <expression xsi:type="thingML:BooleanLiteral" boolValue="true"/>
-                </actions>
                 <actions xsi:type="thingML:SendAction" port="//@types.28/@ports.2" message="//@types.48/@messages.19">
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.0"/>
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@body/@actions.2/@action/@actions.2/@action/@actions.0"/>
+                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.0"/>
+                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@body/@actions.1/@action/@actions.2/@action/@actions.0"/>
                 </actions>
               </action>
             </actions>
             <actions xsi:type="thingML:ConditionalAction">
               <condition xsi:type="thingML:EqualsExpression">
-                <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.2"/>
+                <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.2"/>
                 <rhs xsi:type="thingML:ExternExpression" expression="0x0009"/>
               </condition>
               <action xsi:type="thingML:ActionBlock">
                 <actions xsi:type="thingML:LocalVariable" name="Status">
                   <typeRef type="//@types.1"/>
                   <init xsi:type="thingML:ExternExpression" expression="">
-                    <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.3"/>
+                    <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.3"/>
                     <segments xsi:type="thingML:ExternExpression" expression="[0]"/>
                   </init>
                 </actions>
-                <actions xsi:type="thingML:VariableAssignment" property="//@types.28/@functions.8/@body/@actions.0">
-                  <expression xsi:type="thingML:BooleanLiteral" boolValue="true"/>
-                </actions>
                 <actions xsi:type="thingML:SendAction" port="//@types.28/@ports.2" message="//@types.48/@messages.21">
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.0"/>
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@body/@actions.2/@action/@actions.3/@action/@actions.0"/>
+                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.0"/>
+                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@body/@actions.1/@action/@actions.3/@action/@actions.0"/>
                 </actions>
               </action>
             </actions>
             <actions xsi:type="thingML:ConditionalAction">
               <condition xsi:type="thingML:EqualsExpression">
-                <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.2"/>
+                <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.2"/>
                 <rhs xsi:type="thingML:ExternExpression" expression="0x000A"/>
               </condition>
               <action xsi:type="thingML:ActionBlock">
                 <actions xsi:type="thingML:LocalVariable" name="Status">
                   <typeRef type="//@types.1"/>
                   <init xsi:type="thingML:ExternExpression" expression="">
-                    <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.3"/>
+                    <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.3"/>
                     <segments xsi:type="thingML:ExternExpression" expression="[0]"/>
                   </init>
                 </actions>
-                <actions xsi:type="thingML:VariableAssignment" property="//@types.28/@functions.8/@body/@actions.0">
-                  <expression xsi:type="thingML:BooleanLiteral" boolValue="true"/>
-                </actions>
                 <actions xsi:type="thingML:SendAction" port="//@types.28/@ports.2" message="//@types.48/@messages.17">
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.0"/>
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@body/@actions.2/@action/@actions.4/@action/@actions.0"/>
+                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.0"/>
+                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@body/@actions.1/@action/@actions.4/@action/@actions.0"/>
                 </actions>
               </action>
             </actions>
             <actions xsi:type="thingML:ConditionalAction">
               <condition xsi:type="thingML:EqualsExpression">
-                <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.2"/>
+                <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.2"/>
                 <rhs xsi:type="thingML:ExternExpression" expression="0x000B"/>
               </condition>
               <action xsi:type="thingML:ActionBlock">
                 <actions xsi:type="thingML:LocalVariable" name="Status">
                   <typeRef type="//@types.1"/>
                   <init xsi:type="thingML:ExternExpression" expression="">
-                    <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.3"/>
+                    <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.3"/>
                     <segments xsi:type="thingML:ExternExpression" expression="[0]"/>
                   </init>
                 </actions>
-                <actions xsi:type="thingML:VariableAssignment" property="//@types.28/@functions.8/@body/@actions.0">
-                  <expression xsi:type="thingML:BooleanLiteral" boolValue="true"/>
-                </actions>
                 <actions xsi:type="thingML:SendAction" port="//@types.28/@ports.2" message="//@types.48/@messages.24">
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.0"/>
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@body/@actions.2/@action/@actions.5/@action/@actions.0"/>
+                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.0"/>
+                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@body/@actions.1/@action/@actions.5/@action/@actions.0"/>
                 </actions>
               </action>
             </actions>
             <actions xsi:type="thingML:ConditionalAction">
               <condition xsi:type="thingML:EqualsExpression">
-                <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.2"/>
+                <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.2"/>
                 <rhs xsi:type="thingML:ExternExpression" expression="0x000C"/>
               </condition>
               <action xsi:type="thingML:ActionBlock">
                 <actions xsi:type="thingML:LocalVariable" name="Status">
                   <typeRef type="//@types.1"/>
                   <init xsi:type="thingML:ExternExpression" expression="">
-                    <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.3"/>
+                    <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.3"/>
                     <segments xsi:type="thingML:ExternExpression" expression="[0]"/>
                   </init>
                 </actions>
                 <actions xsi:type="thingML:SendAction" port="//@types.28/@ports.2" message="//@types.48/@messages.26">
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.0"/>
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@body/@actions.2/@action/@actions.6/@action/@actions.0"/>
+                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.0"/>
+                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@body/@actions.1/@action/@actions.6/@action/@actions.0"/>
                 </actions>
               </action>
             </actions>
             <actions xsi:type="thingML:ConditionalAction">
               <condition xsi:type="thingML:EqualsExpression">
-                <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.2"/>
+                <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.2"/>
                 <rhs xsi:type="thingML:ExternExpression" expression="0x000E"/>
               </condition>
               <action xsi:type="thingML:ActionBlock">
                 <actions xsi:type="thingML:LocalVariable" name="Status">
                   <typeRef type="//@types.1"/>
                   <init xsi:type="thingML:ExternExpression" expression="">
-                    <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.3"/>
+                    <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.3"/>
                     <segments xsi:type="thingML:ExternExpression" expression="[0]"/>
                   </init>
                 </actions>
-                <actions xsi:type="thingML:VariableAssignment" property="//@types.28/@functions.8/@body/@actions.0">
-                  <expression xsi:type="thingML:BooleanLiteral" boolValue="true"/>
-                </actions>
                 <actions xsi:type="thingML:SendAction" port="//@types.28/@ports.2" message="//@types.48/@messages.30">
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.0"/>
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@body/@actions.2/@action/@actions.7/@action/@actions.0"/>
+                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.0"/>
+                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@body/@actions.1/@action/@actions.7/@action/@actions.0"/>
                 </actions>
               </action>
             </actions>
             <actions xsi:type="thingML:ConditionalAction">
               <condition xsi:type="thingML:EqualsExpression">
-                <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.2"/>
+                <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.2"/>
                 <rhs xsi:type="thingML:ExternExpression" expression="0x0018"/>
               </condition>
               <action xsi:type="thingML:ActionBlock">
                 <actions xsi:type="thingML:LocalVariable" name="Status">
                   <typeRef type="//@types.1"/>
                   <init xsi:type="thingML:ExternExpression" expression="">
-                    <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.3"/>
+                    <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.3"/>
                     <segments xsi:type="thingML:ExternExpression" expression="[0]"/>
                   </init>
                 </actions>
                 <actions xsi:type="thingML:LocalVariable" name="Random">
                   <typeRef type="//@types.34"/>
                   <init xsi:type="thingML:ExternExpression" expression="*((ble_random_part_t*)&amp;">
-                    <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.3"/>
+                    <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.3"/>
                     <segments xsi:type="thingML:ExternExpression" expression="[1])"/>
                   </init>
                 </actions>
-                <actions xsi:type="thingML:VariableAssignment" property="//@types.28/@functions.8/@body/@actions.0">
-                  <expression xsi:type="thingML:BooleanLiteral" boolValue="true"/>
-                </actions>
                 <actions xsi:type="thingML:SendAction" port="//@types.28/@ports.2" message="//@types.48/@messages.34">
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.0"/>
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@body/@actions.2/@action/@actions.8/@action/@actions.0"/>
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@body/@actions.2/@action/@actions.8/@action/@actions.1"/>
+                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.0"/>
+                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@body/@actions.1/@action/@actions.8/@action/@actions.0"/>
+                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@body/@actions.1/@action/@actions.8/@action/@actions.1"/>
                 </actions>
               </action>
             </actions>
             <actions xsi:type="thingML:ConditionalAction">
               <condition xsi:type="thingML:EqualsExpression">
-                <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.2"/>
+                <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.2"/>
                 <rhs xsi:type="thingML:ExternExpression" expression="0x0017"/>
               </condition>
               <action xsi:type="thingML:ActionBlock">
                 <actions xsi:type="thingML:LocalVariable" name="Status">
                   <typeRef type="//@types.1"/>
                   <init xsi:type="thingML:ExternExpression" expression="">
-                    <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.3"/>
+                    <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.3"/>
                     <segments xsi:type="thingML:ExternExpression" expression="[0]"/>
                   </init>
                 </actions>
                 <actions xsi:type="thingML:LocalVariable" name="EncryptedData">
                   <typeRef type="//@types.35"/>
                   <init xsi:type="thingML:ExternExpression" expression="*((ble_random_number_t*)&amp;">
-                    <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.3"/>
+                    <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.3"/>
                     <segments xsi:type="thingML:ExternExpression" expression="[1])"/>
                   </init>
                 </actions>
-                <actions xsi:type="thingML:VariableAssignment" property="//@types.28/@functions.8/@body/@actions.0">
-                  <expression xsi:type="thingML:BooleanLiteral" boolValue="true"/>
-                </actions>
                 <actions xsi:type="thingML:SendAction" port="//@types.28/@ports.2" message="//@types.48/@messages.36">
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.0"/>
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@body/@actions.2/@action/@actions.9/@action/@actions.0"/>
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@body/@actions.2/@action/@actions.9/@action/@actions.1"/>
+                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@parameters.0"/>
+                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@body/@actions.1/@action/@actions.9/@action/@actions.0"/>
+                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.7/@body/@actions.1/@action/@actions.9/@action/@actions.1"/>
                 </actions>
               </action>
             </actions>
-          </action>
-        </actions>
-        <actions xsi:type="thingML:ConditionalAction">
-          <condition xsi:type="thingML:NotExpression">
-            <term xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@body/@actions.0"/>
-          </condition>
-          <action xsi:type="thingML:PrintAction">
-            <msg xsi:type="thingML:StringLiteral" stringValue="[ERROR] Unhandled OnCommandCompletedEvent \n"/>
           </action>
         </actions>
       </body>
@@ -3418,28 +3286,21 @@
         <typeRef type="//@types.1"/>
       </parameters>
       <body xsi:type="thingML:ActionBlock">
-        <actions xsi:type="thingML:LocalVariable" name="handled">
-          <typeRef type="//@types.6"/>
-          <init xsi:type="thingML:BooleanLiteral"/>
-        </actions>
         <actions xsi:type="thingML:ConditionalAction">
           <condition xsi:type="thingML:EqualsExpression">
-            <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@parameters.1"/>
+            <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.1"/>
             <rhs xsi:type="thingML:ExternExpression" expression="0x01"/>
           </condition>
           <action xsi:type="thingML:ActionBlock">
             <actions xsi:type="thingML:ConditionalAction">
               <condition xsi:type="thingML:EqualsExpression">
-                <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@parameters.2"/>
+                <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.2"/>
                 <rhs xsi:type="thingML:ExternExpression" expression="0x0006"/>
               </condition>
               <action xsi:type="thingML:ActionBlock">
-                <actions xsi:type="thingML:VariableAssignment" property="//@types.28/@functions.9/@body/@actions.0">
-                  <expression xsi:type="thingML:BooleanLiteral" boolValue="true"/>
-                </actions>
                 <actions xsi:type="thingML:SendAction" port="//@types.28/@ports.2" message="//@types.48/@messages.8">
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@parameters.0"/>
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@parameters.3"/>
+                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.0"/>
+                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.3"/>
                 </actions>
               </action>
             </actions>
@@ -3447,62 +3308,33 @@
         </actions>
         <actions xsi:type="thingML:ConditionalAction">
           <condition xsi:type="thingML:EqualsExpression">
-            <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@parameters.1"/>
+            <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.1"/>
             <rhs xsi:type="thingML:ExternExpression" expression="0x08"/>
           </condition>
           <action xsi:type="thingML:ActionBlock">
             <actions xsi:type="thingML:ConditionalAction">
               <condition xsi:type="thingML:EqualsExpression">
-                <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@parameters.2"/>
+                <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.2"/>
                 <rhs xsi:type="thingML:ExternExpression" expression="0x000D"/>
               </condition>
               <action xsi:type="thingML:ActionBlock">
-                <actions xsi:type="thingML:VariableAssignment" property="//@types.28/@functions.9/@body/@actions.0">
-                  <expression xsi:type="thingML:BooleanLiteral" boolValue="true"/>
-                </actions>
                 <actions xsi:type="thingML:SendAction" port="//@types.28/@ports.2" message="//@types.48/@messages.28">
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@parameters.0"/>
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@parameters.3"/>
+                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.0"/>
+                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.3"/>
                 </actions>
               </action>
             </actions>
             <actions xsi:type="thingML:ConditionalAction">
               <condition xsi:type="thingML:EqualsExpression">
-                <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@parameters.2"/>
-                <rhs xsi:type="thingML:ExternExpression" expression="0x0019"/>
+                <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.2"/>
+                <rhs xsi:type="thingML:ExternExpression" expression="0x000D"/>
               </condition>
               <action xsi:type="thingML:ActionBlock">
-                <actions xsi:type="thingML:VariableAssignment" property="//@types.28/@functions.9/@body/@actions.0">
-                  <expression xsi:type="thingML:BooleanLiteral" boolValue="true"/>
-                </actions>
                 <actions xsi:type="thingML:SendAction" port="//@types.28/@ports.2" message="//@types.48/@messages.38">
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@parameters.0"/>
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@parameters.3"/>
+                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.0"/>
+                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.8/@parameters.3"/>
                 </actions>
               </action>
-            </actions>
-          </action>
-        </actions>
-        <actions xsi:type="thingML:ConditionalAction">
-          <condition xsi:type="thingML:NotExpression">
-            <term xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@body/@actions.0"/>
-          </condition>
-          <action xsi:type="thingML:ActionBlock">
-            <actions xsi:type="thingML:PrintAction">
-              <msg xsi:type="thingML:StringLiteral" stringValue="[ERROR] Unhandled OnCommandStatusEvent \n"/>
-            </actions>
-            <actions xsi:type="thingML:ExternStatement" statement="printf(&quot;  Group=0x%04x, Command=0x%04x, NumberAllowedCommandPackets=0x%02x, Status=0x%02x\n&quot;, ">
-              <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@parameters.1"/>
-              <segments xsi:type="thingML:ExternExpression" expression=", ">
-                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@parameters.2"/>
-                <segments xsi:type="thingML:ExternExpression" expression=", ">
-                  <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@parameters.0"/>
-                  <segments xsi:type="thingML:ExternExpression" expression=", ">
-                    <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@parameters.3"/>
-                    <segments xsi:type="thingML:ExternExpression" expression=" );"/>
-                  </segments>
-                </segments>
-              </segments>
             </actions>
           </action>
         </actions>
@@ -3519,18 +3351,14 @@
         <typeRef type="//@types.5"/>
       </parameters>
       <body xsi:type="thingML:ActionBlock">
-        <actions xsi:type="thingML:LocalVariable" name="handled">
-          <typeRef type="//@types.6"/>
-          <init xsi:type="thingML:BooleanLiteral"/>
-        </actions>
         <actions xsi:type="thingML:ConditionalAction">
           <condition xsi:type="thingML:EqualsExpression">
-            <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@parameters.0"/>
+            <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@parameters.0"/>
             <rhs xsi:type="thingML:ExternExpression" expression="0x01"/>
           </condition>
           <action xsi:type="thingML:ActionBlock">
             <actions xsi:type="thingML:ExternStatement" statement="evt_le_connection_complete* data = &amp;">
-              <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@parameters.2"/>
+              <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@parameters.2"/>
               <segments xsi:type="thingML:ExternExpression" expression="[0];"/>
             </actions>
             <actions xsi:type="thingML:LocalVariable" name="Status">
@@ -3569,32 +3397,29 @@
               <typeRef type="//@types.1"/>
               <init xsi:type="thingML:ExternExpression" expression="data->master_clock_accuracy"/>
             </actions>
-            <actions xsi:type="thingML:VariableAssignment" property="//@types.28/@functions.10/@body/@actions.0">
-              <expression xsi:type="thingML:BooleanLiteral" boolValue="true"/>
-            </actions>
             <actions xsi:type="thingML:SendAction" port="//@types.28/@ports.2" message="//@types.48/@messages.31">
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@body/@actions.1/@action/@actions.1"/>
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@body/@actions.1/@action/@actions.2"/>
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@body/@actions.1/@action/@actions.3"/>
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@body/@actions.1/@action/@actions.4"/>
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@body/@actions.1/@action/@actions.5"/>
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@body/@actions.1/@action/@actions.6"/>
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@body/@actions.1/@action/@actions.7"/>
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@body/@actions.1/@action/@actions.8"/>
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@body/@actions.1/@action/@actions.9"/>
+              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@body/@actions.0/@action/@actions.1"/>
+              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@body/@actions.0/@action/@actions.2"/>
+              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@body/@actions.0/@action/@actions.3"/>
+              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@body/@actions.0/@action/@actions.4"/>
+              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@body/@actions.0/@action/@actions.5"/>
+              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@body/@actions.0/@action/@actions.6"/>
+              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@body/@actions.0/@action/@actions.7"/>
+              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@body/@actions.0/@action/@actions.8"/>
+              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@body/@actions.0/@action/@actions.9"/>
             </actions>
           </action>
         </actions>
         <actions xsi:type="thingML:ConditionalAction">
           <condition xsi:type="thingML:EqualsExpression">
-            <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@parameters.0"/>
+            <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@parameters.0"/>
             <rhs xsi:type="thingML:ExternExpression" expression="0x02"/>
           </condition>
           <action xsi:type="thingML:ActionBlock">
             <actions xsi:type="thingML:LocalVariable" name="NumReports">
               <typeRef type="//@types.1"/>
               <init xsi:type="thingML:ExternExpression" expression="">
-                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@parameters.2"/>
+                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@parameters.2"/>
                 <segments xsi:type="thingML:ExternExpression" expression="[0]"/>
               </init>
             </actions>
@@ -3608,14 +3433,14 @@
             </actions>
             <actions xsi:type="thingML:LoopAction">
               <condition xsi:type="thingML:LowerExpression">
-                <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@body/@actions.2/@action/@actions.1"/>
-                <rhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@body/@actions.2/@action/@actions.0"/>
+                <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@body/@actions.1/@action/@actions.1"/>
+                <rhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@body/@actions.1/@action/@actions.0"/>
               </condition>
               <action xsi:type="thingML:ActionBlock">
                 <actions xsi:type="thingML:ExternStatement" statement="le_advertising_info* data = &amp;">
-                  <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@parameters.2"/>
+                  <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@parameters.2"/>
                   <segments xsi:type="thingML:ExternExpression" expression="[">
-                    <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@body/@actions.2/@action/@actions.2"/>
+                    <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@body/@actions.1/@action/@actions.2"/>
                     <segments xsi:type="thingML:ExternExpression" expression="];"/>
                   </segments>
                 </actions>
@@ -3639,34 +3464,31 @@
                   <typeRef type="//@types.33"/>
                 </actions>
                 <actions xsi:type="thingML:ExternStatement" statement="memcpy(&amp;">
-                  <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@body/@actions.2/@action/@actions.3/@action/@actions.5"/>
+                  <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@body/@actions.1/@action/@actions.3/@action/@actions.5"/>
                   <segments xsi:type="thingML:ExternExpression" expression=", &amp;(data->data), ">
-                    <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@body/@actions.2/@action/@actions.3/@action/@actions.4"/>
+                    <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@body/@actions.1/@action/@actions.3/@action/@actions.4"/>
                     <segments xsi:type="thingML:ExternExpression" expression=");"/>
                   </segments>
                 </actions>
-                <actions xsi:type="thingML:VariableAssignment" property="//@types.28/@functions.10/@body/@actions.0">
-                  <expression xsi:type="thingML:BooleanLiteral" boolValue="true"/>
-                </actions>
                 <actions xsi:type="thingML:SendAction" port="//@types.28/@ports.2" message="//@types.48/@messages.22">
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@body/@actions.2/@action/@actions.3/@action/@actions.1"/>
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@body/@actions.2/@action/@actions.3/@action/@actions.2"/>
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@body/@actions.2/@action/@actions.3/@action/@actions.3"/>
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@body/@actions.2/@action/@actions.3/@action/@actions.4"/>
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@body/@actions.2/@action/@actions.3/@action/@actions.5"/>
+                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@body/@actions.1/@action/@actions.3/@action/@actions.1"/>
+                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@body/@actions.1/@action/@actions.3/@action/@actions.2"/>
+                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@body/@actions.1/@action/@actions.3/@action/@actions.3"/>
+                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@body/@actions.1/@action/@actions.3/@action/@actions.4"/>
+                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@body/@actions.1/@action/@actions.3/@action/@actions.5"/>
                 </actions>
-                <actions xsi:type="thingML:VariableAssignment" property="//@types.28/@functions.10/@body/@actions.2/@action/@actions.2">
+                <actions xsi:type="thingML:VariableAssignment" property="//@types.28/@functions.9/@body/@actions.1/@action/@actions.2">
                   <expression xsi:type="thingML:PlusExpression">
                     <lhs xsi:type="thingML:PlusExpression">
-                      <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@body/@actions.2/@action/@actions.2"/>
+                      <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@body/@actions.1/@action/@actions.2"/>
                       <rhs xsi:type="thingML:IntegerLiteral" intValue="9"/>
                     </lhs>
-                    <rhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@body/@actions.2/@action/@actions.3/@action/@actions.4"/>
+                    <rhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@body/@actions.1/@action/@actions.3/@action/@actions.4"/>
                   </expression>
                 </actions>
-                <actions xsi:type="thingML:VariableAssignment" property="//@types.28/@functions.10/@body/@actions.2/@action/@actions.1">
+                <actions xsi:type="thingML:VariableAssignment" property="//@types.28/@functions.9/@body/@actions.1/@action/@actions.1">
                   <expression xsi:type="thingML:PlusExpression">
-                    <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@body/@actions.2/@action/@actions.1"/>
+                    <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@body/@actions.1/@action/@actions.1"/>
                     <rhs xsi:type="thingML:IntegerLiteral" intValue="1"/>
                   </expression>
                 </actions>
@@ -3676,126 +3498,124 @@
         </actions>
         <actions xsi:type="thingML:ConditionalAction">
           <condition xsi:type="thingML:EqualsExpression">
-            <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@parameters.0"/>
+            <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@parameters.0"/>
             <rhs xsi:type="thingML:ExternExpression" expression="0x0A"/>
           </condition>
           <action xsi:type="thingML:ActionBlock">
             <actions xsi:type="thingML:LocalVariable" name="Status">
               <typeRef type="//@types.1"/>
               <init xsi:type="thingML:ExternExpression" expression="">
-                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@parameters.2"/>
+                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@parameters.2"/>
                 <segments xsi:type="thingML:ExternExpression" expression="[0]"/>
               </init>
             </actions>
             <actions xsi:type="thingML:LocalVariable" name="ConnectionHandle">
               <typeRef type="//@types.3"/>
               <init xsi:type="thingML:ExternExpression" expression="*((uint16_t*)&amp;">
-                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@parameters.2"/>
+                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@parameters.2"/>
                 <segments xsi:type="thingML:ExternExpression" expression="[1])"/>
               </init>
             </actions>
             <actions xsi:type="thingML:LocalVariable" name="Role">
               <typeRef type="//@types.44"/>
               <init xsi:type="thingML:ExternExpression" expression="">
-                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@parameters.2"/>
+                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@parameters.2"/>
                 <segments xsi:type="thingML:ExternExpression" expression="[3]"/>
               </init>
             </actions>
             <actions xsi:type="thingML:LocalVariable" name="PeerAddressType">
               <typeRef type="//@types.37"/>
               <init xsi:type="thingML:ExternExpression" expression="">
-                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@parameters.2"/>
+                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@parameters.2"/>
                 <segments xsi:type="thingML:ExternExpression" expression="[4]"/>
               </init>
             </actions>
             <actions xsi:type="thingML:LocalVariable" name="PeerAddress">
               <typeRef type="//@types.32"/>
               <init xsi:type="thingML:ExternExpression" expression="*((bdaddr_t*)&amp;">
-                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@parameters.2"/>
+                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@parameters.2"/>
                 <segments xsi:type="thingML:ExternExpression" expression="[5])"/>
               </init>
             </actions>
             <actions xsi:type="thingML:LocalVariable" name="LocalResolvablePrivateAddress">
               <typeRef type="//@types.32"/>
               <init xsi:type="thingML:ExternExpression" expression="*((bdaddr_t*)&amp;">
-                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@parameters.2"/>
+                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@parameters.2"/>
                 <segments xsi:type="thingML:ExternExpression" expression="[11])"/>
               </init>
             </actions>
             <actions xsi:type="thingML:LocalVariable" name="PeerResolvablePrivateAddress">
               <typeRef type="//@types.32"/>
               <init xsi:type="thingML:ExternExpression" expression="*((bdaddr_t*)&amp;">
-                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@parameters.2"/>
+                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@parameters.2"/>
                 <segments xsi:type="thingML:ExternExpression" expression="[17])"/>
               </init>
             </actions>
             <actions xsi:type="thingML:LocalVariable" name="ConnInterval">
               <typeRef type="//@types.3"/>
               <init xsi:type="thingML:ExternExpression" expression="*((uint16_t*)&amp;">
-                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@parameters.2"/>
+                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@parameters.2"/>
                 <segments xsi:type="thingML:ExternExpression" expression="[23])"/>
               </init>
             </actions>
             <actions xsi:type="thingML:LocalVariable" name="ConnLatency">
               <typeRef type="//@types.3"/>
               <init xsi:type="thingML:ExternExpression" expression="*((uint16_t*)&amp;">
-                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@parameters.2"/>
+                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@parameters.2"/>
                 <segments xsi:type="thingML:ExternExpression" expression="[25])"/>
               </init>
             </actions>
             <actions xsi:type="thingML:LocalVariable" name="SupervisionTimeout">
               <typeRef type="//@types.3"/>
               <init xsi:type="thingML:ExternExpression" expression="*((uint16_t*)&amp;">
-                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@parameters.2"/>
+                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@parameters.2"/>
                 <segments xsi:type="thingML:ExternExpression" expression="[27])"/>
               </init>
             </actions>
             <actions xsi:type="thingML:LocalVariable" name="MasterClockAccuracy">
               <typeRef type="//@types.1"/>
               <init xsi:type="thingML:ExternExpression" expression="">
-                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@parameters.2"/>
+                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@parameters.2"/>
                 <segments xsi:type="thingML:ExternExpression" expression="[29]"/>
               </init>
             </actions>
-            <actions xsi:type="thingML:VariableAssignment" property="//@types.28/@functions.10/@body/@actions.0">
-              <expression xsi:type="thingML:BooleanLiteral" boolValue="true"/>
-            </actions>
             <actions xsi:type="thingML:SendAction" port="//@types.28/@ports.2" message="//@types.48/@messages.32">
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@body/@actions.3/@action/@actions.0"/>
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@body/@actions.3/@action/@actions.1"/>
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@body/@actions.3/@action/@actions.2"/>
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@body/@actions.3/@action/@actions.3"/>
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@body/@actions.3/@action/@actions.4"/>
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@body/@actions.3/@action/@actions.5"/>
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@body/@actions.3/@action/@actions.6"/>
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@body/@actions.3/@action/@actions.7"/>
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@body/@actions.3/@action/@actions.8"/>
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@body/@actions.3/@action/@actions.9"/>
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@body/@actions.3/@action/@actions.10"/>
+              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@body/@actions.2/@action/@actions.0"/>
+              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@body/@actions.2/@action/@actions.1"/>
+              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@body/@actions.2/@action/@actions.2"/>
+              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@body/@actions.2/@action/@actions.3"/>
+              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@body/@actions.2/@action/@actions.4"/>
+              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@body/@actions.2/@action/@actions.5"/>
+              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@body/@actions.2/@action/@actions.6"/>
+              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@body/@actions.2/@action/@actions.7"/>
+              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@body/@actions.2/@action/@actions.8"/>
+              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@body/@actions.2/@action/@actions.9"/>
+              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.9/@body/@actions.2/@action/@actions.10"/>
             </actions>
           </action>
         </actions>
-        <actions xsi:type="thingML:ConditionalAction">
-          <condition xsi:type="thingML:NotExpression">
-            <term xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@body/@actions.0"/>
-          </condition>
-          <action xsi:type="thingML:ActionBlock">
-            <actions xsi:type="thingML:PrintAction">
-              <msg xsi:type="thingML:StringLiteral" stringValue="[ERROR] Unhandled OnLEMetaEvent \n"/>
-            </actions>
-            <actions xsi:type="thingML:ExternStatement" statement="printf(&quot;  SubEventCode=0x%02x, LENGTH=0x%02x, DATA=&quot;, ">
-              <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@parameters.0"/>
-              <segments xsi:type="thingML:ExternExpression" expression=", ">
-                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@parameters.1"/>
-                <segments xsi:type="thingML:ExternExpression" expression=" );"/>
+      </body>
+    </functions>
+    <functions name="printBuffer">
+      <parameters name="Data">
+        <typeRef type="//@types.5"/>
+      </parameters>
+      <parameters name="Length">
+        <typeRef type="//@types.3"/>
+      </parameters>
+      <body xsi:type="thingML:ActionBlock">
+        <actions xsi:type="thingML:ExternStatement" statement="&#xA;  &#x9;&#x9;int i = 0;&#xA;  &#x9;&#x9;for (i=0; i&lt;">
+          <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@parameters.1"/>
+          <segments xsi:type="thingML:ExternExpression" expression=";i++) {&#xA;  &#x9;&#x9;&#x9;printf(&quot;%02x&quot;, ">
+            <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@parameters.0"/>
+            <segments xsi:type="thingML:ExternExpression" expression="[i]);&#xA;  &#x9;&#x9;&#x9;if (i&lt;">
+              <segments xsi:type="thingML:MinusExpression">
+                <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@parameters.1"/>
+                <rhs xsi:type="thingML:IntegerLiteral" intValue="1"/>
               </segments>
-            </actions>
-            <actions xsi:type="thingML:FunctionCallStatement" function="//@types.28/@functions.6">
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@parameters.2"/>
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.10/@parameters.1"/>
-            </actions>
-            <actions xsi:type="thingML:ExternStatement" statement="printf(&quot;\n&quot;);"/>
-          </action>
+              <segments xsi:type="thingML:ExternExpression" expression=") printf(&quot; &quot;);&#xA;  &#x9;&#x9;}&#xA;  &#x9;&#x9;&#xA;  &#x9;"/>
+            </segments>
+          </segments>
         </actions>
       </body>
     </functions>
@@ -3816,6 +3636,22 @@
         <typeRef type="//@types.5"/>
       </parameters>
       <body xsi:type="thingML:ActionBlock">
+        <actions xsi:type="thingML:ExternStatement" statement="printf(&quot;  [HandleACLData] ACLPacketBoundaryFlag=%d, ACLBroadcastFlag=%d, Length=%d\n&quot;, ">
+          <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.11/@parameters.1"/>
+          <segments xsi:type="thingML:ExternExpression" expression=", ">
+            <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.11/@parameters.2"/>
+            <segments xsi:type="thingML:ExternExpression" expression=", ">
+              <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.11/@parameters.3"/>
+              <segments xsi:type="thingML:ExternExpression" expression=");"/>
+            </segments>
+          </segments>
+        </actions>
+        <actions xsi:type="thingML:ExternStatement" statement="printf(&quot;  [HandleACLData] Data = [&quot;);"/>
+        <actions xsi:type="thingML:FunctionCallStatement" function="//@types.28/@functions.10">
+          <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.11/@parameters.4"/>
+          <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.11/@parameters.3"/>
+        </actions>
+        <actions xsi:type="thingML:ExternStatement" statement="printf(&quot;]\n&quot;);"/>
         <actions xsi:type="thingML:ConditionalAction">
           <condition xsi:type="thingML:AndExpression">
             <lhs xsi:type="thingML:NotEqualsExpression">
@@ -3833,10 +3669,6 @@
             </actions>
           </action>
           <elseAction xsi:type="thingML:ActionBlock">
-            <actions xsi:type="thingML:LocalVariable" name="handled">
-              <typeRef type="//@types.6"/>
-              <init xsi:type="thingML:BooleanLiteral"/>
-            </actions>
             <actions xsi:type="thingML:LocalVariable" name="NLength">
               <typeRef type="//@types.3"/>
               <init xsi:type="thingML:ExternExpression" expression="*((uint16_t*)&amp;">
@@ -3860,49 +3692,40 @@
             </actions>
             <actions xsi:type="thingML:ConditionalAction">
               <condition xsi:type="thingML:EqualsExpression">
-                <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.11/@body/@actions.0/@elseAction/@actions.2"/>
+                <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.11/@body/@actions.4/@elseAction/@actions.1"/>
                 <rhs xsi:type="thingML:ExternExpression" expression="0x0004"/>
               </condition>
               <action xsi:type="thingML:ActionBlock">
-                <actions xsi:type="thingML:VariableAssignment" property="//@types.28/@functions.11/@body/@actions.0/@elseAction/@actions.0">
-                  <expression xsi:type="thingML:BooleanLiteral" boolValue="true"/>
-                </actions>
                 <actions xsi:type="thingML:FunctionCallStatement" function="//@types.28/@functions.14">
                   <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.11/@parameters.0"/>
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.11/@body/@actions.0/@elseAction/@actions.1"/>
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.11/@body/@actions.0/@elseAction/@actions.3"/>
+                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.11/@body/@actions.4/@elseAction/@actions.0"/>
+                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.11/@body/@actions.4/@elseAction/@actions.2"/>
                 </actions>
               </action>
             </actions>
             <actions xsi:type="thingML:ConditionalAction">
               <condition xsi:type="thingML:EqualsExpression">
-                <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.11/@body/@actions.0/@elseAction/@actions.2"/>
+                <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.11/@body/@actions.4/@elseAction/@actions.1"/>
                 <rhs xsi:type="thingML:ExternExpression" expression="0x0005"/>
               </condition>
               <action xsi:type="thingML:ActionBlock">
-                <actions xsi:type="thingML:VariableAssignment" property="//@types.28/@functions.11/@body/@actions.0/@elseAction/@actions.0">
-                  <expression xsi:type="thingML:BooleanLiteral" boolValue="true"/>
-                </actions>
                 <actions xsi:type="thingML:FunctionCallStatement" function="//@types.28/@functions.12">
                   <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.11/@parameters.0"/>
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.11/@body/@actions.0/@elseAction/@actions.1"/>
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.11/@body/@actions.0/@elseAction/@actions.3"/>
+                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.11/@body/@actions.4/@elseAction/@actions.0"/>
+                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.11/@body/@actions.4/@elseAction/@actions.2"/>
                 </actions>
               </action>
             </actions>
             <actions xsi:type="thingML:ConditionalAction">
               <condition xsi:type="thingML:EqualsExpression">
-                <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.11/@body/@actions.0/@elseAction/@actions.2"/>
+                <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.11/@body/@actions.4/@elseAction/@actions.1"/>
                 <rhs xsi:type="thingML:ExternExpression" expression="0x0006"/>
               </condition>
               <action xsi:type="thingML:ActionBlock">
-                <actions xsi:type="thingML:VariableAssignment" property="//@types.28/@functions.11/@body/@actions.0/@elseAction/@actions.0">
-                  <expression xsi:type="thingML:BooleanLiteral" boolValue="true"/>
-                </actions>
                 <actions xsi:type="thingML:FunctionCallStatement" function="//@types.28/@functions.13">
                   <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.11/@parameters.0"/>
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.11/@body/@actions.0/@elseAction/@actions.1"/>
-                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.11/@body/@actions.0/@elseAction/@actions.3"/>
+                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.11/@body/@actions.4/@elseAction/@actions.0"/>
+                  <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.11/@body/@actions.4/@elseAction/@actions.2"/>
                 </actions>
               </action>
             </actions>
@@ -3910,16 +3733,16 @@
               <condition xsi:type="thingML:AndExpression">
                 <lhs xsi:type="thingML:AndExpression">
                   <lhs xsi:type="thingML:NotEqualsExpression">
-                    <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.11/@body/@actions.0/@elseAction/@actions.2"/>
+                    <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.11/@body/@actions.4/@elseAction/@actions.1"/>
                     <rhs xsi:type="thingML:ExternExpression" expression="0x0004"/>
                   </lhs>
                   <rhs xsi:type="thingML:NotEqualsExpression">
-                    <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.11/@body/@actions.0/@elseAction/@actions.2"/>
+                    <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.11/@body/@actions.4/@elseAction/@actions.1"/>
                     <rhs xsi:type="thingML:ExternExpression" expression="0x0005"/>
                   </rhs>
                 </lhs>
                 <rhs xsi:type="thingML:NotEqualsExpression">
-                  <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.11/@body/@actions.0/@elseAction/@actions.2"/>
+                  <lhs xsi:type="thingML:PropertyReference" property="//@types.28/@functions.11/@body/@actions.4/@elseAction/@actions.1"/>
                   <rhs xsi:type="thingML:ExternExpression" expression="0x0006"/>
                 </rhs>
               </condition>
@@ -3927,14 +3750,6 @@
                 <actions xsi:type="thingML:PrintAction">
                   <msg xsi:type="thingML:StringLiteral" stringValue="[WARNING]: Got an L2CAP packet that was to an non-fixed channel!\n"/>
                 </actions>
-              </action>
-            </actions>
-            <actions xsi:type="thingML:ConditionalAction">
-              <condition xsi:type="thingML:NotExpression">
-                <term xsi:type="thingML:PropertyReference" property="//@types.28/@functions.11/@body/@actions.0/@elseAction/@actions.0"/>
-              </condition>
-              <action xsi:type="thingML:PrintAction">
-                <msg xsi:type="thingML:StringLiteral" stringValue="[ERROR] Unhandled HandleACLData \n"/>
               </action>
             </actions>
           </elseAction>
@@ -4050,9 +3865,6 @@
             </actions>
             <actions xsi:type="thingML:VariableAssignment" property="//@types.28/@functions.13/@body/@actions.1">
               <expression xsi:type="thingML:BooleanLiteral" boolValue="true"/>
-            </actions>
-            <actions xsi:type="thingML:PrintAction">
-              <msg xsi:type="thingML:StringLiteral" stringValue="[DEBUG] SMP!SMPPairingRequest in OnSMPData\n"/>
             </actions>
             <actions xsi:type="thingML:SendAction" port="//@types.50/@ports.0" message="//@types.53/@messages.0">
               <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.13/@parameters.0"/>
@@ -4170,18 +3982,6 @@
             <actions xsi:type="thingML:VariableAssignment" property="//@types.28/@functions.13/@body/@actions.1">
               <expression xsi:type="thingML:BooleanLiteral" boolValue="true"/>
             </actions>
-            <actions xsi:type="thingML:ExternStatement" statement="printf(&quot;[DEBUG] SMP!SMPPairingConfirm HANDLE=0x%02x, LENGTH=0x%02x, DATA=&quot;, ">
-              <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.13/@parameters.0"/>
-              <segments xsi:type="thingML:ExternExpression" expression=", ">
-                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.13/@parameters.1"/>
-                <segments xsi:type="thingML:ExternExpression" expression=" );"/>
-              </segments>
-            </actions>
-            <actions xsi:type="thingML:FunctionCallStatement" function="//@types.28/@functions.6">
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.13/@parameters.2"/>
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.13/@parameters.1"/>
-            </actions>
-            <actions xsi:type="thingML:ExternStatement" statement="printf(&quot;\n&quot;);"/>
             <actions xsi:type="thingML:SendAction" port="//@types.50/@ports.0" message="//@types.53/@messages.2">
               <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.13/@parameters.0"/>
               <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.13/@body/@actions.4/@action/@actions.0"/>
@@ -4204,18 +4004,6 @@
             <actions xsi:type="thingML:VariableAssignment" property="//@types.28/@functions.13/@body/@actions.1">
               <expression xsi:type="thingML:BooleanLiteral" boolValue="true"/>
             </actions>
-            <actions xsi:type="thingML:ExternStatement" statement="printf(&quot;[DEBUG] SMP!SMPPairingRandom HANDLE=0x%02x, LENGTH=0x%02x, DATA=&quot;, ">
-              <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.13/@parameters.0"/>
-              <segments xsi:type="thingML:ExternExpression" expression=", ">
-                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.13/@parameters.1"/>
-                <segments xsi:type="thingML:ExternExpression" expression=" );"/>
-              </segments>
-            </actions>
-            <actions xsi:type="thingML:FunctionCallStatement" function="//@types.28/@functions.6">
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.13/@parameters.2"/>
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.13/@parameters.1"/>
-            </actions>
-            <actions xsi:type="thingML:ExternStatement" statement="printf(&quot;\n&quot;);"/>
             <actions xsi:type="thingML:SendAction" port="//@types.50/@ports.0" message="//@types.53/@messages.3">
               <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.13/@parameters.0"/>
               <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.13/@body/@actions.5/@action/@actions.0"/>
@@ -5139,22 +4927,8 @@
           <condition xsi:type="thingML:NotExpression">
             <term xsi:type="thingML:PropertyReference" property="//@types.28/@functions.14/@body/@actions.1"/>
           </condition>
-          <action xsi:type="thingML:ActionBlock">
-            <actions xsi:type="thingML:PrintAction">
-              <msg xsi:type="thingML:StringLiteral" stringValue="[ERROR] Got unknown ATTData packet !!!\n"/>
-            </actions>
-            <actions xsi:type="thingML:ExternStatement" statement="printf(&quot;  Handle=0x%04x, LENGTH=0x%02x, DATA=&quot;, ">
-              <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.14/@parameters.0"/>
-              <segments xsi:type="thingML:ExternExpression" expression=", ">
-                <segments xsi:type="thingML:PropertyReference" property="//@types.28/@functions.14/@parameters.1"/>
-                <segments xsi:type="thingML:ExternExpression" expression=" );"/>
-              </segments>
-            </actions>
-            <actions xsi:type="thingML:FunctionCallStatement" function="//@types.28/@functions.6">
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.14/@parameters.2"/>
-              <parameters xsi:type="thingML:PropertyReference" property="//@types.28/@functions.14/@parameters.1"/>
-            </actions>
-            <actions xsi:type="thingML:ExternStatement" statement="printf(&quot;\n&quot;);"/>
+          <action xsi:type="thingML:PrintAction">
+            <msg xsi:type="thingML:StringLiteral" stringValue="[ERROR] Got unknown ATTData packet !!!\n"/>
           </action>
         </actions>
       </body>
@@ -5512,9 +5286,6 @@
         <internal>
           <event xsi:type="thingML:ReceiveMessage" name="e" port="//@types.50/@ports.0" message="//@types.53/@messages.0"/>
           <action xsi:type="thingML:ActionBlock">
-            <actions xsi:type="thingML:PrintAction">
-              <msg xsi:type="thingML:StringLiteral" stringValue="********** SEND PAIRING REQUEST !!!!!!"/>
-            </actions>
             <actions xsi:type="thingML:ExternStatement" statement="&#xA;          uint8_t data[7];&#xA;          data[0] = 0x01;&#xA;          data[1] = ">
               <segments xsi:type="thingML:EventReference" receiveMsg="//@types.28/@behaviour/@substate.2/@internal.17/@event" parameter="//@types.53/@messages.0/@parameters.1"/>
               <segments xsi:type="thingML:ExternExpression" expression=";&#xA;          data[2] = (">

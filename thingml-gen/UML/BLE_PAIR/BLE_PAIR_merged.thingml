@@ -1,222 +1,311 @@
-thing Scanner includes HCISocket , ExitHandlerMsgs {
+thing Main includes BLEInitialiser , BLEConnecter , ExitHandlerMsgs , BLEEncryption , HCISocket {
 	required port Signals {
 		sends Quit receives Interrupt
 	}
-	function PrintAdvertisementData(Length : Byte, Data : BLEAdvertiseData) do
-		'
-      printf("\tData:\n");
-      uint8_t index = 0;
-      while (index < ' & Length & ') {
-        uint8_t len = ' & Data & '.bytes[index];
-        uint8_t type = ' & Data & '.bytes[index+1];
-        uint8_t n = 0;
+	property ConnectedAddressType : BLEAddressType
+	property ConnectedAddress : BTAddress
+	property ConnectedHandle : UInt
+	property DeviceAddressType : BLEAddressType = BLEAddressType : PUBLIC
+	property DeviceAddress : BTAddress
+	property Mrand : BLERandomNumber
+	property Srand : BLERandomNumber
+	property Mconfirm : BLERandomNumber
+	property Sconfirm : BLERandomNumber
+	property PeerLTK : BLERandomNumber
+	property PeerEDIV : UInt
+	property PeerRandom : BLERandomPart
+	property PeerIRK : BLERandomNumber
+	property PeerIdentityAddressType : BLEAddressType
+	property PeerIdentityAddress : BTAddress
+	property OwnLTK : BLERandomNumber
+	property OwnEDIV : UInt
+	property OwnRandom : BLERandomPart
+	property OwnIRK : BLERandomNumber
+	property OwnIdentityAddressType : BLEAddressType
+	property OwnIdentityAddress : BTAddress
+	property HavePeerLTK : Boolean = false
+	property HavePeerIdentification : Boolean = false
+	property HavePeerIdentity : Boolean = false
+	property HavePeerIdentityAddress : Boolean = false
+	property HasPairedSuccessfully : Boolean = false
+	function printBytes() @c_prototype "void print_bytes(uint8_t *data, int16_t length)" do
+	'printf("\'{ ");
 
+    int16_t i;
+    for (i = 0; i < length; i++) printf("0x%2.2X, ",data[i]);
 
-        switch (type) {
-          case 0x01:
-            printf("\t\t Flags: ");
-            if (' & Data & '.bytes[index+2] & 0x01) printf("[LE limited discoverable] ");
-            if (' & Data & '.bytes[index+2] & 0x02) printf("[LE general discoverable] ");
-            if (' & Data & '.bytes[index+2] & 0x04) printf("[BR/EDR not supported] ");
-            if (' & Data & '.bytes[index+2] & 0x08) printf("[Simultanous LE+BR/EDR to same controller] ");
-            if (' & Data & '.bytes[index+2] & 0x10) printf("[Simultanous LE+BR/EDR to same host] ");
-            printf("\n");
-            break;
-
-          case 0x08:
-          case 0x09:
-            printf("\t\t Local Name: %.*s\n", len-1, &(' & Data & '.bytes[index+2]));
-            break;
-
-          case 0x02:
-          case 0x03:
-            printf("\t\t Services (16-bit): ");
-            while (n < (len-1)) {
-              printf("[%2.2X%2.2X] ",' & Data & '.bytes[index+2+n+1],' & Data & '.bytes[index+2+n+0]);
-              n += 2;
-            }
-            printf("\n");
-            break;
-
-          case 0x04:
-          case 0x05:
-            printf("\t\t Services (32-bit): ");
-            while (n < (len-1)) {
-              printf("[%2.2X%2.2X%2.2X%2.2X] ",' & Data & '.bytes[index+2+n+3],' & Data & '.bytes[index+2+n+2],' & Data & '.bytes[index+2+n+1],' & Data & '.bytes[index+2+n+0]);
-              n += 4;
-            }
-            printf("\n");
-            break;
-
-          case 0x06:
-          case 0x07:
-            printf("\t\t Services (128-bit): ");
-            while (n < (len-1)) {
-              printf("[%2.2X%2.2X%2.2X%2.2X%2.2X%2.2X%2.2X%2.2X%2.2X%2.2X%2.2X%2.2X%2.2X%2.2X%2.2X%2.2X] ",
-                  ' & Data & '.bytes[index+2+n+15],' & Data & '.bytes[index+2+n+14],' & Data & '.bytes[index+2+n+13],' & Data & '.bytes[index+2+n+12],
-                  ' & Data & '.bytes[index+2+n+11],' & Data & '.bytes[index+2+n+10],' & Data & '.bytes[index+2+n+ 9],' & Data & '.bytes[index+2+n+ 8],
-                  ' & Data & '.bytes[index+2+n+ 7],' & Data & '.bytes[index+2+n+ 6],' & Data & '.bytes[index+2+n+ 5],' & Data & '.bytes[index+2+n+ 4],
-                  ' & Data & '.bytes[index+2+n+ 3],' & Data & '.bytes[index+2+n+ 2],' & Data & '.bytes[index+2+n+ 1],' & Data & '.bytes[index+2+n+ 0]);
-              n += 16;
-            }
-            printf("\n");
-            break;
-
-          default:
-            printf("\t\t Type %2.2X [%d]\n", type, len);
-        }
-
-
-        index += 1+len;
-      }
-    '
+    printf("}\'\\n");'
 	end
-	function PrintAdvertisementReport(Type : BLEAdvertisementReportType, AddressType : BLEAddressType, Address : BTAddress, Length : Byte, Data : BLEAdvertiseData) do
-		'
-      printf("Advertisement report:\n");
-
-      printf("\tType: ");
-      switch (' & Type & ') {
-        case 0x00:
-          printf("connectable unidirected advertising\n");
-          break;
-        case 0x01:
-          printf("connactable directed advertising\n");
-          break;
-        case 0x02:
-          printf("scannable unidirected advertising\n");
-          break;
-        case 0x03:
-          printf("non-connectable unidirected advertising\n");
-          break;
-        case 0x04:
-          printf("scan response\n");
-          break;
-      }
-
-      printf("\tAddress type: ");
-      switch (' & AddressType & ') {
-        case 0x00:
-          printf("public device address\n");
-          break;
-        case 0x01:
-          printf("random device address\n");
-          break;
-        case 0x02:
-          printf("public identity address\n");
-          break;
-        case 0x03:
-          printf("random (static) device address\n");
-          break;
-      }
-
-      printf("\tAddress: %2.2X:%2.2X:%2.2X:%2.2X:%2.2X:%2.2X\n", ' & Address & '.b[5],' & Address & '.b[4],' & Address & '.b[3],' & Address & '.b[2],' & Address & '.b[1],' & Address & '.b[0]);
-    '
-		PrintAdvertisementData(Length, Data)
-	end
-	statechart States init Open {
-		state Open {
-			on entry do
-				print "[INFO]: Opening HCI socket...\n"
-				Socket!Open()
-			end
-			transition -> Initialise
-			event Socket?Opened
-			transition -> Quit
-			event Socket?Closed
-		}
+	statechart States init Initialise {
 		state Initialise {
-			on entry do
-				print "[INFO]: Initialising BLE Controller...\n"
-				HCICommands!Reset()
-			end
-			internal
-			event e : HCIEvents?ResetCompleted
-			guard (e.Status == 0)
-			action HCICommands!SetEventMaskAll()
-			internal
-			event e : HCIEvents?SetEventMaskCompleted
-			guard (e.Status == 0)
-			action HCICommands!SetLEEventMaskAll()
-			transition -> Failure
-			event e : HCIEvents?ResetCompleted
-			guard (e.Status > 0)
-			transition -> Failure
-			event e : HCIEvents?SetEventMaskCompleted
-			guard (e.Status > 0)
-			transition -> SetScanningParameters
-			event e : HCIEvents?SetLEEventMaskCompleted
-			guard (e.Status == 0)
-			transition -> Failure
-			event e : HCIEvents?SetLEEventMaskCompleted
-			guard (e.Status > 0)
-			transition -> Close
-			event Signals?Interrupt
-		}
-		state SetScanningParameters {
-			on entry do
-				print "[INFO]: Setting scan parameters...\n"
-				var Type : BLEScanType = BLEScanType : ACTIVE
-				var Interval : Int = '0x0010'
-				var Window : Int = '0x0010'
-				var OwnAddressType : BLEAddressType = BLEAddressType : PUBLIC
-				var FilterPolicy : BLEScanFilterPolicy = BLEScanFilterPolicy : ALL
-				HCICommands!SetLEScanParameters(Type, Interval, Window, OwnAddressType, FilterPolicy)
-			end
-			internal
-			event e : HCIEvents?SetLEScanParametersCompleted
-			guard (e.Status == 0)
-			action HCICommands!SetLEScanEnable('0x01', '0x00')
-			transition -> Failure
-			event e : HCIEvents?SetLEScanParametersCompleted
-			guard (e.Status > 0)
-			transition -> Scanning
-			event e : HCIEvents?SetLEScanEnableCompleted
-			guard (e.Status == 0)
-			transition -> Failure
-			event e : HCIEvents?SetLEScanEnableCompleted
-			guard (e.Status > 0)
-		}
-		state Scanning {
-			on entry print "[INFO]: Scanning :)\n"
-			internal
-			event e : HCIEvents?LEAdvertisementReport
+			on entry Initialiser!Start()
+			transition -> Connect
+			event e : Initialiser?DeviceInitialised
 			action do
-				print "[INFO]: Got advertisement report!\n"
-				PrintAdvertisementReport(e.Type, e.AddressType, e.Address, e.Length, e.Data)
+				DeviceAddress = e.Address
+			end
+			transition -> Failed
+			event Initialiser?Failure
+			transition -> Quit
+			event Signals?Interrupt
+		}
+		state Connect {
+			on entry Connecter!Connect()
+			internal
+			event Signals?Interrupt
+			action Connecter!Stop()
+			transition -> Pairing
+			event e : Connecter?Connected
+			action do
+				ConnectedAddressType = e.AddressType
+				ConnectedAddress = e.Address
+				ConnectedHandle = e.Handle
+			end
+			transition -> Uninitialise
+			event Connecter?Stopped
+			transition -> Failed
+			event Connecter?Failure
+		}
+		composite state Pairing init Request {
+			state Request {
+				internal
+				event SMP?SMPSecurityRequest
+				action do
+					print "[INFO]: Received Security request, requesting pairing...\n"
+					var IOCapability : SMPIOCapabilities = SMPIOCapabilities : NO_INPUT_NO_OUTPUT
+					var OOBDataPresent : Boolean = false
+					var Bonding : Boolean = true
+					var MITM : Boolean = false
+					var SecureConnection : Boolean = false
+					var Keypress : Boolean = false
+					var MaximumEncryptionKeySize : Byte = 16
+					var InitiatorKeyDistribution : SMPKeyDistribution = SMPKeyDistribution : ENCKEY_IDKEY_NOSIGN_NOLINKKEY
+					var ResponderKeyDistribution : SMPKeyDistribution = SMPKeyDistribution : ENCKEY_IDKEY_NOSIGN_NOLINKKEY
+					SMP!SMPPairingRequest(ConnectedHandle, IOCapability, OOBDataPresent, Bonding, MITM, SecureConnection, Keypress, MaximumEncryptionKeySize, InitiatorKeyDistribution, ResponderKeyDistribution)
+				end
+				transition -> Confirm
+				event e : SMP?SMPPairingResponse
+				guard (e.IOCapability == SMPIOCapabilities : NO_INPUT_NO_OUTPUT and e.OOBDataPresent == false and e.Bonding == true and e.MITM == false and e.SecureConnection == false and e.Keypress == false and e.MaximumEncryptionKeySize == 16 and e.InitiatorKeyDistribution == SMPKeyDistribution : ENCKEY_IDKEY_NOSIGN_NOLINKKEY and e.ResponderKeyDistribution == SMPKeyDistribution : ENCKEY_IDKEY_NOSIGN_NOLINKKEY)
+				transition -> PairFailed
+				event SMP?SMPPairingResponse
+			}
+			composite state Confirm init SendMconfirm {
+				state SendMconfirm {
+					on entry do
+						print "[INFO]: Confirm Pairing...\n"
+						Encrypter!GenerateRandomNumber()
+					end
+					internal
+					event e : Encrypter?GenerateRandomNumberCompleted
+					action do
+						Mrand = e.Random
+						Encrypter!GenerateConfirm(Mrand, DeviceAddressType, DeviceAddress, ConnectedAddressType, ConnectedAddress)
+					end
+					transition -> GetSconfirm
+					event e : Encrypter?GenerateConfirmCompleted
+					action do
+						Mconfirm = e.Confirm
+						SMP!SMPPairingConfirm(ConnectedHandle, Mconfirm)
+						print "[INFO]: Sent Mconfirm.\n"
+					end
+				}
+				state GetSconfirm {
+					transition -> GetSrandom
+					event e : SMP?SMPPairingConfirm
+					action do
+						Sconfirm = e.ConfirmValue
+						print "[INFO]: Got Sconfirm, replied with Mrand.\n"
+						SMP!SMPPairingRandom(ConnectedHandle, Mrand)
+					end
+				}
+				state GetSrandom {
+					internal
+					event e : SMP?SMPPairingRandom
+					action do
+						Srand = e.RandomValue
+						print "[INFO]: Got Srand, confirming...\n"
+						Encrypter!GenerateConfirm(Srand, DeviceAddressType, DeviceAddress, ConnectedAddressType, ConnectedAddress)
+					end
+					transition -> GetSconfirm
+					event e : Encrypter?GenerateConfirmCompleted
+					action do
+						Encrypter!CheckConfirm(Sconfirm, e.Confirm)
+					end
+				}
+				transition -> Encrypt
+				event e : Encrypter?CheckConfirmCompleted
+				guard (e.Correct)
+				transition -> PairFailed
+				event e : Encrypter?CheckConfirmCompleted
+				guard (not e.Correct)
+			}
+			state Encrypt {
+				on entry do
+					print "[INFO]: Encrypting connection ...\n"
+					Encrypter!GenerateSTK(Srand, Mrand)
+				end
+				internal
+				event e : Encrypter?GenerateSTKCompleted
+				action do
+					print "[INFO]: Generated STK.\n"
+					var Random : BLERandomPart = '{ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }'
+					var EDIV : UInt = 0
+					HCICommands!LEStartEncryption(ConnectedHandle, Random, EDIV, e.STK)
+				end
+				internal
+				event e : HCIEvents?LEStartEncryptionStatus
+				guard (e.Status == 0)
+				action print "[INFO]: Waiting for encryption...\n"
+				transition -> PairFailed
+				event e : HCIEvents?LEStartEncryptionStatus
+				guard (e.Status > 0)
+				transition -> ExchangeKeys
+				event e : HCIEvents?EncryptionChanged
+				guard (e.Status == '0x00' and e.Enabled == '0x01')
+				transition -> PairFailed
+				event e : HCIEvents?EncryptionChanged
+				guard (e.Status > '0x00' or e.Enabled != '0x01')
+			}
+			composite state ExchangeKeys init WaitForPeerKeys {
+				state WaitForPeerKeys {
+					internal
+					event e : SMP?SMPEncryptionInformation
+					action do
+						PeerLTK = e.LongTermKey
+						HavePeerLTK = true
+					end
+					internal
+					event e : SMP?SMPMasterIdentification
+					action do
+						PeerEDIV = e.EDIV
+						PeerRandom = e.Rand
+						HavePeerIdentification = true
+					end
+					internal
+					event e : SMP?SMPIdentityInformation
+					action do
+						PeerIRK = e.IdentityResolvingKey
+						HavePeerIdentity = true
+					end
+					internal
+					event e : SMP?SMPIdentityAddressInformation
+					action do
+						PeerIdentityAddressType = e.AddressType
+						PeerIdentityAddress = e.Address
+						HavePeerIdentityAddress = true
+					end
+					transition -> GenerateOwnKeys guard (HavePeerLTK and HavePeerIdentification and HavePeerIdentity and HavePeerIdentityAddress)
+				}
+				composite state GenerateOwnKeys init GenerateLTK {
+					on entry print "[INFO]: Got all peer keys, generating own...\n"
+					state GenerateLTK {
+						on entry Encrypter!GenerateRandomNumber()
+						transition -> GenerateEDIVRand
+						event e : Encrypter?GenerateRandomNumberCompleted
+						action do
+							OwnLTK = e.Random
+						end
+					}
+					state GenerateEDIVRand {
+						on entry Encrypter!GenerateRandomNumber()
+						transition -> GenerateIRK
+						event e : Encrypter?GenerateRandomNumberCompleted
+						action do
+							OwnEDIV = '*((uint16_t*)&' & e.Random & '.bytes[0])'
+							OwnRandom = '*((ble_random_part_t*)&' & e.Random & '.bytes[2])'
+						end
+					}
+					state GenerateIRK {
+						on entry Encrypter!GenerateRandomNumber()
+						transition -> SendAll
+						event e : Encrypter?GenerateRandomNumberCompleted
+						action do
+							OwnIRK = e.Random
+						end
+					}
+					state SendAll {
+						on entry do
+							OwnIdentityAddressType = DeviceAddressType
+							OwnIdentityAddress = DeviceAddress
+							print "[INFO]: Generate all own keys, sending...\n"
+							SMP!SMPEncryptionInformation(ConnectedHandle, OwnLTK)
+							SMP!SMPMasterIdentification(ConnectedHandle, OwnEDIV, OwnRandom)
+							SMP!SMPIdentityInformation(ConnectedHandle, OwnIRK)
+							SMP!SMPIdentityAddressInformation(ConnectedHandle, OwnIdentityAddressType, OwnIdentityAddress)
+							HasPairedSuccessfully = true
+						end
+					}
+				}
+			}
+			state PairFailed {
+				on entry do
+					print "[ERROR]: Pairing procedure failed.\n"
+					Connecter!Stop()
+				end
+			}
+			internal
+			event SMP?SMPPairingFailed
+			action do
+				print "[ERROR]: Received pairing failed!\n"
+				Connecter!Stop()
 			end
 			internal
 			event Signals?Interrupt
-			action HCICommands!SetLEScanEnable('0x00', '0x00')
-			transition -> Close
-			event e : HCIEvents?SetLEScanEnableCompleted
-			guard (e.Status == 0)
-			transition -> Failure
-			event e : HCIEvents?SetLEScanEnableCompleted
-			guard (e.Status > 0)
+			action Connecter!Stop()
+			transition -> Uninitialise
+			event Connecter?Stopped
+			transition -> Failed
+			event Connecter?Failure
 		}
-		state Failure {
-			on entry do
-				print "[ERROR]: Something went wrong :(\n"
-				Socket!Close()
-			end
+		state Uninitialise {
+			on entry Initialiser!Stop()
+			transition -> Failed
+			event Initialiser?Failure
 			transition -> Quit
-			event Socket?Closed
+			event Initialiser?Stopped
 			transition -> Quit
 			event Signals?Interrupt
 		}
-		state Close {
+		state Failed {
 			on entry do
-				print "[INFO]: Closing HCI socket...\n"
-				Socket!Close()
+				print "[ERROR]: Failed, quitting... !!!\n"
+				Signals!Quit(1)
 			end
-			transition -> Quit
-			event Socket?Closed
-			transition -> Quit
-			event Signals?Interrupt
 		}
 		state Quit {
-			on entry Signals!Quit(0)
+			on entry do
+				print "[INFO]: Finished, quitting...\n"
+				if (HasPairedSuccessfully) do
+					print "\n\n\nPairing was successfull! Please note the following values and use for later connection:\n\n"
+					print "\tproperty OwnLongTermKey : BLERandomNumber = "
+					'print_bytes((uint8_t*)&(' & OwnLTK & '), 16);'
+					print "\tproperty OwnEncryptedDiversifier : UInt = "
+					'print_bytes((uint8_t*)&(' & OwnEDIV & '), 2);'
+					print "\tproperty OwnRandomNumber : BLERandomPart = "
+					'print_bytes((uint8_t*)&(' & OwnRandom & '), 8);'
+					print "\tproperty OwnIdentityResolvingKey : BLERandomNumber = "
+					'print_bytes((uint8_t*)&(' & OwnIRK & '), 16);'
+					print "\tproperty OwnAddressType : BLEAddressType = "
+					'print_bytes((uint8_t*)&(' & OwnIdentityAddressType & '), 1);'
+					print "\tproperty OwnAddress : BTAddress = "
+					'print_bytes((uint8_t*)&(' & OwnIdentityAddress & '), 6);'
+					print "\n"
+					print "\tproperty PeerLongTermKey : BLERandomNumber = "
+					'print_bytes((uint8_t*)&(' & PeerLTK & '), 16);'
+					print "\tproperty PeerEncryptedDiversifier : UInt = "
+					'print_bytes((uint8_t*)&(' & PeerEDIV & '), 2);'
+					print "\tproperty PeerRandomNumber : BLERandomPart = "
+					'print_bytes((uint8_t*)&(' & PeerRandom & '), 8);'
+					print "\tproperty PeerIdentityResolvingKey : BLERandomNumber = "
+					'print_bytes((uint8_t*)&(' & PeerIRK & '), 16);'
+					print "\tproperty PeerAddressType : BLEAddressTyp = "
+					'print_bytes((uint8_t*)&(' & PeerIdentityAddressType & '), 1);'
+					print "\tproperty PeerAddress : BTAddress = "
+					'print_bytes((uint8_t*)&(' & PeerIdentityAddress & '), 6);'
+					print "\n"
+				end
+				Signals!Quit(0)
+			end
 		}
 	}
 }
@@ -418,6 +507,676 @@ thing HCISocketProxyImpl includes HCISocketProxy @c_header "#include <errno.h>" 
 		end
 	end
 }
+thing fragment BLEInitialiserMsgs {
+	message DeviceInitialised(Address : BTAddress)
+}
+thing fragment BLEInitialiser includes ModuleMsgs , BLEInitialiserMsgs {
+	required port Initialiser {
+		sends Start sends Stop receives Started receives Stopped receives Failure receives DeviceInitialised
+	}
+}
+thing BLEInitialiserImpl includes ModuleMsgs , BLEInitialiserMsgs , HCISocket {
+	provided port Initialiser {
+		sends Started sends Stopped sends Failure sends DeviceInitialised receives Start receives Stop
+	}
+	property DeviceAddress : BTAddress
+	statechart States init Closed {
+		state Closed {
+			internal
+			event Initialiser?Stop
+			action Initialiser!Stopped()
+			transition -> Opening
+			event Initialiser?Start
+		}
+		state Opening {
+			on entry do
+				print "[INFO]: Opening HCI socket...\n"
+				Socket!Open()
+			end
+			transition -> Initialise
+			event e : Socket?Opened
+			action do
+				DeviceAddress = e.Address
+			end
+			transition -> Failure
+			event Socket?Closed
+		}
+		state Initialise {
+			on entry do
+				print "[INFO]: Initialising BLE Controller...\n"
+				HCICommands!Reset()
+			end
+			internal
+			event e : HCIEvents?ResetCompleted
+			guard (e.Status == 0)
+			action HCICommands!SetEventMaskAll()
+			internal
+			event e : HCIEvents?SetEventMaskCompleted
+			guard (e.Status == 0)
+			action HCICommands!SetLEEventMaskAll()
+			transition -> Failure
+			event e : HCIEvents?ResetCompleted
+			guard (e.Status > 0)
+			transition -> Failure
+			event e : HCIEvents?SetEventMaskCompleted
+			guard (e.Status > 0)
+			transition -> Open
+			event e : HCIEvents?SetLEEventMaskCompleted
+			guard (e.Status == 0)
+			transition -> Failure
+			event e : HCIEvents?SetLEEventMaskCompleted
+			guard (e.Status > 0)
+			transition -> Failure
+			event Socket?Closed
+			transition -> Closing
+			event Initialiser?Stop
+		}
+		state Open {
+			on entry do
+				print "[INFO]: HCI Socket initialised...\n"
+				Initialiser!Started()
+				Initialiser!DeviceInitialised(DeviceAddress)
+			end
+			transition -> Failure
+			event Socket?Closed
+			transition -> Closing
+			event Initialiser?Stop
+		}
+		state Closing {
+			on entry do
+				print "[INFO]: Closing HCI socket...\n"
+				Socket!Close()
+			end
+			transition -> Closed
+			event Socket?Closed
+			action Initialiser!Stopped()
+		}
+		state Failure {
+			on entry do
+				print "[ERROR]: BLE_initialiser failed!\n"
+				Socket!Close()
+				Initialiser!Failure()
+			end
+			internal
+			event Initialiser?Stop
+			action Initialiser!Failure()
+			transition -> Opening
+			event Initialiser?Start
+		}
+	}
+}
+thing fragment BLEScannerMsgs {
+	message ConnectableAdvertisement(AddressType : BLEAddressType, Address : BTAddress)
+}
+thing fragment BLEScanner includes ModuleMsgs , BLEScannerMsgs {
+	required port Scanner {
+		sends Start sends Stop receives Started receives Stopped receives Failure receives ConnectableAdvertisement
+	}
+}
+thing BLEScannerImpl includes ModuleMsgs , BLEScannerMsgs , HCISocket {
+	provided port Scanner {
+		sends Started sends Stopped sends Failure sends ConnectableAdvertisement receives Start receives Stop
+	}
+	statechart States init Standby {
+		state Standby {
+			internal
+			event Scanner?Stop
+			action Scanner!Stopped()
+			transition -> Initiating
+			event Scanner?Start
+		}
+		state Initiating {
+			on entry do
+				print "[INFO]: Setting scan parameters...\n"
+				var Type : BLEScanType = BLEScanType : PASSIVE
+				var Interval : Int = '0x0010'
+				var Window : Int = '0x0010'
+				var OwnAddressType : BLEAddressType = BLEAddressType : PUBLIC
+				var FilterPolicy : BLEScanFilterPolicy = BLEScanFilterPolicy : ALL
+				HCICommands!SetLEScanParameters(Type, Interval, Window, OwnAddressType, FilterPolicy)
+			end
+			internal
+			event e : HCIEvents?SetLEScanParametersCompleted
+			guard (e.Status == 0)
+			action HCICommands!SetLEScanEnable('0x01', '0x00')
+			transition -> Failure
+			event e : HCIEvents?SetLEScanParametersCompleted
+			guard (e.Status > 0)
+			transition -> Scanning
+			event e : HCIEvents?SetLEScanEnableCompleted
+			guard (e.Status == 0)
+			transition -> Failure
+			event e : HCIEvents?SetLEScanEnableCompleted
+			guard (e.Status > 0)
+			transition -> Stopping
+			event Scanner?Stop
+		}
+		state Scanning {
+			on entry do
+				print "[INFO]: Scanning for incoming connections...\n"
+				Scanner!Started()
+			end
+			internal
+			event e : HCIEvents?LEAdvertisementReport
+			action do
+				if (e.Type == BLEAdvertisementReportType : ADV_IND or e.Type == BLEAdvertisementReportType : ADV_DIRECT_IND) do
+					Scanner!ConnectableAdvertisement(e.AddressType, e.Address)
+				end
+			end
+			internal
+			event Scanner?Start
+			action Scanner!Started()
+			transition -> Stopping
+			event Scanner?Stop
+		}
+		state Stopping {
+			on entry do
+				print "[INFO]: Stopping scan...\n"
+				HCICommands!SetLEScanEnable('0x00', '0x00')
+			end
+			transition -> Standby
+			event e : HCIEvents?SetLEScanEnableCompleted
+			guard (e.Status == 0)
+			action Scanner!Stopped()
+			transition -> Failure
+			event e : HCIEvents?SetLEScanEnableCompleted
+			guard (e.Status > 0)
+		}
+		state Failure {
+			on entry do
+				print "[ERROR]: BLE_scanner failed!\n"
+				Scanner!Failure()
+			end
+			internal
+			event Scanner?Stop
+			action Scanner!Failure()
+			transition -> Initiating
+			event Scanner?Start
+		}
+	}
+}
+thing fragment BLEConnecterMsgs {
+	message Connect()
+	message ConnectTo(AddressType : BLEAddressType, Address : BTAddress, LongTermKey : BLERandomNumber, EncryptedDiversifier : UInt, RandomNumber : BLERandomPart)
+	message ConnectToU(AddressType : BLEAddressType, Address : BTAddress)
+	message Connected(Handle : UInt, AddressType : BLEAddressType, Address : BTAddress)
+	message Encrypt()
+	message Encrypted()
+}
+thing fragment BLEConnecter includes ModuleMsgs , BLEConnecterMsgs {
+	required port Connecter {
+		sends Connect sends ConnectTo sends ConnectToU sends Stop sends Encrypt receives Connected receives Stopped receives Failure receives Encrypted
+	}
+}
+thing BLEConnecterImpl includes ModuleMsgs , BLEConnecterMsgs , HCISocket {
+	provided port Connecter {
+		sends Connected sends Stopped sends Failure sends Encrypted receives Connect receives ConnectTo receives ConnectToU receives Stop receives Encrypt
+	}
+	property ConnectAddress : String
+	property ConnectAddressBT : BTAddress
+	property ConnectAddressType : BLEAddressType
+	property LongTermKey : BLERandomNumber
+	property EncryptedDiversifier : UInt
+	property RandomNumber : BLERandomPart
+	property ConnectedHandle : Int
+	property ConnectedAddressType : BLEAddressType
+	property ConnectedAddress : BTAddress
+	statechart States init NotConnected {
+		state NotConnected {
+			internal
+			event Connecter?Stop
+			action Connecter!Stopped()
+			transition -> Connecting
+			event e : Connecter?Connect
+			action do
+				'str2ba(' & ConnectAddress & ',&' & ConnectAddressBT & ');'
+			end
+			transition -> Connecting
+			event e : Connecter?ConnectToU
+			action do
+				ConnectAddressType = e.AddressType
+				ConnectAddressBT = e.Address
+			end
+			transition -> Connecting
+			event e : Connecter?ConnectTo
+			action do
+				ConnectAddressType = e.AddressType
+				ConnectAddressBT = e.Address
+				LongTermKey = e.LongTermKey
+				EncryptedDiversifier = e.EncryptedDiversifier
+				RandomNumber = e.RandomNumber
+			end
+		}
+		state Connecting {
+			on entry do
+				var Interval : Int = '0x0010'
+				var Window : Int = '0x0010'
+				var FilterPolicy : BLEInitiatorFilterPolicy = BLEInitiatorFilterPolicy : WHITELIST_NOT_USED
+				var PeerAddressType : BLEAddressType = ConnectAddressType
+				var PeerAddress : BTAddress = ConnectAddressBT
+				var OwnAddressType : BLEAddressType = BLEAddressType : PUBLIC
+				var ConnIntervalMin : Int = '0x0006'
+				var ConnIntervalMax : Int = '0x000C'
+				var ConnLatency : Int = '0x0000'
+				var SupervisionTimeout : Int = '0x00c8'
+				var CELengthMin : Int = '0x0004'
+				var CELengthMax : Int = '0x0006'
+				HCICommands!LECreateConnection(Interval, Window, FilterPolicy, PeerAddressType, PeerAddress, OwnAddressType, ConnIntervalMin, ConnIntervalMax, ConnLatency, SupervisionTimeout, CELengthMin, CELengthMax)
+			end
+			internal
+			event e : HCIEvents?LECreateConnectionStatus
+			guard (e.Status == 0)
+			action do
+				print "[INFO]: Requested connection to "
+				'
+          char address[18];
+          bzero(address, 18);
+          ba2str(&' & ConnectAddressBT & ', address);
+          printf("%s", address);
+        '
+				print "...\n"
+			end
+			transition -> Failure
+			event e : HCIEvents?LECreateConnectionStatus
+			guard (e.Status > 0)
+			transition -> CancelConnection
+			event Connecter?Stop
+			transition -> Connected
+			event e : HCIEvents?LEConnectionComplete
+			guard (e.Status == 0)
+			action do
+				ConnectedHandle = e.ConnectionHandle
+				ConnectedAddressType = e.PeerAddressType
+				ConnectedAddress = e.PeerAddress
+				print "[INFO]: Normal connection complete\n"
+			end
+			transition -> Failure
+			event e : HCIEvents?LEConnectionComplete
+			guard (e.Status > 0)
+			transition -> Connected
+			event e : HCIEvents?LEEnhancedConnectionComplete
+			guard (e.Status == 0)
+			action do
+				ConnectedHandle = e.ConnectionHandle
+				print "[INFO]: Enhanced connection complete\n"
+			end
+			transition -> Failure
+			event e : HCIEvents?LEEnhancedConnectionComplete
+			guard (e.Status > 0)
+		}
+		state CancelConnection {
+			on entry HCICommands!LECreateConnectionCancel()
+			transition -> Failure
+			event e : HCIEvents?LECreateConnectionCancelCompleted
+			guard (e.Status > 0)
+			transition -> NotConnected
+			event e : HCIEvents?LEConnectionComplete
+			guard (e.Status == '0x02')
+			action Connecter!Stopped()
+			transition -> NotConnected
+			event e : HCIEvents?LEEnhancedConnectionComplete
+			guard (e.Status == '0x02')
+			action Connecter!Stopped()
+		}
+		state Connected {
+			on entry do
+				print "[INFO]: Connected!\n"
+				Connecter!Connected(ConnectedHandle, ConnectedAddressType, ConnectedAddress)
+			end
+			internal
+			event Connecter?Connect
+			action Connecter!Connected(ConnectedHandle, ConnectedAddressType, ConnectedAddress)
+			internal
+			event e : Connecter?Encrypt
+			action do
+				HCICommands!LEStartEncryption(ConnectedHandle, RandomNumber, EncryptedDiversifier, LongTermKey)
+			end
+			internal
+			event e : HCIEvents?LEStartEncryptionStatus
+			guard (e.Status == 0)
+			action print "[INFO]: Requested encryption...\n"
+			transition -> Failure
+			event e : HCIEvents?LEStartEncryptionStatus
+			guard (e.Status > 0)
+			action print "[ERROR]: Start encryption failed!\n"
+			transition -> Encrypted
+			event e : HCIEvents?EncryptionChanged
+			guard (e.Status == 0 and e.Enabled)
+			transition -> Failure
+			event e : HCIEvents?EncryptionChanged
+			guard (e.Status > 0)
+			action print "[ERROR]: Encryption failed!\n"
+			transition -> NotConnected
+			event e : HCIEvents?DisconnectionCompleted
+			guard (e.Status == 0)
+			action do
+				print "[INFO]: Connection closed by remote.\n"
+				Connecter!Stopped()
+			end
+			transition -> Failure
+			event e : HCIEvents?DisconnectionCompleted
+			guard (e.Status > 0)
+			transition -> Disconnecting
+			event Connecter?Stop
+		}
+		state Encrypted {
+			on entry do
+				print "[INFO]: Connection encrypted!\n"
+				Connecter!Encrypted()
+			end
+			internal
+			event Connecter?Connect
+			action Connecter!Connected(ConnectedHandle, ConnectedAddressType, ConnectedAddress)
+			internal
+			event Connecter?Encrypt
+			action Connecter!Encrypted()
+			transition -> Connected
+			event e : HCIEvents?EncryptionChanged
+			guard (e.Status == 0 and not e.Enabled)
+			transition -> Failure
+			event e : HCIEvents?EncryptionChanged
+			guard (e.Status > 0)
+			action print "[ERROR]: Encryption failed!\n"
+			transition -> NotConnected
+			event e : HCIEvents?DisconnectionCompleted
+			guard (e.Status == 0)
+			action do
+				print "[INFO]: Connection closed by remote.\n"
+				Connecter!Stopped()
+			end
+			transition -> Failure
+			event e : HCIEvents?DisconnectionCompleted
+			guard (e.Status > 0)
+			transition -> Disconnecting
+			event Connecter?Stop
+		}
+		state Disconnecting {
+			on entry HCICommands!Disconnect(ConnectedHandle, BTDisconnectReason : REMOTE_USER)
+			internal
+			event e : HCIEvents?DisconnectStatus
+			guard (e.Status == 0)
+			action do
+				print "[INFO]: Closing connection...\n"
+			end
+			transition -> Failure
+			event e : HCIEvents?DisconnectStatus
+			guard (e.Status > 0)
+			transition -> NotConnected
+			event e : HCIEvents?DisconnectionCompleted
+			guard (e.Status == 0)
+			action Connecter!Stopped()
+			transition -> Failure
+			event e : HCIEvents?DisconnectionCompleted
+			guard (e.Status > 0)
+		}
+		state Failure {
+			on entry do
+				print "[ERROR]: BLE_connecter failed :(\n"
+				Connecter!Failure()
+				Connecter!Stopped()
+			end
+			internal
+			event Connecter?Stop
+			action Connecter!Failure()
+			transition -> Connecting
+			event e : Connecter?Connect
+		}
+	}
+}
+thing fragment BLEEncryptionMsgs {
+	message GenerateRandomNumber()
+	message GenerateRandomNumberCompleted(Random : BLERandomNumber)
+	message GenerateConfirm(Rand : BLERandomNumber, IAT : BLEAddressType, IA : BTAddress, RAT : BLEAddressType, RA : BTAddress)
+	message GenerateConfirmCompleted(Confirm : BLERandomNumber)
+	message CheckConfirm(Received : BLERandomNumber, Calculated : BLERandomNumber)
+	message CheckConfirmCompleted(Correct : Boolean)
+	message GenerateSTK(Srand : BLERandomNumber, Mrand : BLERandomNumber)
+	message GenerateSTKCompleted(STK : BLERandomNumber)
+}
+thing fragment BLEEncryption includes ModuleMsgs , BLEEncryptionMsgs {
+	required port Encrypter {
+		sends Start sends GenerateRandomNumber sends GenerateConfirm sends CheckConfirm sends GenerateSTK receives Started receives Failure receives GenerateRandomNumberCompleted receives GenerateConfirmCompleted receives CheckConfirmCompleted receives GenerateSTKCompleted
+	}
+}
+thing BLEEncryptionImpl includes ModuleMsgs , BLEEncryptionMsgs , HCISocket {
+	provided port Encrypter {
+		sends Started sends Failure sends GenerateRandomNumberCompleted sends GenerateConfirmCompleted sends CheckConfirmCompleted sends GenerateSTKCompleted receives Start receives GenerateRandomNumber receives GenerateConfirm receives CheckConfirm receives GenerateSTK
+	}
+	property GeneratedRandomNumber : BLERandomNumber
+	property Rand : BLERandomNumber
+	property IAT : BLEAddressType
+	property IA : BTAddress
+	property RAT : BLEAddressType
+	property RA : BTAddress
+	property Srand : BLERandomNumber
+	property Mrand : BLERandomNumber
+	function GenerateP1() : BLERandomNumber do
+		var p1 : BLERandomNumber
+		var IOCapability : SMPIOCapabilities = SMPIOCapabilities : NO_INPUT_NO_OUTPUT
+		var OOBDataPresent : Boolean = false
+		var Bonding : Boolean = true
+		var MITM : Boolean = false
+		var SecureConnection : Boolean = false
+		var Keypress : Boolean = false
+		var MaximumEncryptionKeySize : Byte = 16
+		var InitiatorKeyDistribution : SMPKeyDistribution = SMPKeyDistribution : ENCKEY_IDKEY_NOSIGN_NOLINKKEY
+		var ResponderKeyDistribution : SMPKeyDistribution = SMPKeyDistribution : ENCKEY_IDKEY_NOSIGN_NOLINKKEY
+		'
+      // Pairing response
+      uint8_t pres[7];
+      pres[0] = 0x02;
+      pres[1] = ' & IOCapability & ';
+      pres[2] = (' & OOBDataPresent & ') ? 0x01 : 0x00;
+      pres[3] = ( ((' & Bonding & ') ? 0x01 : 0x00) | ((' & MITM & ') ? 0x04 : 0x00) | ((' & SecureConnection & ') ? 0x08 : 0x00) | ((' & Keypress & ') ? 0x10 : 0x00) );
+      pres[4] = ' & MaximumEncryptionKeySize & ';
+      pres[5] = ' & InitiatorKeyDistribution & ';
+      pres[6] = ' & ResponderKeyDistribution & ';
+      // Pairing response
+      uint8_t preq[7];
+      preq[0] = 0x01;
+      preq[1] = ' & IOCapability & ';
+      preq[2] = (' & OOBDataPresent & ') ? 0x01 : 0x00;
+      preq[3] = ( ((' & Bonding & ') ? 0x01 : 0x00) | ((' & MITM & ') ? 0x04 : 0x00) | ((' & SecureConnection & ') ? 0x08 : 0x00) | ((' & Keypress & ') ? 0x10 : 0x00) );
+      preq[4] = ' & MaximumEncryptionKeySize & ';
+      preq[5] = ' & InitiatorKeyDistribution & ';
+      preq[6] = ' & ResponderKeyDistribution & ';
+      // Address types
+      uint8_t rat = ' & RAT & ' & 0x01;
+      uint8_t iat = ' & IAT & ' & 0x01;
+
+      // Concatenate
+      ' & p1 & '.bytes[ 0] = iat;
+      ' & p1 & '.bytes[ 1] = rat;
+      ' & p1 & '.bytes[ 2] = preq[0];
+      ' & p1 & '.bytes[ 3] = preq[1];
+      ' & p1 & '.bytes[ 4] = preq[2];
+      ' & p1 & '.bytes[ 5] = preq[3];
+      ' & p1 & '.bytes[ 6] = preq[4];
+      ' & p1 & '.bytes[ 7] = preq[5];
+      ' & p1 & '.bytes[ 8] = preq[6];
+      ' & p1 & '.bytes[ 9] = pres[0];
+      ' & p1 & '.bytes[10] = pres[1];
+      ' & p1 & '.bytes[11] = pres[2];
+      ' & p1 & '.bytes[12] = pres[3];
+      ' & p1 & '.bytes[13] = pres[4];
+      ' & p1 & '.bytes[14] = pres[5];
+      ' & p1 & '.bytes[15] = pres[6];
+    '
+		return p1
+	end
+	function GenerateP2() : BLERandomNumber do
+		var p2 : BLERandomNumber
+		'
+     // Concatenate
+     ' & p2 & '.bytes[ 0] = ' & RA & '.b[0];
+     ' & p2 & '.bytes[ 1] = ' & RA & '.b[1];
+     ' & p2 & '.bytes[ 2] = ' & RA & '.b[2];
+     ' & p2 & '.bytes[ 3] = ' & RA & '.b[3];
+     ' & p2 & '.bytes[ 4] = ' & RA & '.b[4];
+     ' & p2 & '.bytes[ 5] = ' & RA & '.b[5];
+     ' & p2 & '.bytes[ 6] = ' & IA & '.b[0];
+     ' & p2 & '.bytes[ 7] = ' & IA & '.b[1];
+     ' & p2 & '.bytes[ 8] = ' & IA & '.b[2];
+     ' & p2 & '.bytes[ 9] = ' & IA & '.b[3];
+     ' & p2 & '.bytes[10] = ' & IA & '.b[4];
+     ' & p2 & '.bytes[11] = ' & IA & '.b[5];
+     ' & p2 & '.bytes[12] = 0x00;
+     ' & p2 & '.bytes[13] = 0x00;
+     ' & p2 & '.bytes[14] = 0x00;
+     ' & p2 & '.bytes[15] = 0x00;
+    '
+		return p2
+	end
+	statechart States init WaitForSocket {
+		state WaitForSocket {
+			transition -> Ready
+			event Socket?Opened
+		}
+		composite state Ready init Waiting {
+			state Waiting {
+				internal
+				event e : Encrypter?CheckConfirm
+				action do
+					var Result : Boolean = true
+					'
+            uint8_t i;
+            for (i = 0; i < 16; i++)
+              ' & Result & ' = (' & Result & ' && (' & e.Received & '.bytes[i] == ' & e.Calculated & '.bytes[i]));
+          '
+					Encrypter!CheckConfirmCompleted(Result)
+				end
+				transition -> RandomFirstPart
+				event Encrypter?GenerateRandomNumber
+				action HCICommands!LERand()
+				transition -> ConfirmFirstPart
+				event e : Encrypter?GenerateConfirm
+				action do
+					Rand = e.Rand
+					IAT = e.IAT
+					IA = e.IA
+					RAT = e.RAT
+					RA = e.RA
+				end
+				transition -> GenerateSTK
+				event e : Encrypter?GenerateSTK
+				action do
+					Srand = e.Srand
+					Mrand = e.Mrand
+				end
+			}
+			state RandomFirstPart {
+				transition -> RandomSecondPart
+				event e : HCIEvents?LERandCompleted
+				guard (e.Status == 0)
+				action do
+					'memcpy(&' & GeneratedRandomNumber & '.bytes[0], &' & e.Random & '.bytes[0], 8);'
+					HCICommands!LERand()
+				end
+			}
+			state RandomSecondPart {
+				transition -> Waiting
+				event e : HCIEvents?LERandCompleted
+				guard (e.Status == 0)
+				action do
+					'memcpy(&' & GeneratedRandomNumber & '.bytes[8], &' & e.Random & '.bytes[0], 8);'
+					print "[INFO]: Generated 128-bit random number on controller.\n"
+					Encrypter!GenerateRandomNumberCompleted(GeneratedRandomNumber)
+				end
+			}
+			state ConfirmFirstPart {
+				on entry do
+					var k : BLERandomNumber = '{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }'
+					var r : BLERandomNumber = Rand
+					var p1 : BLERandomNumber = GenerateP1()
+					var plaintext : BLERandomNumber
+					'
+            // r XOR p1
+            uint8_t i;
+            for (i = 0; i < 16; i++)
+              ' & plaintext & '.bytes[i] = ' & r & '.bytes[i] ^ ' & p1 & '.bytes[i];
+          '
+					HCICommands!LEEncrypt(k, plaintext)
+				end
+				transition -> ConfirmSecondPart
+				event e : HCIEvents?LEEncryptCompleted
+				guard (e.Status == 0)
+				action do
+					var k : BLERandomNumber = '{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }'
+					var p2 : BLERandomNumber = GenerateP2()
+					var plaintext : BLERandomNumber
+					'
+            // first_encrypted XOR p2
+            uint8_t i;
+            for (i = 0; i < 16; i++)
+              ' & plaintext & '.bytes[i] = ' & e.Encrypted & '.bytes[i] ^ ' & p2 & '.bytes[i];
+          '
+					HCICommands!LEEncrypt(k, plaintext)
+				end
+			}
+			state ConfirmSecondPart {
+				transition -> Waiting
+				event e : HCIEvents?LEEncryptCompleted
+				guard (e.Status == 0)
+				action do
+					print "[INFO]: Encrypted Confirm on controller.\n"
+					Encrypter!GenerateConfirmCompleted(e.Encrypted)
+				end
+			}
+			state GenerateSTK {
+				on entry do
+					var k : BLERandomNumber = '{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }'
+					var r1 : BLERandomNumber = Srand
+					var r2 : BLERandomNumber = Mrand
+					var r : BLERandomNumber
+					'
+            // Concatenate
+            ' & r & '.bytes[ 0] = ' & r2 & '.bytes[ 0];
+            ' & r & '.bytes[ 1] = ' & r2 & '.bytes[ 1];
+            ' & r & '.bytes[ 2] = ' & r2 & '.bytes[ 2];
+            ' & r & '.bytes[ 3] = ' & r2 & '.bytes[ 3];
+            ' & r & '.bytes[ 4] = ' & r2 & '.bytes[ 4];
+            ' & r & '.bytes[ 5] = ' & r2 & '.bytes[ 5];
+            ' & r & '.bytes[ 6] = ' & r2 & '.bytes[ 6];
+            ' & r & '.bytes[ 7] = ' & r2 & '.bytes[ 7];
+            ' & r & '.bytes[ 8] = ' & r1 & '.bytes[ 0];
+            ' & r & '.bytes[ 9] = ' & r1 & '.bytes[ 1];
+            ' & r & '.bytes[10] = ' & r1 & '.bytes[ 2];
+            ' & r & '.bytes[11] = ' & r1 & '.bytes[ 3];
+            ' & r & '.bytes[12] = ' & r1 & '.bytes[ 4];
+            ' & r & '.bytes[13] = ' & r1 & '.bytes[ 5];
+            ' & r & '.bytes[14] = ' & r1 & '.bytes[ 6];
+            ' & r & '.bytes[15] = ' & r1 & '.bytes[ 7];
+          '
+					HCICommands!LEEncrypt(k, r)
+				end
+				transition -> Waiting
+				event e : HCIEvents?LEEncryptCompleted
+				guard (e.Status == 0)
+				action do
+					print "[INFO]: Encrypted Confirm on controller.\n"
+					Encrypter!GenerateSTKCompleted(e.Encrypted)
+				end
+			}
+			internal
+			event Encrypter?Start
+			action Encrypter!Started()
+			transition -> Failed
+			event e : HCIEvents?LERandCompleted
+			guard (e.Status > 0)
+			transition -> Failed
+			event e : HCIEvents?LEEncryptCompleted
+			guard (e.Status > 0)
+			transition -> Failed
+			event Socket?Closed
+		}
+		state Failed {
+			on entry Encrypter!Failure()
+			internal
+			event Encrypter?Start
+			action Encrypter!Failure()
+		}
+	}
+}
 thing fragment HCISocketMsgs {
 	message Open()
 	message Close()
@@ -609,8 +1368,22 @@ thing fragment HCISocketProxy includes HCISocketMsgs , HCIControllerMsgs , SMPPr
 			Events!LEEnhancedConnectionComplete(Status, ConnectionHandle, Role, PeerAddressType, PeerAddress, LocalResolvablePrivateAddress, PeerResolvablePrivateAddress, ConnInterval, ConnLatency, SupervisionTimeout, MasterClockAccuracy)
 		end
 	end
+	function printBuffer(Data : DataPointer, Length : UInt) do
+		'
+  		int i = 0;
+  		for (i=0; i<' & Length & ';i++) {
+  			printf("%02x", ' & Data & '[i]);
+  			if (i<' & Length - 1 & ') printf(" ");
+  		}
+  		
+  	'
+	end
 	function HandleACLData(Handle : UInt, PacketBoundary : ACLPacketBoundaryFlag, Broadcast : ACLBroadcastFlag, Length : UInt, Data : DataPointer) do
-		if (PacketBoundary != ACLPacketBoundaryFlag : FIRST_FLUSHABLE) do
+		'printf("  [HandleACLData] ACLPacketBoundaryFlag=%d, ACLBroadcastFlag=%d, Length=%d\n", ' & PacketBoundary & ', ' & Broadcast & ', ' & Length & ');'
+	'printf("  [HandleACLData] Data = [");'
+		printBuffer(Data, Length)
+	'printf("]\n");'
+		if (PacketBoundary != ACLPacketBoundaryFlag : FIRST_FLUSHABLE and PacketBoundary != ACLPacketBoundaryFlag : FIRST_NOFLUSH) do
 			print "[ERROR]: Got an ACL packet what was not the first automatically flushable packet. Implement handling of this!\n"
 		end
 		else do
@@ -636,6 +1409,7 @@ thing fragment HCISocketProxy includes HCISocketMsgs , HCIControllerMsgs , SMPPr
 	end
 	function OnSMPData(Handle : UInt, Length : UInt, Data : DataPointer) do
 		var Code : Byte = '' & Data & '[0]'
+		var decoded : Boolean = false
 		if (Code == '0x01') do
 			var IOCapability : SMPIOCapabilities = '' & Data & '[1]'
 			var OOBDataPresent : Boolean = '' & Data & '[2] == 0x01'
@@ -646,6 +1420,7 @@ thing fragment HCISocketProxy includes HCISocketMsgs , HCIControllerMsgs , SMPPr
 			var MaximumEncryptionKeySize : Byte = '' & Data & '[4]'
 			var InitiatorKeyDistribution : SMPKeyDistribution = '' & Data & '[5]'
 			var ResponderKeyDistribution : SMPKeyDistribution = '' & Data & '[6]'
+			decoded = true
 			SMP!SMPPairingRequest(Handle, IOCapability, OOBDataPresent, Bonding, MITM, SecureConnection, Keypress, MaximumEncryptionKeySize, InitiatorKeyDistribution, ResponderKeyDistribution)
 		end
 		if (Code == '0x02') do
@@ -658,40 +1433,49 @@ thing fragment HCISocketProxy includes HCISocketMsgs , HCIControllerMsgs , SMPPr
 			var MaximumEncryptionKeySize : Byte = '' & Data & '[4]'
 			var InitiatorKeyDistribution : SMPKeyDistribution = '' & Data & '[5]'
 			var ResponderKeyDistribution : SMPKeyDistribution = '' & Data & '[6]'
+			decoded = true
 			SMP!SMPPairingResponse(Handle, IOCapability, OOBDataPresent, Bonding, MITM, SecureConnection, Keypress, MaximumEncryptionKeySize, InitiatorKeyDistribution, ResponderKeyDistribution)
 		end
 		if (Code == '0x03') do
 			var ConfirmValue : BLERandomNumber = '*((ble_random_number_t*)&' & Data & '[1])'
+			decoded = true
 			SMP!SMPPairingConfirm(Handle, ConfirmValue)
 		end
 		if (Code == '0x04') do
 			var RandomValue : BLERandomNumber = '*((ble_random_number_t*)&' & Data & '[1])'
+			decoded = true
 			SMP!SMPPairingRandom(Handle, RandomValue)
 		end
 		if (Code == '0x05') do
 			var Reason : SMPPairingFailReason = '' & Data & '[1]'
+			decoded = true
 			SMP!SMPPairingFailed(Handle, Reason)
 		end
 		if (Code == '0x06') do
 			var LongTermKey : BLERandomNumber = '*((ble_random_number_t*)&' & Data & '[1])'
+			decoded = true
 			SMP!SMPEncryptionInformation(Handle, LongTermKey)
 		end
 		if (Code == '0x07') do
 			var EDIV : UInt = '*((uint16_t*)&' & Data & '[1])'
 			var Rand : BLERandomPart = '*((ble_random_part_t*)&' & Data & '[3])'
+			decoded = true
 			SMP!SMPMasterIdentification(Handle, EDIV, Rand)
 		end
 		if (Code == '0x08') do
 			var IdentityResolvingKey : BLERandomNumber = '*((ble_random_number_t*)&' & Data & '[1])'
+			decoded = true
 			SMP!SMPIdentityInformation(Handle, IdentityResolvingKey)
 		end
 		if (Code == '0x09') do
 			var AddressType : BLEAddressType = '' & Data & '[1]'
 			var Address : BTAddress = '*((bdaddr_t*)&' & Data & '[2])'
+			decoded = true
 			SMP!SMPIdentityAddressInformation(Handle, AddressType, Address)
 		end
 		if (Code == '0x0A') do
 			var SignatureKey : BLERandomNumber = '*((ble_random_number_t*)&' & Data & '[1])'
+			decoded = true
 			SMP!SMPSigningInformation(Handle, SignatureKey)
 		end
 		if (Code == '0x0B') do
@@ -699,47 +1483,59 @@ thing fragment HCISocketProxy includes HCISocketMsgs , HCIControllerMsgs , SMPPr
 			var MITM : Boolean = '((' & Data & '[1] & 0x04) > 0)'
 			var SecureConnection : Boolean = '((' & Data & '[1] & 0x08) > 0)'
 			var Keypress : Boolean = '((' & Data & '[1] & 0x10) > 0)'
+			decoded = true
 			SMP!SMPSecurityRequest(Handle, Bonding, MITM, SecureConnection, Keypress)
 		end
 		if (Code == '0x0C') do
 			var KeyX : SMPPublicKey = '*((smp_public_key_t*)&' & Data & '[1])'
 			var KeyY : SMPPublicKey = '*((smp_public_key_t*)&' & Data & '[33])'
+			decoded = true
 			SMP!SMPPairingPublicKey(Handle, KeyX, KeyY)
 		end
 		if (Code == '0x0D') do
 			var DHKeyCheck : BLERandomNumber = '*((ble_random_number_t*)&' & Data & '[1])'
+			decoded = true
 			SMP!SMPPairingDHKeyCheck(Handle, DHKeyCheck)
 		end
 		if (Code == '0x0E') do
 			var Type : SMPKeypressNotification = '' & Data & '[1]'
+			decoded = true
 			SMP!SMPKeypressNotification(Handle, Type)
 		end
+		if (not decoded) print "[ERROR] Got unknown SMPData packet !!!\n"
 	end
 	function OnATTData(Handle : UInt, Length : UInt, Data : DataPointer) do
 		var OpCode : Byte = '' & Data & '[0]'
+		var decoded : Boolean = false
 		if (OpCode == '0x01') do
 			var RequestOpCode : Byte = '' & Data & '[1]'
 			var AttributeHandle : UInt = '*((uint16_t*)&' & Data & '[2])'
 			var Error : ATTErrorCode = '' & Data & '[4]'
 			if (RequestOpCode == '0x04') do
+				decoded = true
 				ATT!ATTFindInformationError(Handle, AttributeHandle, Error)
 			end
 			if (RequestOpCode == '0x08') do
+				decoded = true
 				ATT!ATTReadByTypeError(Handle, AttributeHandle, Error)
 			end
 			if (RequestOpCode == '0x0A') do
+				decoded = true
 				ATT!ATTReadError(Handle, AttributeHandle, Error)
 			end
 			if (RequestOpCode == '0x10') do
+				decoded = true
 				ATT!ATTReadByGroupTypeError(Handle, AttributeHandle, Error)
 			end
 			if (RequestOpCode == '0x12') do
+				decoded = true
 				ATT!ATTWriteError(Handle, AttributeHandle, Error)
 			end
 		end
 		if (OpCode == '0x04') do
 			var StartingHandle : UInt = '*((uint16_t*)&' & Data & '[1])'
 			var EndingHandle : UInt = '*((uint16_t*)&' & Data & '[3])'
+			decoded = true
 			ATT!ATTFindInformationRequest(Handle, StartingHandle, EndingHandle)
 		end
 		if (OpCode == '0x05') do
@@ -747,12 +1543,14 @@ thing fragment HCISocketProxy includes HCISocketMsgs , HCIControllerMsgs , SMPPr
 			var InformationData : GATTData
 			'' & InformationData & '.length = ' & Length & '-2;'
 			'memcpy(&' & InformationData & '.bytes, &' & Data & '[2], ' & Length & '-2);'
+			decoded = true
 			ATT!ATTFindInformationResponse(Handle, Format, InformationData)
 		end
 		if (OpCode == '0x08') do
 			var StartingHandle : UInt = '*((uint16_t*)&' & Data & '[1])'
 			var EndingHandle : UInt = '*((uint16_t*)&' & Data & '[3])'
 			var AttributeType : UUID = ReadUUID(Length - 5, '&' & Data & '[5]')
+			decoded = true
 			ATT!ATTReadByTypeRequest(Handle, StartingHandle, EndingHandle, AttributeType)
 		end
 		if (OpCode == '0x09') do
@@ -760,22 +1558,26 @@ thing fragment HCISocketProxy includes HCISocketMsgs , HCIControllerMsgs , SMPPr
 			var AttributeDataList : GATTData
 			'' & AttributeDataList & '.length = ' & Length & '-2;'
 			'memcpy(&' & AttributeDataList & '.bytes, &' & Data & '[2], ' & Length & '-2);'
+			decoded = true
 			ATT!ATTReadByTypeResponse(Handle, ALength, AttributeDataList)
 		end
 		if (OpCode == '0x0A') do
 			var AttributeHandle : UInt = '*((uint16_t*)&' & Data & '[1])'
+			decoded = true
 			ATT!ATTReadRequest(Handle, AttributeHandle)
 		end
 		if (OpCode == '0x0B') do
 			var AttributeData : GATTData
 			'' & AttributeData & '.length = ' & Length & '-1;'
 			'memcpy(&' & AttributeData & '.bytes, &' & Data & '[1], ' & Length & '-1);'
+			decoded = true
 			ATT!ATTReadResponse(Handle, AttributeData)
 		end
 		if (OpCode == '0x10') do
 			var StartingHandle : UInt = '*((uint16_t*)&' & Data & '[1])'
 			var EndingHandle : UInt = '*((uint16_t*)&' & Data & '[3])'
 			var AttributeGroupType : UUID = ReadUUID(Length - 5, '&' & Data & '[5]')
+			decoded = true
 			ATT!ATTReadByGroupTypeRequest(Handle, StartingHandle, EndingHandle, AttributeGroupType)
 		end
 		if (OpCode == '0x11') do
@@ -783,6 +1585,7 @@ thing fragment HCISocketProxy includes HCISocketMsgs , HCIControllerMsgs , SMPPr
 			var AttributeDataList : GATTData
 			'' & AttributeDataList & '.length = ' & Length & '-2;'
 			'memcpy(&' & AttributeDataList & '.bytes, &' & Data & '[2], ' & Length & '-2);'
+			decoded = true
 			ATT!ATTReadByGroupTypeResponse(Handle, ALength, AttributeDataList)
 		end
 		if (OpCode == '0x12') do
@@ -790,9 +1593,11 @@ thing fragment HCISocketProxy includes HCISocketMsgs , HCIControllerMsgs , SMPPr
 			var AttributeValue : GATTData
 			'' & AttributeValue & '.length = ' & Length & '-3;'
 			'memcpy(&' & AttributeValue & '.bytes, &' & Data & '[3], ' & Length & '-3);'
+			decoded = true
 			ATT!ATTWriteRequest(Handle, AttributeHandle, AttributeValue)
 		end
 		if (OpCode == '0x13') do
+			decoded = true
 			ATT!ATTWriteResponse(Handle)
 		end
 		if (OpCode == '0x52') do
@@ -800,6 +1605,7 @@ thing fragment HCISocketProxy includes HCISocketMsgs , HCIControllerMsgs , SMPPr
 			var AttributeValue : GATTData
 			'' & AttributeValue & '.length = ' & Length & '-3;'
 			'memcpy(&' & AttributeValue & '.bytes, &' & Data & '[3], ' & Length & '-3);'
+			decoded = true
 			ATT!ATTWriteCommand(Handle, AttributeHandle, AttributeValue)
 		end
 		if (OpCode == '0x1B') do
@@ -807,6 +1613,7 @@ thing fragment HCISocketProxy includes HCISocketMsgs , HCIControllerMsgs , SMPPr
 			var AttributeValue : GATTData
 			'' & AttributeValue & '.length = ' & Length & '-3;'
 			'memcpy(&' & AttributeValue & '.bytes, &' & Data & '[3], ' & Length & '-3);'
+			decoded = true
 			ATT!ATTHandleValueNotification(Handle, AttributeHandle, AttributeValue)
 		end
 		if (OpCode == '0x1D') do
@@ -814,11 +1621,14 @@ thing fragment HCISocketProxy includes HCISocketMsgs , HCIControllerMsgs , SMPPr
 			var AttributeValue : GATTData
 			'' & AttributeValue & '.length = ' & Length & '-3;'
 			'memcpy(&' & AttributeValue & '.bytes, &' & Data & '[3], ' & Length & '-3);'
+			decoded = true
 			ATT!ATTHandleValueIndication(Handle, AttributeHandle, AttributeValue)
 		end
 		if (OpCode == '0x1E') do
+			decoded = true
 			ATT!ATTHandleValueConfirmation(Handle)
 		end
+		if (not decoded) print "[ERROR] Got unknown ATTData packet !!!\n"
 	end
 	statechart Socket init Closed {
 		state Closed {
@@ -1346,66 +2156,12 @@ thing fragment HCISocketProxy includes HCISocketMsgs , HCIControllerMsgs , SMPPr
 		}
 	}
 }
-thing fragment HCIControllerMsgs {
-	message Reset()
-	message ResetCompleted(NumberAllowedCommandPackets : Byte, Status : Byte)
-	message SetEventMask(Mask : HCIEventMask)
-	message SetEventMaskAll()
-	message SetEventMaskCompleted(NumberAllowedCommandPackets : Byte, Status : Byte)
-	message SetLocalName(Name : BTLocalName)
-	message SetLocalNameCompleted(NumberAllowedCommandPackets : Byte, Status : Byte)
-	message Disconnect(ConnectionHandle : UInt, Reason : BTDisconnectReason)
-	message DisconnectStatus(NumberAllowedCommandPackets : Byte, Status : Byte)
-	message DisconnectionCompleted(Status : Byte, ConnectionHandle : UInt, Reason : BTDisconnectReason)
-	message EncryptionChanged(Status : Byte, ConnectionHandle : UInt, Enabled : Byte)
-	message SetLEEventMask(Mask : HCIEventMask)
-	message SetLEEventMaskAll()
-	message SetLEEventMaskCompleted(NumberAllowedCommandPackets : Byte, Status : Byte)
-	message SetLEAdvertisementParameters(MinInterval : UInt, MaxInterval : UInt, Type : BLEAdvertisingType, OwnAddressType : BLEAddressType, PeerAddressType : BLEAddressType, PeerAddress : BTAddress, Channel : BLEAdvertisingChannel, FilterPolicy : BLEAdvertisingFilterPolicy)
-	message SetLEAdvertisementParametersCompleted(NumberAllowedCommandPackets : Byte, Status : Byte)
-	message SetLEAdvertiseEnable(Enable : Byte)
-	message SetLEAdvertiseEnableCompleted(NumberAllowedCommandPackets : Byte, Status : Byte)
-	message SetLEAdvertisingData(Length : Byte, Data : BLEAdvertiseData)
-	message SetLEAdvertisingDataCompleted(NumberAllowedCommandPackets : Byte, Status : Byte)
-	message SetLEScanResponseData(Length : Byte, Data : BLEAdvertiseData)
-	message SetLEScanResponseDataCompleted(NumberAllowedCommandPackets : Byte, Status : Byte)
-	message LEAdvertisementReport(Type : BLEAdvertisementReportType, AddressType : BLEAddressType, Address : BTAddress, Length : Byte, Data : BLEAdvertiseData)
-	message SetLEScanParameters(Type : BLEScanType, Interval : UInt, Window : UInt, OwnAddressType : BLEAddressType, FilterPolicy : BLEScanFilterPolicy)
-	message SetLEScanParametersCompleted(NumberAllowedCommandPackets : Byte, Status : Byte)
-	message SetLEScanEnable(Enable : Byte, FilterDuplicates : Byte)
-	message SetLEScanEnableCompleted(NumberAllowedCommandPackets : Byte, Status : Byte)
-	message LECreateConnection(Interval : UInt, Window : UInt, FilterPolicy : BLEInitiatorFilterPolicy, PeerAddressType : BLEAddressType, PeerAddress : BTAddress, OwnAddressType : BLEAddressType, ConnIntervalMin : UInt, ConnIntervalMax : UInt, ConnLatency : UInt, SupervisionTimeout : UInt, CELengthMin : UInt, CELengthMax : UInt)
-	message LECreateConnectionStatus(NumberAllowedCommandPackets : Byte, Status : Byte)
-	message LECreateConnectionCancel()
-	message LECreateConnectionCancelCompleted(NumberAllowedCommandPackets : Byte, Status : Byte)
-	message LEConnectionComplete(Status : Byte, ConnectionHandle : UInt, Role : BLELinkRole, PeerAddressType : BLEAddressType, PeerAddress : BTAddress, ConnInterval : UInt, ConnLatency : UInt, SupervisionTimeout : UInt, MasterClockAccuracy : Byte)
-	message LEEnhancedConnectionComplete(Status : Byte, ConnectionHandle : UInt, Role : BLELinkRole, PeerAddressType : BLEAddressType, PeerAddress : BTAddress, LocalResolvablePrivateAddress : BTAddress, PeerResolvablePrivateAddress : BTAddress, ConnInterval : UInt, ConnLatency : UInt, SupervisionTimeout : UInt, MasterClockAccuracy : Byte)
-	message LERand()
-	message LERandCompleted(NumberAllowedCommandPackets : Byte, Status : Byte, Random : BLERandomPart)
-	message LEEncrypt(Key : BLERandomNumber, Plaintext : BLERandomNumber)
-	message LEEncryptCompleted(NumberAllowedCommandPackets : Byte, Status : Byte, Encrypted : BLERandomNumber)
-	message LEStartEncryption(ConnectionHandle : UInt, Random : BLERandomPart, EDIV : UInt, LTK : BLERandomNumber)
-	message LEStartEncryptionStatus(NumberAllowedCommandPackets : Byte, Status : Byte)
-}
-thing fragment SMP includes SMPMsgs {
-	required port SMP {
-		sends SMPPairingRequest sends SMPPairingResponse sends SMPPairingConfirm sends SMPPairingRandom sends SMPPairingFailed sends SMPPairingPublicKey sends SMPPairingDHKeyCheck sends SMPKeypressNotification sends SMPEncryptionInformation sends SMPMasterIdentification sends SMPIdentityInformation sends SMPIdentityAddressInformation sends SMPSigningInformation sends SMPSecurityRequest receives SMPPairingRequest receives SMPPairingResponse receives SMPPairingConfirm receives SMPPairingRandom receives SMPPairingFailed receives SMPPairingPublicKey receives SMPPairingDHKeyCheck receives SMPKeypressNotification receives SMPEncryptionInformation receives SMPMasterIdentification receives SMPIdentityInformation receives SMPIdentityAddressInformation receives SMPSigningInformation receives SMPSecurityRequest
-	}
-}
-thing fragment SMPProxy includes SMPMsgs {
-	provided port SMP {
-		sends SMPPairingRequest sends SMPPairingResponse sends SMPPairingConfirm sends SMPPairingRandom sends SMPPairingFailed sends SMPPairingPublicKey sends SMPPairingDHKeyCheck sends SMPKeypressNotification sends SMPEncryptionInformation sends SMPMasterIdentification sends SMPIdentityInformation sends SMPIdentityAddressInformation sends SMPSigningInformation sends SMPSecurityRequest receives SMPPairingRequest receives SMPPairingResponse receives SMPPairingConfirm receives SMPPairingRandom receives SMPPairingFailed receives SMPPairingPublicKey receives SMPPairingDHKeyCheck receives SMPKeypressNotification receives SMPEncryptionInformation receives SMPMasterIdentification receives SMPIdentityInformation receives SMPIdentityAddressInformation receives SMPSigningInformation receives SMPSecurityRequest
-	}
-}
-thing fragment ATT includes ATTMsgs , UUIDFunctions {
-	required port ATT {
-		sends ATTFindInformationRequest sends ATTFindInformationResponse sends ATTFindInformationError sends ATTReadByTypeRequest sends ATTReadByTypeResponse sends ATTReadByTypeError sends ATTReadRequest sends ATTReadResponse sends ATTReadError sends ATTReadByGroupTypeRequest sends ATTReadByGroupTypeResponse sends ATTReadByGroupTypeError sends ATTWriteRequest sends ATTWriteResponse sends ATTWriteError sends ATTWriteCommand sends ATTHandleValueNotification sends ATTHandleValueIndication sends ATTHandleValueConfirmation receives ATTFindInformationRequest receives ATTFindInformationResponse receives ATTFindInformationError receives ATTReadByTypeRequest receives ATTReadByTypeResponse receives ATTReadByTypeError receives ATTReadRequest receives ATTReadResponse receives ATTReadError receives ATTReadByGroupTypeRequest receives ATTReadByGroupTypeResponse receives ATTReadByGroupTypeError receives ATTWriteRequest receives ATTWriteResponse receives ATTWriteError receives ATTWriteCommand receives ATTHandleValueNotification receives ATTHandleValueIndication receives ATTHandleValueConfirmation
-	}
-}
-thing fragment ATTProxy includes ATTMsgs , UUIDFunctions {
-	provided port ATT {
-		sends ATTFindInformationRequest sends ATTFindInformationResponse sends ATTFindInformationError sends ATTReadByTypeRequest sends ATTReadByTypeResponse sends ATTReadByTypeError sends ATTReadRequest sends ATTReadResponse sends ATTReadError sends ATTReadByGroupTypeRequest sends ATTReadByGroupTypeResponse sends ATTReadByGroupTypeError sends ATTWriteRequest sends ATTWriteResponse sends ATTWriteError sends ATTWriteCommand sends ATTHandleValueNotification sends ATTHandleValueIndication sends ATTHandleValueConfirmation receives ATTFindInformationRequest receives ATTFindInformationResponse receives ATTFindInformationError receives ATTReadByTypeRequest receives ATTReadByTypeResponse receives ATTReadByTypeError receives ATTReadRequest receives ATTReadResponse receives ATTReadError receives ATTReadByGroupTypeRequest receives ATTReadByGroupTypeResponse receives ATTReadByGroupTypeError receives ATTWriteRequest receives ATTWriteResponse receives ATTWriteError receives ATTWriteCommand receives ATTHandleValueNotification receives ATTHandleValueIndication receives ATTHandleValueConfirmation
-	}
+thing fragment ModuleMsgs {
+	message Start()
+	message Stop()
+	message Started()
+	message Stopped()
+	message Failure()
 }
 datatype HCIEventMask<8>
 	@c_type "set_event_mask_cp"
@@ -1539,6 +2295,67 @@ enumeration ACLBroadcastFlag
 	POINTTOPOINT @enum_val "0x00"
 	ACTIVE_SLAVE @enum_val "0x01"
 	PARKED_SLAVE @enum_val "0x02"
+}
+thing fragment HCIControllerMsgs {
+	message Reset()
+	message ResetCompleted(NumberAllowedCommandPackets : Byte, Status : Byte)
+	message SetEventMask(Mask : HCIEventMask)
+	message SetEventMaskAll()
+	message SetEventMaskCompleted(NumberAllowedCommandPackets : Byte, Status : Byte)
+	message SetLocalName(Name : BTLocalName)
+	message SetLocalNameCompleted(NumberAllowedCommandPackets : Byte, Status : Byte)
+	message Disconnect(ConnectionHandle : UInt, Reason : BTDisconnectReason)
+	message DisconnectStatus(NumberAllowedCommandPackets : Byte, Status : Byte)
+	message DisconnectionCompleted(Status : Byte, ConnectionHandle : UInt, Reason : BTDisconnectReason)
+	message EncryptionChanged(Status : Byte, ConnectionHandle : UInt, Enabled : Byte)
+	message SetLEEventMask(Mask : HCIEventMask)
+	message SetLEEventMaskAll()
+	message SetLEEventMaskCompleted(NumberAllowedCommandPackets : Byte, Status : Byte)
+	message SetLEAdvertisementParameters(MinInterval : UInt, MaxInterval : UInt, Type : BLEAdvertisingType, OwnAddressType : BLEAddressType, PeerAddressType : BLEAddressType, PeerAddress : BTAddress, Channel : BLEAdvertisingChannel, FilterPolicy : BLEAdvertisingFilterPolicy)
+	message SetLEAdvertisementParametersCompleted(NumberAllowedCommandPackets : Byte, Status : Byte)
+	message SetLEAdvertiseEnable(Enable : Byte)
+	message SetLEAdvertiseEnableCompleted(NumberAllowedCommandPackets : Byte, Status : Byte)
+	message SetLEAdvertisingData(Length : Byte, Data : BLEAdvertiseData)
+	message SetLEAdvertisingDataCompleted(NumberAllowedCommandPackets : Byte, Status : Byte)
+	message SetLEScanResponseData(Length : Byte, Data : BLEAdvertiseData)
+	message SetLEScanResponseDataCompleted(NumberAllowedCommandPackets : Byte, Status : Byte)
+	message LEAdvertisementReport(Type : BLEAdvertisementReportType, AddressType : BLEAddressType, Address : BTAddress, Length : Byte, Data : BLEAdvertiseData)
+	message SetLEScanParameters(Type : BLEScanType, Interval : UInt, Window : UInt, OwnAddressType : BLEAddressType, FilterPolicy : BLEScanFilterPolicy)
+	message SetLEScanParametersCompleted(NumberAllowedCommandPackets : Byte, Status : Byte)
+	message SetLEScanEnable(Enable : Byte, FilterDuplicates : Byte)
+	message SetLEScanEnableCompleted(NumberAllowedCommandPackets : Byte, Status : Byte)
+	message LECreateConnection(Interval : UInt, Window : UInt, FilterPolicy : BLEInitiatorFilterPolicy, PeerAddressType : BLEAddressType, PeerAddress : BTAddress, OwnAddressType : BLEAddressType, ConnIntervalMin : UInt, ConnIntervalMax : UInt, ConnLatency : UInt, SupervisionTimeout : UInt, CELengthMin : UInt, CELengthMax : UInt)
+	message LECreateConnectionStatus(NumberAllowedCommandPackets : Byte, Status : Byte)
+	message LECreateConnectionCancel()
+	message LECreateConnectionCancelCompleted(NumberAllowedCommandPackets : Byte, Status : Byte)
+	message LEConnectionComplete(Status : Byte, ConnectionHandle : UInt, Role : BLELinkRole, PeerAddressType : BLEAddressType, PeerAddress : BTAddress, ConnInterval : UInt, ConnLatency : UInt, SupervisionTimeout : UInt, MasterClockAccuracy : Byte)
+	message LEEnhancedConnectionComplete(Status : Byte, ConnectionHandle : UInt, Role : BLELinkRole, PeerAddressType : BLEAddressType, PeerAddress : BTAddress, LocalResolvablePrivateAddress : BTAddress, PeerResolvablePrivateAddress : BTAddress, ConnInterval : UInt, ConnLatency : UInt, SupervisionTimeout : UInt, MasterClockAccuracy : Byte)
+	message LERand()
+	message LERandCompleted(NumberAllowedCommandPackets : Byte, Status : Byte, Random : BLERandomPart)
+	message LEEncrypt(Key : BLERandomNumber, Plaintext : BLERandomNumber)
+	message LEEncryptCompleted(NumberAllowedCommandPackets : Byte, Status : Byte, Encrypted : BLERandomNumber)
+	message LEStartEncryption(ConnectionHandle : UInt, Random : BLERandomPart, EDIV : UInt, LTK : BLERandomNumber)
+	message LEStartEncryptionStatus(NumberAllowedCommandPackets : Byte, Status : Byte)
+}
+thing fragment SMP includes SMPMsgs {
+	required port SMP {
+		sends SMPPairingRequest sends SMPPairingResponse sends SMPPairingConfirm sends SMPPairingRandom sends SMPPairingFailed sends SMPPairingPublicKey sends SMPPairingDHKeyCheck sends SMPKeypressNotification sends SMPEncryptionInformation sends SMPMasterIdentification sends SMPIdentityInformation sends SMPIdentityAddressInformation sends SMPSigningInformation sends SMPSecurityRequest receives SMPPairingRequest receives SMPPairingResponse receives SMPPairingConfirm receives SMPPairingRandom receives SMPPairingFailed receives SMPPairingPublicKey receives SMPPairingDHKeyCheck receives SMPKeypressNotification receives SMPEncryptionInformation receives SMPMasterIdentification receives SMPIdentityInformation receives SMPIdentityAddressInformation receives SMPSigningInformation receives SMPSecurityRequest
+	}
+}
+thing fragment SMPProxy includes SMPMsgs {
+	provided port SMP {
+		sends SMPPairingRequest sends SMPPairingResponse sends SMPPairingConfirm sends SMPPairingRandom sends SMPPairingFailed sends SMPPairingPublicKey sends SMPPairingDHKeyCheck sends SMPKeypressNotification sends SMPEncryptionInformation sends SMPMasterIdentification sends SMPIdentityInformation sends SMPIdentityAddressInformation sends SMPSigningInformation sends SMPSecurityRequest receives SMPPairingRequest receives SMPPairingResponse receives SMPPairingConfirm receives SMPPairingRandom receives SMPPairingFailed receives SMPPairingPublicKey receives SMPPairingDHKeyCheck receives SMPKeypressNotification receives SMPEncryptionInformation receives SMPMasterIdentification receives SMPIdentityInformation receives SMPIdentityAddressInformation receives SMPSigningInformation receives SMPSecurityRequest
+	}
+}
+thing fragment ATT includes ATTMsgs , UUIDFunctions {
+	required port ATT {
+		sends ATTFindInformationRequest sends ATTFindInformationResponse sends ATTFindInformationError sends ATTReadByTypeRequest sends ATTReadByTypeResponse sends ATTReadByTypeError sends ATTReadRequest sends ATTReadResponse sends ATTReadError sends ATTReadByGroupTypeRequest sends ATTReadByGroupTypeResponse sends ATTReadByGroupTypeError sends ATTWriteRequest sends ATTWriteResponse sends ATTWriteError sends ATTWriteCommand sends ATTHandleValueNotification sends ATTHandleValueIndication sends ATTHandleValueConfirmation receives ATTFindInformationRequest receives ATTFindInformationResponse receives ATTFindInformationError receives ATTReadByTypeRequest receives ATTReadByTypeResponse receives ATTReadByTypeError receives ATTReadRequest receives ATTReadResponse receives ATTReadError receives ATTReadByGroupTypeRequest receives ATTReadByGroupTypeResponse receives ATTReadByGroupTypeError receives ATTWriteRequest receives ATTWriteResponse receives ATTWriteError receives ATTWriteCommand receives ATTHandleValueNotification receives ATTHandleValueIndication receives ATTHandleValueConfirmation
+	}
+}
+thing fragment ATTProxy includes ATTMsgs , UUIDFunctions {
+	provided port ATT {
+		sends ATTFindInformationRequest sends ATTFindInformationResponse sends ATTFindInformationError sends ATTReadByTypeRequest sends ATTReadByTypeResponse sends ATTReadByTypeError sends ATTReadRequest sends ATTReadResponse sends ATTReadError sends ATTReadByGroupTypeRequest sends ATTReadByGroupTypeResponse sends ATTReadByGroupTypeError sends ATTWriteRequest sends ATTWriteResponse sends ATTWriteError sends ATTWriteCommand sends ATTHandleValueNotification sends ATTHandleValueIndication sends ATTHandleValueConfirmation receives ATTFindInformationRequest receives ATTFindInformationResponse receives ATTFindInformationError receives ATTReadByTypeRequest receives ATTReadByTypeResponse receives ATTReadByTypeError receives ATTReadRequest receives ATTReadResponse receives ATTReadError receives ATTReadByGroupTypeRequest receives ATTReadByGroupTypeResponse receives ATTReadByGroupTypeError receives ATTWriteRequest receives ATTWriteResponse receives ATTWriteError receives ATTWriteCommand receives ATTHandleValueNotification receives ATTHandleValueIndication receives ATTHandleValueConfirmation
+	}
 }
 thing fragment SMPMsgs {
 	message SMPPairingRequest(Handle : UInt, IOCapability : SMPIOCapabilities, OOBDataPresent : Boolean, Bonding : Boolean, MITM : Boolean, SecureConnection : Boolean, Keypress : Boolean, MaximumEncryptionKeySize : Byte, InitiatorKeyDistribution : SMPKeyDistribution, ResponderKeyDistribution : SMPKeyDistribution)
@@ -1737,15 +2554,39 @@ enumeration ATTErrorCode
 	UNSUPPORTED_GROUP_TYPE @enum_val "0x10"
 	INSUFICIENT_RESOURCES @enum_val "0x11"
 }
-configuration BLE_SCAN @add_c_libraries "bluetooth" {
+configuration BLE_PAIR @debug "true" @add_c_libraries "bluetooth" {
 	instance handler : ExitHandler
 	instance hci : HCISocketProxyImpl
-	instance scanner : Scanner
-	connector scanner.Signals => handler . Signals
-	connector scanner.Socket => hci . Socket
-	connector scanner.HCICommands => hci . Commands
-	connector scanner.HCIEvents => hci . Events
-	connector scanner.ATT => hci . ATT
-	connector scanner.SMP => hci . SMP
+	instance initialiser : BLEInitialiserImpl
+	instance connecter : BLEConnecterImpl
+	instance encrypter : BLEEncryptionImpl
+	instance main : Main
+	connector main.Signals => handler . Signals
+	connector main.Initialiser => initialiser . Initialiser
+	connector main.Connecter => connecter . Connecter
+	connector main.SMP => hci . SMP
+	connector main.Encrypter => encrypter . Encrypter
+	connector main.Socket => hci . Socket
+	connector main.HCICommands => hci . Commands
+	connector main.HCIEvents => hci . Events
+	connector main.ATT => hci . ATT
+	connector main.SMP => hci . SMP
+	connector initialiser.Socket => hci . Socket
+	connector initialiser.HCICommands => hci . Commands
+	connector initialiser.HCIEvents => hci . Events
+	connector initialiser.ATT => hci . ATT
+	connector initialiser.SMP => hci . SMP
+	connector connecter.Socket => hci . Socket
+	connector connecter.HCICommands => hci . Commands
+	connector connecter.HCIEvents => hci . Events
+	connector connecter.ATT => hci . ATT
+	connector connecter.SMP => hci . SMP
+	connector encrypter.Socket => hci . Socket
+	connector encrypter.HCICommands => hci . Commands
+	connector encrypter.HCIEvents => hci . Events
+	connector encrypter.ATT => hci . ATT
+	connector encrypter.SMP => hci . SMP
 	set hci.Device = "hci0"
+	set connecter.ConnectAddressType = BLEAddressType : PUBLIC
+	set connecter.ConnectAddress = "5C:31:3E:00:4B:6B"
 }

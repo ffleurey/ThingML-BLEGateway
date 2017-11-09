@@ -71,6 +71,18 @@ thing Main includes BLEInitialiser, BLEConnecter, ExitHandlerMsgs, BLEEncryption
   /* -------------------- */
 
   property HasPairedSuccessfully : Boolean = false
+  
+  
+  function printBLERandomNumber(n : BLERandomNumber) do
+  	'	printf("[");
+  		int i = 0;
+  		for (i=0; i<16;i++) {
+  			printf("%02x", '&n&'.bytes[i]);
+  			//if (i<15) printf(", ");
+  		}
+  		printf("]");
+  	'
+  end
 
   statechart States init Initialise
   {
@@ -103,28 +115,47 @@ thing Main includes BLEInitialiser, BLEConnecter, ExitHandlerMsgs, BLEEncryption
       transition -> Failed event Connecter?Failure
     }
 
-    composite state Pairing init Request
+    composite state Pairing init DONOTHING
     {
+    	
+    	state DONOTHING {
+    		
+    	}
+    	
       state Request
       {
-        internal event SMP?SMPSecurityRequest action do
-          print "[INFO]: Received Security request, requesting pairing...\n"
+      	
+        transition -> RequestSent event SMP?SMPSecurityRequest action do
+          print "[INFO]: Received Security request, requesting pairing ...\n"
 
           var IOCapability : SMPIOCapabilities = SMPIOCapabilities:NO_INPUT_NO_OUTPUT 
           var OOBDataPresent : Boolean = false
           var Bonding : Boolean = true
           var MITM : Boolean = false
-          var SecureConnection : Boolean = false
+          var SecureConnection : Boolean = true //false
           var Keypress : Boolean = false
           var MaximumEncryptionKeySize : Byte = 16
-          var InitiatorKeyDistribution : SMPKeyDistribution = SMPKeyDistribution:ENCKEY_IDKEY_NOSIGN_NOLINKKEY
-          var ResponderKeyDistribution : SMPKeyDistribution = SMPKeyDistribution:ENCKEY_IDKEY_NOSIGN_NOLINKKEY
+          var InitiatorKeyDistribution : SMPKeyDistribution = SMPKeyDistribution:ENCKEY_NOIDKEY_SIGN_NOLINKKEY
+          var ResponderKeyDistribution : SMPKeyDistribution = SMPKeyDistribution:ENCKEY_IDKEY_SIGN_NOLINKKEY
 
-          SMP!SMPPairingRequest(ConnectedHandle, IOCapability, OOBDataPresent, Bonding, MITM, SecureConnection, Keypress, MaximumEncryptionKeySize, InitiatorKeyDistribution, ResponderKeyDistribution)
+          //SMP!SMPPairingRequest(ConnectedHandle, IOCapability, OOBDataPresent, Bonding, MITM, SecureConnection, Keypress, MaximumEncryptionKeySize, InitiatorKeyDistribution, ResponderKeyDistribution)
         end
 
-        transition -> Confirm event e:SMP?SMPPairingResponse guard (e.IOCapability == SMPIOCapabilities:NO_INPUT_NO_OUTPUT and e.OOBDataPresent == false and e.Bonding == true and e.MITM == false and e.SecureConnection == false and e.Keypress == false and e.MaximumEncryptionKeySize == 16 and e.InitiatorKeyDistribution == SMPKeyDistribution:ENCKEY_IDKEY_NOSIGN_NOLINKKEY and e.ResponderKeyDistribution == SMPKeyDistribution:ENCKEY_IDKEY_NOSIGN_NOLINKKEY)
-        transition -> PairFailed event SMP?SMPPairingResponse
+        
+      }
+      
+      state RequestSent
+      {
+      	on entry print "Waiting for Pairing confirm #1...\n"
+      	transition -> RequestSent2 event e:SMP?SMPPairingResponse //guard (e.IOCapability == SMPIOCapabilities:NO_INPUT_NO_OUTPUT and e.OOBDataPresent == false and e.Bonding == true and e.MITM == false and e.SecureConnection == false and e.Keypress == false and e.MaximumEncryptionKeySize == 16 and e.InitiatorKeyDistribution == SMPKeyDistribution:ENCKEY_IDKEY_NOSIGN_NOLINKKEY and e.ResponderKeyDistribution == SMPKeyDistribution:ENCKEY_IDKEY_NOSIGN_NOLINKKEY)
+        //transition -> PairFailed event SMP?SMPPairingResponse
+      }
+      
+      state RequestSent2
+      {
+      	on entry print "Waiting for Pairing confirm #2...\n"
+      	transition -> Confirm event e:SMP?SMPPairingResponse //guard (e.IOCapability == SMPIOCapabilities:NO_INPUT_NO_OUTPUT and e.OOBDataPresent == false and e.Bonding == true and e.MITM == false and e.SecureConnection == false and e.Keypress == false and e.MaximumEncryptionKeySize == 16 and e.InitiatorKeyDistribution == SMPKeyDistribution:ENCKEY_IDKEY_NOSIGN_NOLINKKEY and e.ResponderKeyDistribution == SMPKeyDistribution:ENCKEY_IDKEY_NOSIGN_NOLINKKEY)
+        //transition -> PairFailed event SMP?SMPPairingResponse
       }
 
       composite state Confirm init SendMconfirm
@@ -144,7 +175,7 @@ thing Main includes BLEInitialiser, BLEConnecter, ExitHandlerMsgs, BLEEncryption
           transition -> GetSconfirm event e:Encrypter?GenerateConfirmCompleted action do
             Mconfirm = e.Confirm
             SMP!SMPPairingConfirm(ConnectedHandle, Mconfirm)
-            print "[INFO]: Sent Mconfirm.\n"
+            print "[INFO]: Sent Mconfirm = " printBLERandomNumber(Mconfirm) print "\n"
           end
         }
 
@@ -152,7 +183,7 @@ thing Main includes BLEInitialiser, BLEConnecter, ExitHandlerMsgs, BLEEncryption
         {
           transition -> GetSrandom event e:SMP?SMPPairingConfirm action do
             Sconfirm = e.ConfirmValue
-            print "[INFO]: Got Sconfirm, replied with Mrand.\n"
+            print "[INFO]: Got Sconfirm = " printBLERandomNumber(Sconfirm) print ", replied with Mrand = " printBLERandomNumber(Mrand) print "\n"
             SMP!SMPPairingRandom(ConnectedHandle, Mrand)
           end
         }
@@ -161,11 +192,12 @@ thing Main includes BLEInitialiser, BLEConnecter, ExitHandlerMsgs, BLEEncryption
         {
           internal event e:SMP?SMPPairingRandom action do
             Srand = e.RandomValue
-            print "[INFO]: Got Srand, confirming...\n"
+            print "[INFO]: Got Srand = " printBLERandomNumber(Srand) print ", confirming...\n"
             Encrypter!GenerateConfirm(Srand, DeviceAddressType, DeviceAddress, ConnectedAddressType, ConnectedAddress)
           end
 
           transition -> GetSconfirm event e:Encrypter?GenerateConfirmCompleted action do
+          	print "[INFO]: GenerateConfirmCompleted Sconfirm = " printBLERandomNumber(Sconfirm) print ", e.Confirm = " printBLERandomNumber(e.Confirm) print "\n"
             Encrypter!CheckConfirm(Sconfirm, e.Confirm)
           end
         }
@@ -358,6 +390,7 @@ thing Main includes BLEInitialiser, BLEConnecter, ExitHandlerMsgs, BLEEncryption
 
 
 configuration BLE_PAIR
+@debug "true"
 @add_c_libraries "bluetooth"
 {
   instance handler      : ExitHandler
@@ -406,7 +439,15 @@ configuration BLE_PAIR
   //set hci.Device = "B8:27:EB:F1:1D:FF"
   
   set connecter.ConnectAddressType = BLEAddressType:PUBLIC
-//  set connecter.ConnectAddress = "5C:31:3E:00:4B:6B" // Blood Pressure sensor
-  set connecter.ConnectAddress = "B4:99:4C:5A:B1:11" // Scale
+ // set connecter.ConnectAddress = "24:71:89:34:8E:C1" // Blood Sugar sensor
+  set connecter.ConnectAddress = "5C:31:3E:00:4B:6B" // Blood Pressure sensor
+ //  set connecter.ConnectAddress = "B4:99:4C:5A:B1:11" // Scale
+/* 
+Device 24:71:89:34:8E:C1 Contour7802H5047516
+Device EE:23:61:9E:7B:B3 Puck.js 7bb3
+Device 5C:31:3E:00:4B:6B A&D_UA-651BLE_004B6B
+Device B4:99:4C:5A:B1:11 A&D_UC-352BLE_5AB111
+ */
+ 
   
 }

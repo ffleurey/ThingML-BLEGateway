@@ -1,0 +1,34 @@
+@startuml
+caption Instances and Connectors in configuration BLE_PAIR
+component initialiser<<PSM>>
+component encrypter<<PSM>>
+component main<<PSM>>
+component handler<<PSM>>
+component hci<<PSM>>
+component connecter<<PSM>>
+main -(0- hci : HCIEvents => Events
+encrypter -(0- hci : Socket => Socket
+initialiser -(0- hci : ATT => ATT
+connecter -(0- hci : ATT => ATT
+main -(0- handler : Signals => Signals
+connecter -(0- hci : Socket => Socket
+main -(0- hci : Socket => Socket
+connecter -(0- hci : HCICommands => Commands
+initialiser -(0- hci : HCIEvents => Events
+main -(0- hci : SMP => SMP
+encrypter -(0- hci : HCIEvents => Events
+initialiser -(0- hci : Socket => Socket
+encrypter -(0- hci : ATT => ATT
+main -(0- encrypter : Encrypter => Encrypter
+connecter -(0- hci : HCIEvents => Events
+initialiser -(0- hci : HCICommands => Commands
+main -(0- connecter : Connecter => Connecter
+encrypter -(0- hci : SMP => SMP
+main -(0- hci : HCICommands => Commands
+initialiser -(0- hci : SMP => SMP
+main -(0- hci : ATT => ATT
+encrypter -(0- hci : HCICommands => Commands
+main -(0- initialiser : Initialiser => Initialiser
+main -(0- hci : SMP => SMP
+connecter -(0- hci : SMP => SMP
+@enduml

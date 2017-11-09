@@ -127,19 +127,33 @@ thing fragment HCISocketProxy includes HCISocketMsgs, HCIControllerMsgs, SMPProx
   abstract function SendCommand(Group : UInt, Command : UInt, Length : Byte, Data : DataPointer) @abstract "true" @SuppressWarnings "Call" 
   abstract function SendACLData(Handle : UInt, CID : UInt, Length : UInt, Data : DataPointer) @abstract "true" @SuppressWarnings "Call" 
 
+  function printBuffer(Data : DataPointer, Length : UInt) do
+  	'
+  		int i = 0;
+  		for (i=0; i<'&Length&';i++) {
+  			printf("%02x", '&Data&'[i]);
+  			if (i<'&Length - 1&') printf(" ");
+  		}
+  		
+  	'
+  end
+
   /* Platform independent functions */
   function DecodeEvent(Event : Byte, Length : Byte, Data : DataPointer) do
+  	var handled : Boolean = false
     /* ------ Received events ------ */
     if (Event == '0x05') do // Disconnection Complete
       var Status : Byte = ''&Data&'[0]'
       var ConnectionHandle : UInt = '(*((uint16_t*)&'&Data&'[1]) & 0x0FFF)'
       var Reason : BTDisconnectReason = ''&Data&'[3]'
+      handled = true
       Events!DisconnectionCompleted(Status, ConnectionHandle, Reason)
     end
     if (Event == '0x08') do // Encryption Change Event
       var Status : Byte = ''&Data&'[0]'
       var ConnectionHandle : UInt = '(*((uint16_t*)&'&Data&'[1]) & 0x0FFF)'
       var Enabled : Byte = ''&Data&'[3]'
+      handled = true
       Events!EncryptionChanged(Status, ConnectionHandle, Enabled)
     end
     if (Event == '0x0E') do // Command Completed Event
@@ -147,6 +161,7 @@ thing fragment HCISocketProxy includes HCISocketMsgs, HCIControllerMsgs, SMPProx
       var Group : UInt = '(*((uint16_t*)&'&Data&'[1]) >> 10)'
       var Command : UInt = '(*((uint16_t*)&'&Data&'[1]) & 0x03FF)'
       var ReturnData : DataPointer = '&'&Data&'[3]'
+      handled = true
       OnCommandCompletedEvent(NumberAllowedCommandPackets, Group, Command, ReturnData)
     end
     if (Event == '0x0F') do // Command Status Event
@@ -154,52 +169,69 @@ thing fragment HCISocketProxy includes HCISocketMsgs, HCIControllerMsgs, SMPProx
       var NumberAllowedCommandPackets : Byte = ''&Data&'[1]'
       var Group : UInt = '(*((uint16_t*)&'&Data&'[2]) >> 10)'
       var Command : UInt = '(*((uint16_t*)&'&Data&'[2]) & 0x03FF)'
+      handled = true
       OnCommandStatusEvent(NumberAllowedCommandPackets, Group, Command, Status)
     end
     if (Event == '0x3E') do // LE Meta Event
       var SubEventCode : Byte = ''&Data&'[0]'
       var NewLength : Byte = Length - 1
       var NewData : DataPointer = '&'&Data&'[1]'
+      handled = true
       OnLEMetaEvent(SubEventCode, NewLength, NewData)
+    end
+    if (not handled) do 
+    	print "[ERROR] Unhandled DecodeEvent \n"
+    	'printf("  EVENT=0x%02x, LENGTH=0x%02x, DATA=", '&Event&', '&Length&' );'
+    	printBuffer(Data, Length)
+    	'printf("\n");'
     end
   end
 
   function OnCommandCompletedEvent(NumberAllowedCommandPackets : Byte, Group : UInt, Command : UInt, Data : DataPointer) do
+  	var handled : Boolean = false
     /* Controller commands */
     if (Group == '0x03') do
       if (Command == '0x0003') do // Reset
         var Status : Byte = ''&Data&'[0]'
-        Events!ResetCompleted(NumberAllowedCommandPackets, Status)
+        handled = true
+      	Events!ResetCompleted(NumberAllowedCommandPackets, Status)
       end
       if (Command == '0x0001') do // Set event mask
         var Status : Byte = ''&Data&'[0]'
-        Events!SetEventMaskCompleted(NumberAllowedCommandPackets, Status)
+        handled = true
+      	Events!SetEventMaskCompleted(NumberAllowedCommandPackets, Status)
       end
     end
     /* LE Controller commands */
     if (Group == '0x08') do
       if (Command == '0x0001') do // Set LE event mask
         var Status : Byte = ''&Data&'[0]'
-        Events!SetLEEventMaskCompleted(NumberAllowedCommandPackets, Status)
+        handled = true
+      	Events!SetLEEventMaskCompleted(NumberAllowedCommandPackets, Status)
       end
       if (Command == '0x0006') do // Set LE advertisement parameters
         var Status : Byte = ''&Data&'[0]'
-        Events!SetLEAdvertisementParametersCompleted(NumberAllowedCommandPackets, Status)
+        handled = true
+      	Events!SetLEAdvertisementParametersCompleted(NumberAllowedCommandPackets, Status)
       end
       if (Command == '0x0008') do // Set LE advertising data
         var Status : Byte = ''&Data&'[0]'
+        handled = true
         Events!SetLEAdvertisingDataCompleted(NumberAllowedCommandPackets, Status)
       end
       if (Command == '0x0009') do // Set LE scan response data
         var Status : Byte = ''&Data&'[0]'
+        handled = true
         Events!SetLEScanResponseDataCompleted(NumberAllowedCommandPackets, Status)
       end
       if (Command == '0x000A') do // Set LE advertise enable
         var Status : Byte = ''&Data&'[0]'
+        handled = true
         Events!SetLEAdvertiseEnableCompleted(NumberAllowedCommandPackets, Status)
       end
       if (Command == '0x000B') do // Set LE scan parameters
         var Status : Byte = ''&Data&'[0]'
+        handled = true
         Events!SetLEScanParametersCompleted(NumberAllowedCommandPackets, Status)
       end
       if (Command == '0x000C') do // Set LE scan enable
@@ -208,41 +240,54 @@ thing fragment HCISocketProxy includes HCISocketMsgs, HCIControllerMsgs, SMPProx
       end
       if (Command == '0x000E') do // Set LE create connection cancel
         var Status : Byte = ''&Data&'[0]'
+        handled = true
         Events!LECreateConnectionCancelCompleted(NumberAllowedCommandPackets, Status)
       end
       if (Command == '0x0018') do // Rand
         var Status : Byte = ''&Data&'[0]'
         var Random : BLERandomPart = '*((ble_random_part_t*)&'&Data&'[1])'
+        handled = true
         Events!LERandCompleted(NumberAllowedCommandPackets, Status, Random)
       end
       if (Command == '0x0017') do // Encrypt
         var Status : Byte = ''&Data&'[0]'
         var EncryptedData : BLERandomNumber = '*((ble_random_number_t*)&'&Data&'[1])'
+        handled = true
         Events!LEEncryptCompleted(NumberAllowedCommandPackets, Status, EncryptedData)
       end
 
     end
+    if (not handled) print "[ERROR] Unhandled OnCommandCompletedEvent \n"
   end
 
   function OnCommandStatusEvent(NumberAllowedCommandPackets : Byte, Group : UInt, Command : UInt, Status : Byte ) do
+  	var handled : Boolean = false
     /* Link Control commands */
     if (Group == '0x01') do
       if (Command == '0x0006') do // Disconnect
+        handled = true
         Events!DisconnectStatus(NumberAllowedCommandPackets, Status)
       end
     end
     /* LE Controller commands */
     if (Group == '0x08') do
       if (Command == '0x000D') do // LE Create Connection
+        handled = true
         Events!LECreateConnectionStatus(NumberAllowedCommandPackets, Status)
       end
-      if (Command == '0x000D') do // LE Start Encryption
+      if (Command == '0x0019') do // LE Start Encryption
+        handled = true
         Events!LEStartEncryptionStatus(NumberAllowedCommandPackets, Status)
       end
+    end
+    if (not handled) do 
+    	print "[ERROR] Unhandled OnCommandStatusEvent \n"
+    	'printf("  Group=0x%04x, Command=0x%04x, NumberAllowedCommandPackets=0x%02x, Status=0x%02x\n", '&Group&', '&Command&', '&NumberAllowedCommandPackets&', '&Status&' );'
     end
   end
 
   function OnLEMetaEvent(SubEventCode : Byte, Length : Byte, Data : DataPointer) do
+  	var handled : Boolean = false
     if (SubEventCode == '0x01') do // LE connection complete
       'evt_le_connection_complete* data = &'&Data&'[0];'
         var Status : Byte = 'data->status'
@@ -255,6 +300,7 @@ thing fragment HCISocketProxy includes HCISocketMsgs, HCIControllerMsgs, SMPProx
         var SupervisionTimeout : UInt = 'data->supervision_timeout'
         var MasterClockAccuracy : Byte = 'data->master_clock_accuracy'
 
+        handled = true
         Events!LEConnectionComplete(Status, ConnectionHandle, Role, PeerAddressType, PeerAddress, ConnInterval, ConnLatency, SupervisionTimeout, MasterClockAccuracy)
     end
     if (SubEventCode == '0x02') do // LE advertising report
@@ -270,6 +316,7 @@ thing fragment HCISocketProxy includes HCISocketMsgs, HCIControllerMsgs, SMPProx
         var ReportData : BLEAdvertiseData
         'memcpy(&'&ReportData&', &(data->data), '&ReportLength&');'
         
+        handled = true
         Events!LEAdvertisementReport(Type, AddressType, Address, ReportLength, ReportData)
         Index = Index + 9 + ReportLength
         Count = Count + 1
@@ -288,32 +335,57 @@ thing fragment HCISocketProxy includes HCISocketMsgs, HCIControllerMsgs, SMPProx
       var SupervisionTimeout : UInt = '*((uint16_t*)&'&Data&'[27])'
       var MasterClockAccuracy : Byte = ''&Data&'[29]'
 
+      handled = true
       Events!LEEnhancedConnectionComplete(Status, ConnectionHandle, Role, PeerAddressType, PeerAddress, LocalResolvablePrivateAddress, PeerResolvablePrivateAddress, ConnInterval, ConnLatency, SupervisionTimeout, MasterClockAccuracy)
     end
+    if (not handled) do 
+    	print "[ERROR] Unhandled OnLEMetaEvent \n"
+    	'printf("  SubEventCode=0x%02x, LENGTH=0x%02x, DATA=", '&SubEventCode&', '&Length&' );'
+    	printBuffer(Data, Length)
+    	'printf("\n");'
+    end
   end
+  
+  
+  
 
   function HandleACLData(Handle : UInt, PacketBoundary : ACLPacketBoundaryFlag, Broadcast : ACLBroadcastFlag, Length : UInt, Data : DataPointer) do
-    if (PacketBoundary != ACLPacketBoundaryFlag:FIRST_FLUSHABLE) do
+  	
+  	//'printf("  [HandleACLData] ACLPacketBoundaryFlag=%d, ACLBroadcastFlag=%d, Length=%d\n", '&PacketBoundary&', '&Broadcast&', '&Length&');'
+    //'printf("  [HandleACLData] Data = [");' printBuffer(Data, Length) 'printf("]\n");'
+  
+    if (PacketBoundary != ACLPacketBoundaryFlag:FIRST_FLUSHABLE and PacketBoundary != ACLPacketBoundaryFlag:FIRST_NOFLUSH) do
       print "[ERROR]: Got an ACL packet what was not the first automatically flushable packet. Implement handling of this!\n"
+      
+      
     end
     else do
+    
+      var handled : Boolean = false
+    
       var NLength : UInt = '*((uint16_t*)&'&Data&'[0])'
       var CID : UInt = '*((uint16_t*)&'&Data&'[2])'
       var NData : DataPointer = '&'&Data&'[4]'
 
       if (CID == '0x0004') do // Attribute protocol
+        handled = true
         OnATTData(Handle, NLength, NData)
       end
       if (CID == '0x0005') do // LE L2CAP signalling channel
+        handled = true
         OnL2CAPData(Handle, NLength, NData)
       end
       if (CID == '0x0006') do // Security Manager protocol
+        handled = true
         OnSMPData(Handle, NLength, NData)
       end
 
       if (CID != '0x0004' and CID != '0x0005' and CID != '0x0006') do
         print "[WARNING]: Got an L2CAP packet that was to an non-fixed channel!\n"
       end
+      
+      if (not handled) print "[ERROR] Unhandled HandleACLData \n"
+      
     end
   end
 
@@ -323,6 +395,7 @@ thing fragment HCISocketProxy includes HCISocketMsgs, HCIControllerMsgs, SMPProx
 
   function OnSMPData(Handle : UInt, Length : UInt, Data : DataPointer) do
     var Code : Byte = ''&Data&'[0]'
+    var decoded : Boolean = false
     if (Code == '0x01') do
       var IOCapability : SMPIOCapabilities = ''&Data&'[1]'
       var OOBDataPresent : Boolean = ''&Data&'[2] == 0x01'
@@ -333,7 +406,8 @@ thing fragment HCISocketProxy includes HCISocketMsgs, HCIControllerMsgs, SMPProx
       var MaximumEncryptionKeySize : Byte = ''&Data&'[4]'
       var InitiatorKeyDistribution : SMPKeyDistribution = ''&Data&'[5]'
       var ResponderKeyDistribution : SMPKeyDistribution = ''&Data&'[6]'
-
+	  decoded = true
+	  print "[DEBUG] SMP!SMPPairingRequest in OnSMPData\n"
       SMP!SMPPairingRequest(Handle, IOCapability, OOBDataPresent, Bonding, MITM, SecureConnection, Keypress, MaximumEncryptionKeySize, InitiatorKeyDistribution, ResponderKeyDistribution)
     end
     if (Code == '0x02') do
@@ -346,49 +420,58 @@ thing fragment HCISocketProxy includes HCISocketMsgs, HCIControllerMsgs, SMPProx
       var MaximumEncryptionKeySize : Byte = ''&Data&'[4]'
       var InitiatorKeyDistribution : SMPKeyDistribution = ''&Data&'[5]'
       var ResponderKeyDistribution : SMPKeyDistribution = ''&Data&'[6]'
-
+	  decoded = true
       SMP!SMPPairingResponse(Handle, IOCapability, OOBDataPresent, Bonding, MITM, SecureConnection, Keypress, MaximumEncryptionKeySize, InitiatorKeyDistribution, ResponderKeyDistribution)
     end
     if (Code == '0x03') do
       var ConfirmValue : BLERandomNumber = '*((ble_random_number_t*)&'&Data&'[1])'
-
+      decoded = true
+      
+      
+      'printf("[DEBUG] SMP!SMPPairingConfirm HANDLE=0x%02x, LENGTH=0x%02x, DATA=", '&Handle&', '&Length&' );'
+    	printBuffer(Data, Length)
+       'printf("\n");'
+      
       SMP!SMPPairingConfirm(Handle, ConfirmValue)
     end
     if (Code == '0x04') do
       var RandomValue : BLERandomNumber= '*((ble_random_number_t*)&'&Data&'[1])'
-
+      decoded = true
+      'printf("[DEBUG] SMP!SMPPairingRandom HANDLE=0x%02x, LENGTH=0x%02x, DATA=", '&Handle&', '&Length&' );'
+    	printBuffer(Data, Length)
+       'printf("\n");'
       SMP!SMPPairingRandom(Handle, RandomValue)
     end
     if (Code == '0x05') do
       var Reason : SMPPairingFailReason = ''&Data&'[1]'
-
+	  decoded = true
       SMP!SMPPairingFailed(Handle, Reason)
     end
     if (Code == '0x06') do
       var LongTermKey : BLERandomNumber = '*((ble_random_number_t*)&'&Data&'[1])'
-
+	  decoded = true
       SMP!SMPEncryptionInformation(Handle, LongTermKey)
     end
     if (Code == '0x07') do
       var EDIV : UInt = '*((uint16_t*)&'&Data&'[1])'
       var Rand : BLERandomPart = '*((ble_random_part_t*)&'&Data&'[3])'
-
+ 	  decoded = true
       SMP!SMPMasterIdentification(Handle, EDIV, Rand)
     end
     if (Code == '0x08') do
       var IdentityResolvingKey : BLERandomNumber = '*((ble_random_number_t*)&'&Data&'[1])'
-
+	  decoded = true
       SMP!SMPIdentityInformation(Handle, IdentityResolvingKey)
     end
     if (Code == '0x09') do
       var AddressType : BLEAddressType = ''&Data&'[1]'
       var Address : BTAddress = '*((bdaddr_t*)&'&Data&'[2])'
-
+	  decoded = true
       SMP!SMPIdentityAddressInformation(Handle, AddressType, Address)
     end
     if (Code == '0x0A') do
       var SignatureKey : BLERandomNumber = '*((ble_random_number_t*)&'&Data&'[1])'
-
+	  decoded = true
       SMP!SMPSigningInformation(Handle, SignatureKey)
     end
     if (Code == '0x0B') do
@@ -396,53 +479,63 @@ thing fragment HCISocketProxy includes HCISocketMsgs, HCIControllerMsgs, SMPProx
       var MITM : Boolean = '(('&Data&'[1] & 0x04) > 0)'
       var SecureConnection : Boolean = '(('&Data&'[1] & 0x08) > 0)'
       var Keypress : Boolean = '(('&Data&'[1] & 0x10) > 0)'
-
+	  decoded = true
       SMP!SMPSecurityRequest(Handle, Bonding, MITM, SecureConnection, Keypress)
     end
     if (Code == '0x0C') do
       var KeyX : SMPPublicKey = '*((smp_public_key_t*)&'&Data&'[1])'
       var KeyY : SMPPublicKey = '*((smp_public_key_t*)&'&Data&'[33])'
-
+	  decoded = true
       SMP!SMPPairingPublicKey(Handle, KeyX, KeyY)
     end
     if (Code == '0x0D') do
       var DHKeyCheck : BLERandomNumber = '*((ble_random_number_t*)&'&Data&'[1])'
-
+	  decoded = true
       SMP!SMPPairingDHKeyCheck(Handle, DHKeyCheck)
     end
     if (Code == '0x0E') do
       var Type : SMPKeypressNotification = ''&Data&'[1]'
-
+	  decoded = true
       SMP!SMPKeypressNotification(Handle, Type)
     end
+    
+    if (not decoded) print "[ERROR] Got unknown SMPData packet !!!\n"
+    
   end
 
 
   function OnATTData(Handle : UInt, Length : UInt, Data : DataPointer) do
     var OpCode : Byte = ''&Data&'[0]'
+    var decoded : Boolean = false
     if (OpCode == '0x01') do
       var RequestOpCode : Byte = ''&Data&'[1]'
       var AttributeHandle : UInt = '*((uint16_t*)&'&Data&'[2])'
       var Error : ATTErrorCode = ''&Data&'[4]'
       if (RequestOpCode == '0x04') do
+      	decoded = true
         ATT!ATTFindInformationError(Handle, AttributeHandle, Error)
       end
       if (RequestOpCode == '0x08') do
+      	decoded = true
         ATT!ATTReadByTypeError(Handle, AttributeHandle, Error)
       end
       if (RequestOpCode == '0x0A') do
+      	decoded = true
         ATT!ATTReadError(Handle, AttributeHandle, Error)
       end
       if (RequestOpCode == '0x10') do
+      	decoded = true
         ATT!ATTReadByGroupTypeError(Handle, AttributeHandle, Error)
       end
       if (RequestOpCode == '0x12') do
+      	decoded = true
         ATT!ATTWriteError(Handle, AttributeHandle, Error)
       end
     end
     if (OpCode == '0x04') do
       var StartingHandle : UInt = '*((uint16_t*)&'&Data&'[1])'
       var EndingHandle : UInt = '*((uint16_t*)&'&Data&'[3])'
+      decoded = true
       ATT!ATTFindInformationRequest(Handle, StartingHandle, EndingHandle)
     end
     if (OpCode == '0x05') do
@@ -450,12 +543,14 @@ thing fragment HCISocketProxy includes HCISocketMsgs, HCIControllerMsgs, SMPProx
       var InformationData : GATTData
       ''&InformationData&'.length = '&Length&'-2;'
       'memcpy(&'&InformationData&'.bytes, &'&Data&'[2], '&Length&'-2);'
+      decoded = true
       ATT!ATTFindInformationResponse(Handle, Format, InformationData)
     end
     if (OpCode == '0x08') do
       var StartingHandle : UInt = '*((uint16_t*)&'&Data&'[1])'
       var EndingHandle : UInt = '*((uint16_t*)&'&Data&'[3])'
       var AttributeType : UUID = ReadUUID(Length-5, '&'&Data&'[5]')
+      decoded = true
       ATT!ATTReadByTypeRequest(Handle, StartingHandle, EndingHandle, AttributeType)
     end
     if (OpCode == '0x09') do
@@ -463,22 +558,26 @@ thing fragment HCISocketProxy includes HCISocketMsgs, HCIControllerMsgs, SMPProx
       var AttributeDataList : GATTData
       ''&AttributeDataList&'.length = '&Length&'-2;'
       'memcpy(&'&AttributeDataList&'.bytes, &'&Data&'[2], '&Length&'-2);'
+      decoded = true
       ATT!ATTReadByTypeResponse(Handle, ALength, AttributeDataList)
     end
     if (OpCode == '0x0A') do
       var AttributeHandle : UInt = '*((uint16_t*)&'&Data&'[1])'
+      decoded = true
       ATT!ATTReadRequest(Handle, AttributeHandle)
     end
     if (OpCode == '0x0B') do
       var AttributeData : GATTData
       ''&AttributeData&'.length = '&Length&'-1;'
       'memcpy(&'&AttributeData&'.bytes, &'&Data&'[1], '&Length&'-1);'
+      decoded = true
       ATT!ATTReadResponse(Handle, AttributeData)
     end
     if (OpCode == '0x10') do
       var StartingHandle : UInt = '*((uint16_t*)&'&Data&'[1])'
       var EndingHandle : UInt = '*((uint16_t*)&'&Data&'[3])'
       var AttributeGroupType : UUID = ReadUUID(Length-5, '&'&Data&'[5]')
+      decoded = true
       ATT!ATTReadByGroupTypeRequest(Handle, StartingHandle, EndingHandle, AttributeGroupType)
     end
     if (OpCode == '0x11') do
@@ -486,6 +585,7 @@ thing fragment HCISocketProxy includes HCISocketMsgs, HCIControllerMsgs, SMPProx
       var AttributeDataList : GATTData
       ''&AttributeDataList&'.length = '&Length&'-2;'
       'memcpy(&'&AttributeDataList&'.bytes, &'&Data&'[2], '&Length&'-2);'
+      decoded = true
       ATT!ATTReadByGroupTypeResponse(Handle, ALength, AttributeDataList)
     end
     if (OpCode == '0x12') do
@@ -493,9 +593,11 @@ thing fragment HCISocketProxy includes HCISocketMsgs, HCIControllerMsgs, SMPProx
       var AttributeValue : GATTData
       ''&AttributeValue&'.length = '&Length&'-3;'
       'memcpy(&'&AttributeValue&'.bytes, &'&Data&'[3], '&Length&'-3);'
+      decoded = true
       ATT!ATTWriteRequest(Handle, AttributeHandle, AttributeValue)
     end
     if (OpCode == '0x13') do
+      decoded = true
       ATT!ATTWriteResponse(Handle)
     end
     if (OpCode == '0x52') do
@@ -503,6 +605,7 @@ thing fragment HCISocketProxy includes HCISocketMsgs, HCIControllerMsgs, SMPProx
       var AttributeValue : GATTData
       ''&AttributeValue&'.length = '&Length&'-3;'
       'memcpy(&'&AttributeValue&'.bytes, &'&Data&'[3], '&Length&'-3);'
+      decoded = true
       ATT!ATTWriteCommand(Handle, AttributeHandle, AttributeValue)
     end
     if (OpCode == '0x1B') do
@@ -510,6 +613,7 @@ thing fragment HCISocketProxy includes HCISocketMsgs, HCIControllerMsgs, SMPProx
       var AttributeValue : GATTData
       ''&AttributeValue&'.length = '&Length&'-3;'
       'memcpy(&'&AttributeValue&'.bytes, &'&Data&'[3], '&Length&'-3);'
+      decoded = true
       ATT!ATTHandleValueNotification(Handle, AttributeHandle, AttributeValue)
     end
     if (OpCode == '0x1D') do
@@ -517,10 +621,18 @@ thing fragment HCISocketProxy includes HCISocketMsgs, HCIControllerMsgs, SMPProx
       var AttributeValue : GATTData
       ''&AttributeValue&'.length = '&Length&'-3;'
       'memcpy(&'&AttributeValue&'.bytes, &'&Data&'[3], '&Length&'-3);'
+      decoded = true
       ATT!ATTHandleValueIndication(Handle, AttributeHandle, AttributeValue)
     end
     if (OpCode == '0x1E') do
+      decoded = true
       ATT!ATTHandleValueConfirmation(Handle)
+    end
+    if (not decoded) do 
+    	print "[ERROR] Got unknown ATTData packet !!!\n"
+    	'printf("  Handle=0x%04x, LENGTH=0x%02x, DATA=", '&Handle&', '&Length&' );'
+    	printBuffer(Data, Length)
+    	'printf("\n");'
     end
   end
 
@@ -683,6 +795,9 @@ thing fragment HCISocketProxy includes HCISocketMsgs, HCIControllerMsgs, SMPProx
 
       /* ------ Security Manager Protocol ------ */
       internal event e:SMP?SMPPairingRequest action do
+      
+      	print "********** SEND PAIRING REQUEST !!!!!!"
+      
         '
           uint8_t data[7];
           data[0] = 0x01;

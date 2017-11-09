@@ -22,11 +22,20 @@ void ExitHandler_Handler_OnExit(int state, struct ExitHandler_Instance *_instanc
 void ExitHandler_send_Signals_Interrupt(struct ExitHandler_Instance *_instance);
 //Prototypes: Function
 void catch_sigint(int sig);
+//Debug fonction
+void ExitHandler_print_debug(struct ExitHandler_Instance * _instance, char * str) {
+if(_instance->debug) {
+printf("%s%s", _instance->name, str);
+}
+}
+
 // Declaration of functions:
 // Definition of function catch_sigint
 void catch_sigint(int sig) {
+ExitHandler_print_debug(_handler_instance, " (ExitHandler): Start catch_sigint\n");
 fprintf(stdout, " Caught SIGINT\n");
 ExitHandler_send_Signals_Interrupt(_handler_instance);
+ExitHandler_print_debug(_handler_instance, " (ExitHandler): catch_sigint Done.\n");
 }
 
 // Sessions functionss:
@@ -36,11 +45,13 @@ ExitHandler_send_Signals_Interrupt(_handler_instance);
 void ExitHandler_Handler_OnEntry(int state, struct ExitHandler_Instance *_instance) {
 switch(state) {
 case EXITHANDLER_HANDLER_STATE:{
+ExitHandler_print_debug(_instance, " (ExitHandler): Enters Handler\n");
 _instance->ExitHandler_Handler_State = EXITHANDLER_HANDLER_WAITING_STATE;
 ExitHandler_Handler_OnEntry(_instance->ExitHandler_Handler_State, _instance);
 break;
 }
 case EXITHANDLER_HANDLER_WAITING_STATE:{
+ExitHandler_print_debug(_instance, " (ExitHandler): Enters Handler:Waiting\n");
 _handler_instance = _instance;
 signal(SIGINT, catch_sigint);
 break;
@@ -56,6 +67,7 @@ case EXITHANDLER_HANDLER_STATE:{
 ExitHandler_Handler_OnExit(_instance->ExitHandler_Handler_State, _instance);
 break;}
 case EXITHANDLER_HANDLER_WAITING_STATE:{
+ExitHandler_print_debug(_instance, " (ExitHandler): Exits Handler:Waiting\n");
 break;}
 default: break;
 }
@@ -64,10 +76,12 @@ default: break;
 // Event Handlers for incoming messages:
 void ExitHandler_handle_Signals_Quit(struct ExitHandler_Instance *_instance, int16_t code) {
 if(!(_instance->active)) return;
+ExitHandler_print_debug(_instance, " (ExitHandler): Signals?Quit\n");
 //Region Handler
 uint8_t ExitHandler_Handler_State_event_consumed = 0;
 if (_instance->ExitHandler_Handler_State == EXITHANDLER_HANDLER_WAITING_STATE) {
 if (ExitHandler_Handler_State_event_consumed == 0 && 1) {
+ExitHandler_print_debug(_instance, " (ExitHandler): internal event Signals?Quit\n");
 fprintf(stdout, "Exiting!\n");
 exit(code);
 ExitHandler_Handler_State_event_consumed = 1;
@@ -88,6 +102,7 @@ void register_ExitHandler_send_Signals_Interrupt_listener(void (*_listener)(stru
 ExitHandler_send_Signals_Interrupt_listener = _listener;
 }
 void ExitHandler_send_Signals_Interrupt(struct ExitHandler_Instance *_instance){
+ExitHandler_print_debug(_instance, " (ExitHandler): Signals!Interrupt\n");
 if (ExitHandler_send_Signals_Interrupt_listener != 0x0) ExitHandler_send_Signals_Interrupt_listener(_instance);
 if (external_ExitHandler_send_Signals_Interrupt_listener != 0x0) external_ExitHandler_send_Signals_Interrupt_listener(_instance);
 ;

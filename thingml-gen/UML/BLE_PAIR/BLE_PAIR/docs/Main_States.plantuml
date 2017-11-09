@@ -1,0 +1,127 @@
+@startuml
+skinparam defaultTextAlignment left
+caption Behavior of thing Main
+[*] --> States
+state States{
+state Initialise{
+	Initialise : entry / Initialiser!Start()\n
+
+Initialise --> Connect : e:Initialiser?DeviceInitialised\naction DeviceAddress = DeviceInitialised.Address\n
+
+Initialise --> Failed : Initialiser?Failure
+
+Initialise --> Quit : Signals?Interrupt
+}
+state Connect{
+	Connect : entry / Connecter!Connect()\n
+
+Connect --> Pairing : e:Connecter?Connected\naction do \nConnectedAddressType = Connected.AddressType\nConnectedAddress = Connected.Address\nConnectedHandle = Connected.Handle\nend\n
+
+Connect --> Uninitialise : Connecter?Stopped
+
+Connect --> Failed : Connecter?Failure
+	Connect : Signals?Interrupt / \naction Connecter!Stop()\n
+}
+state Pairing{
+state Request{
+
+Request --> Confirm : e:SMP?SMPPairingResponse[(SMPPairingResponse.IOCapability == SMPIOCapabilities:NO_INPUT_NO_OUTPUT and SMPPairingResponse.OOBDataPresent == false and SMPPairingResponse.Bonding == true and SMPPairingResponse.MITM == false and SMPPairingResponse.SecureConnection == false and SMPPairingResponse.Keypress == false and SMPPairingResponse.MaximumEncryptionKeySize == 16 and SMPPairingResponse.InitiatorKeyDistribution == SMPKeyDistribution:ENCKEY_IDKEY_NOSIGN_NOLINKKEY and SMPPairingResponse.ResponderKeyDistribution == SMPKeyDistribution:ENCKEY_IDKEY_NOSIGN_NOLINKKEY)]
+
+Request --> PairFailed : SMP?SMPPairingResponse
+	Request : SMP?SMPSecurityRequest / \naction do \nprint "[INFO]: Received Security request, requesting pairing...\\n"\nvar IOCapability : SMPIOCapabilities = SMPIOCapabilities:NO_INPUT_NO_OUTPUT\nvar OOBDataPresent : Boolean = false\nvar Bonding : Boolean = true\n...\nvar Keypress : Boolean = false\nvar MaximumEncryptionKeySize : Byte = 16\nvar InitiatorKeyDistribution : SMPKeyDistribution = SMPKeyDistribution:ENCKEY_IDKEY_NOSIGN_NOLINKKEY\nvar ResponderKeyDistribution : SMPKeyDistribution = SMPKeyDistribution:ENCKEY_IDKEY_NOSIGN_NOLINKKEY\nSMP!SMPPairingRequest(...)\nend\n
+}
+state Confirm{
+state SendMconfirm{
+	SendMconfirm : entry / do \nprint "[INFO]: Confirm Pairing...\\n"\nEncrypter!GenerateRandomNumber()\nend\n
+
+SendMconfirm --> GetSconfirm : e:Encrypter?GenerateConfirmCompleted\naction do \nMconfirm = GenerateConfirmCompleted.Confirm\nSMP!SMPPairingConfirm(...)\nprint "[INFO]: Sent Mconfirm.\\n"\nend\n
+	SendMconfirm : e:Encrypter?GenerateRandomNumberCompleted / \naction do \nMrand = GenerateRandomNumberCompleted.Random\nEncrypter!GenerateConfirm(...)\nend\n
+}
+state GetSconfirm{
+
+GetSconfirm --> GetSrandom : e:SMP?SMPPairingConfirm\naction do \nSconfirm = SMPPairingConfirm.ConfirmValue\nprint "[INFO]: Got Sconfirm, replied with Mrand.\\n"\nSMP!SMPPairingRandom(...)\nend\n
+}
+state GetSrandom{
+
+GetSrandom --> GetSconfirm : e:Encrypter?GenerateConfirmCompleted\naction Encrypter!CheckConfirm(...)\n
+	GetSrandom : e:SMP?SMPPairingRandom / \naction do \nSrand = SMPPairingRandom.RandomValue\nprint "[INFO]: Got Srand, confirming...\\n"\nEncrypter!GenerateConfirm(...)\nend\n
+}
+[*] --> SendMconfirm
+
+Confirm --> Encrypt : e:Encrypter?CheckConfirmCompleted[(CheckConfirmCompleted.Correct)]
+
+Confirm --> PairFailed : e:Encrypter?CheckConfirmCompleted[(not CheckConfirmCompleted.Correct)]
+}
+state Encrypt{
+	Encrypt : entry / do \nprint "[INFO]: Encrypting connection ...\\n"\nEncrypter!GenerateSTK(...)\nend\n
+
+Encrypt --> PairFailed : e:HCIEvents?LEStartEncryptionStatus[(LEStartEncryptionStatus.Status > 0)]
+
+Encrypt --> ExchangeKeys : e:HCIEvents?EncryptionChanged[(EncryptionChanged.Status == '0x00' and EncryptionChanged.Enabled == '0x01')]
+
+Encrypt --> PairFailed : e:HCIEvents?EncryptionChanged[(EncryptionChanged.Status > '0x00' or EncryptionChanged.Enabled != '0x01')]
+	Encrypt : e:Encrypter?GenerateSTKCompleted / \naction do \nprint "[INFO]: Generated STK.\\n"\nvar Random : BLERandomPart = '{ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }'\nvar EDIV : UInt = 0\nHCICommands!LEStartEncryption(...)\nend\n
+	Encrypt : e:HCIEvents?LEStartEncryptionStatus / [(LEStartEncryptionStatus.Status == 0)]\naction print "[INFO]: Waiting for encryption...\\n"\n
+}
+state ExchangeKeys{
+state WaitForPeerKeys{
+
+WaitForPeerKeys --> GenerateOwnKeys : [(HavePeerLTK and HavePeerIdentification and HavePeerIdentity and HavePeerIdentityAddress)]
+	WaitForPeerKeys : e:SMP?SMPEncryptionInformation / \naction do \nPeerLTK = SMPEncryptionInformation.LongTermKey\nHavePeerLTK = true\nend\n
+	WaitForPeerKeys : e:SMP?SMPMasterIdentification / \naction do \nPeerEDIV = SMPMasterIdentification.EDIV\nPeerRandom = SMPMasterIdentification.Rand\nHavePeerIdentification = true\nend\n
+	WaitForPeerKeys : e:SMP?SMPIdentityInformation / \naction do \nPeerIRK = SMPIdentityInformation.IdentityResolvingKey\nHavePeerIdentity = true\nend\n
+	WaitForPeerKeys : e:SMP?SMPIdentityAddressInformation / \naction do \nPeerIdentityAddressType = SMPIdentityAddressInformation.AddressType\nPeerIdentityAddress = SMPIdentityAddressInformation.Address\nHavePeerIdentityAddress = true\nend\n
+}
+state GenerateOwnKeys{
+state GenerateLTK{
+	GenerateLTK : entry / Encrypter!GenerateRandomNumber()\n
+
+GenerateLTK --> GenerateEDIVRand : e:Encrypter?GenerateRandomNumberCompleted\naction OwnLTK = GenerateRandomNumberCompleted.Random\n
+}
+state GenerateEDIVRand{
+	GenerateEDIVRand : entry / Encrypter!GenerateRandomNumber()\n
+
+GenerateEDIVRand --> GenerateIRK : e:Encrypter?GenerateRandomNumberCompleted\naction do \nOwnEDIV = '*((uint16_t*)&' & GenerateRandomNumberCompleted.Random & '.bytes[0])'\nOwnRandom = '*((ble_random_part_t*)&' & GenerateRandomNumberCompleted.Random & '.bytes[2])'\nend\n
+}
+state GenerateIRK{
+	GenerateIRK : entry / Encrypter!GenerateRandomNumber()\n
+
+GenerateIRK --> SendAll : e:Encrypter?GenerateRandomNumberCompleted\naction OwnIRK = GenerateRandomNumberCompleted.Random\n
+}
+state SendAll{
+	SendAll : entry / do \nOwnIdentityAddressType = DeviceAddressType\nOwnIdentityAddress = DeviceAddress\nprint "[INFO]: Generate all own keys, sending...\\n"\nSMP!SMPEncryptionInformation(...)\nSMP!SMPMasterIdentification(...)\nSMP!SMPIdentityInformation(...)\nSMP!SMPIdentityAddressInformation(...)\nHasPairedSuccessfully = true\nend\n
+}
+[*] --> GenerateLTK
+	GenerateOwnKeys : entry / print "[INFO]: Got all peer keys, generating own...\\n"\n
+}
+[*] --> WaitForPeerKeys
+}
+state PairFailed{
+	PairFailed : entry / do \nprint "[ERROR]: Pairing procedure failed.\\n"\nConnecter!Stop()\nend\n
+}
+[*] --> Request
+
+Pairing --> Uninitialise : Connecter?Stopped
+
+Pairing --> Failed : Connecter?Failure
+	Pairing : SMP?SMPPairingFailed / \naction do \nprint "[ERROR]: Received pairing failed!\\n"\nConnecter!Stop()\nend\n
+	Pairing : Signals?Interrupt / \naction Connecter!Stop()\n
+}
+state Uninitialise{
+	Uninitialise : entry / Initialiser!Stop()\n
+
+Uninitialise --> Failed : Initialiser?Failure
+
+Uninitialise --> Quit : Initialiser?Stopped
+
+Uninitialise --> Quit : Signals?Interrupt
+}
+state Failed{
+	Failed : entry / do \nprint "[ERROR]: Failed, quitting... !!!\\n"\nSignals!Quit(1)\nend\n
+}
+state Quit{
+	Quit : entry / do \nprint "[INFO]: Finished, quitting...\\n"\nif(HasPairedSuccessfully) do\ndo \nprint "\\n\\n\\nPairing was successfull! Please note the following values and use for later connection:\\n\\n"\nprint "\tproperty OwnLongTermKey : BLERandomNumber = "\n'print_bytes((uint8_t*)&(' & OwnLTK & '), 16);'\nprint "\tproperty OwnEncryptedDiversifier : UInt = "\n...\n'print_bytes((uint8_t*)&(' & OwnRandom & '), 8);'\nprint "\tproperty OwnIdentityResolvingKey : BLERandomNumber = "\n'print_bytes((uint8_t*)&(' & OwnIRK & '), 16);'\nprint "\tproperty OwnAddressType : BLEAddressType = "\n'print_bytes((uint8_t*)&(' & OwnIdentityAddressType & '), 1);'\nprint "\tproperty OwnAddress : BTAddress = "\n'print_bytes((uint8_t*)&(' & OwnIdentityAddress & '), 6);'\nprint "\\n"\nprint "\tproperty PeerLongTermKey : BLERandomNumber = "\n'print_bytes((uint8_t*)&(' & PeerLTK & '), 16);'\nprint "\tproperty PeerEncryptedDiversifier : UInt = "\n'print_bytes((uint8_t*)&(' & PeerEDIV & '), 2);'\nprint "\tproperty PeerRandomNumber : BLERandomPart = "\n'print_bytes((uint8_t*)&(' & PeerRandom & '), 8);'\nprint "\tproperty PeerIdentityResolvingKey : BLERandomNumber = "\n'print_bytes((uint8_t*)&(' & PeerIRK & '), 16);'\nprint "\tproperty PeerAddressType : BLEAddressTyp = "\n'print_bytes((uint8_t*)&(' & PeerIdentityAddressType & '), 1);'\nprint "\tproperty PeerAddress : BTAddress = "\n'print_bytes((uint8_t*)&(' & PeerIdentityAddress & '), 6);'\nprint "\\n"\nend\nend\nSignals!Quit(0)\nend\n
+}
+[*] --> Initialise
+}
+@enduml

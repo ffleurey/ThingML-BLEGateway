@@ -18,41 +18,6 @@ extern "C" {
  *****************************************************************************/
 
 
-// BEGIN: Code from the c_header annotation for type UUID
-#ifndef BLE_UUID_T_H
-#define BLE_UUID_T_H
-typedef struct { uint8_t bytes[16]; } ble_uuid_t;
-#endif
-// END: Code from the c_header annotation for type UUID
-
-
-// BEGIN: Code from the c_header annotation for type BTAddress
-#include <bluetooth/bluetooth.h>
-// END: Code from the c_header annotation for type BTAddress
-
-
-// BEGIN: Code from the c_header annotation for type BTLocalName
-#include <bluetooth/bluetooth.h>
-#include <bluetooth/hci.h>
-// END: Code from the c_header annotation for type BTLocalName
-
-
-// BEGIN: Code from the c_header annotation for type SMPPublicKey
-#ifndef SMP_PUBLIC_KEY_T_H
-#define SMP_PUBLIC_KEY_T_H
-typedef struct { uint8_t bytes[32]; } smp_public_key_t;
-#endif
-// END: Code from the c_header annotation for type SMPPublicKey
-
-
-// BEGIN: Code from the c_header annotation for type BLERandomPart
-#ifndef BLE_RANDOM_PART_T_H
-#define BLE_RANDOM_PART_T_H
-typedef struct { uint8_t bytes[8]; } ble_random_part_t;
-#endif
-// END: Code from the c_header annotation for type BLERandomPart
-
-
 // BEGIN: Code from the c_header annotation for type BLERandomNumber
 #ifndef BLE_RANDOM_NUMBER_T_H
 #define BLE_RANDOM_NUMBER_T_H
@@ -61,10 +26,12 @@ typedef struct { uint8_t bytes[16]; } ble_random_number_t;
 // END: Code from the c_header annotation for type BLERandomNumber
 
 
-// BEGIN: Code from the c_header annotation for type HCIEventMask
-#include <bluetooth/bluetooth.h>
-#include <bluetooth/hci.h>
-// END: Code from the c_header annotation for type HCIEventMask
+// BEGIN: Code from the c_header annotation for type UUID
+#ifndef BLE_UUID_T_H
+#define BLE_UUID_T_H
+typedef struct { uint8_t bytes[16]; } ble_uuid_t;
+#endif
+// END: Code from the c_header annotation for type UUID
 
 
 // BEGIN: Code from the c_header annotation for type GATTData
@@ -75,6 +42,20 @@ typedef struct { uint8_t length; uint8_t bytes[23]; } ble_gatt_data_t;
 // END: Code from the c_header annotation for type GATTData
 
 
+// BEGIN: Code from the c_header annotation for type SMPPublicKey
+#ifndef SMP_PUBLIC_KEY_T_H
+#define SMP_PUBLIC_KEY_T_H
+typedef struct { uint8_t bytes[32]; } smp_public_key_t;
+#endif
+// END: Code from the c_header annotation for type SMPPublicKey
+
+
+// BEGIN: Code from the c_header annotation for type HCIEventMask
+#include <bluetooth/bluetooth.h>
+#include <bluetooth/hci.h>
+// END: Code from the c_header annotation for type HCIEventMask
+
+
 // BEGIN: Code from the c_header annotation for type BLEAdvertiseData
 #ifndef BLE_ADV_DATA_T_H
 #define BLE_ADV_DATA_T_H
@@ -82,8 +63,29 @@ typedef struct { uint8_t bytes[31]; } ble_adv_data_t;
 #endif
 // END: Code from the c_header annotation for type BLEAdvertiseData
 
+
+// BEGIN: Code from the c_header annotation for type BTAddress
+#include <bluetooth/bluetooth.h>
+// END: Code from the c_header annotation for type BTAddress
+
+
+// BEGIN: Code from the c_header annotation for type BLERandomPart
+#ifndef BLE_RANDOM_PART_T_H
+#define BLE_RANDOM_PART_T_H
+typedef struct { uint8_t bytes[8]; } ble_random_part_t;
+#endif
+// END: Code from the c_header annotation for type BLERandomPart
+
+
+// BEGIN: Code from the c_header annotation for type BTLocalName
+#include <bluetooth/bluetooth.h>
+#include <bluetooth/hci.h>
+// END: Code from the c_header annotation for type BTLocalName
+
 // Definition of the instance struct:
 struct Main_Instance {
+bool debug;
+char * name;
 
 // Instances of different sessions
 bool active;
@@ -104,58 +106,58 @@ int Main_States_Pairing_Confirm_State;
 int Main_States_Pairing_ExchangeKeys_State;
 int Main_States_Pairing_ExchangeKeys_GenerateOwnKeys_State;
 // Variables for the properties of the instance
-uint8_t Main_PeerIdentityAddressType_var;
-ble_random_number_t Main_Sconfirm_var;
-uint8_t Main_HasPairedSuccessfully_var;
-uint16_t Main_OwnEDIV_var;
-ble_random_number_t Main_PeerIRK_var;
-bdaddr_t Main_OwnIdentityAddress_var;
-uint8_t Main_HavePeerLTK_var;
-uint8_t Main_OwnIdentityAddressType_var;
-uint8_t Main_HavePeerIdentityAddress_var;
-ble_random_number_t Main_Mconfirm_var;
-ble_random_number_t Main_PeerLTK_var;
-ble_random_number_t Main_OwnIRK_var;
-bdaddr_t Main_ConnectedAddress_var;
-ble_random_number_t Main_Mrand_var;
-uint8_t Main_DeviceAddressType_var;
-uint8_t Main_ConnectedAddressType_var;
-uint16_t Main_ConnectedHandle_var;
-bdaddr_t Main_DeviceAddress_var;
-ble_random_number_t Main_OwnLTK_var;
 ble_random_part_t Main_OwnRandom_var;
+uint8_t Main_HavePeerIdentityAddress_var;
+uint16_t Main_PeerEDIV_var;
+ble_random_number_t Main_OwnIRK_var;
+uint8_t Main_ConnectedAddressType_var;
+ble_random_number_t Main_PeerLTK_var;
+uint8_t Main_HasPairedSuccessfully_var;
+ble_random_number_t Main_Mrand_var;
 bdaddr_t Main_PeerIdentityAddress_var;
 uint8_t Main_HavePeerIdentification_var;
-uint16_t Main_PeerEDIV_var;
+uint8_t Main_DeviceAddressType_var;
+ble_random_part_t Main_PeerRandom_var;
+ble_random_number_t Main_Mconfirm_var;
+uint8_t Main_PeerIdentityAddressType_var;
+ble_random_number_t Main_OwnLTK_var;
+bdaddr_t Main_OwnIdentityAddress_var;
+bdaddr_t Main_ConnectedAddress_var;
+bdaddr_t Main_DeviceAddress_var;
+uint8_t Main_HavePeerLTK_var;
+uint16_t Main_OwnEDIV_var;
+ble_random_number_t Main_Sconfirm_var;
 uint8_t Main_HavePeerIdentity_var;
 ble_random_number_t Main_Srand_var;
-ble_random_part_t Main_PeerRandom_var;
+uint8_t Main_OwnIdentityAddressType_var;
+uint16_t Main_ConnectedHandle_var;
+ble_random_number_t Main_PeerIRK_var;
 
 };
 // Declaration of prototypes outgoing messages :
 void Main_States_OnEntry(int state, struct Main_Instance *_instance);
 void Main_handle_HCIEvents_LEStartEncryptionStatus(struct Main_Instance *_instance, uint8_t NumberAllowedCommandPackets, uint8_t Status);
 void Main_handle_HCIEvents_EncryptionChanged(struct Main_Instance *_instance, uint8_t Status, uint16_t ConnectionHandle, uint8_t Enabled);
-void Main_handle_Initialiser_DeviceInitialised(struct Main_Instance *_instance, bdaddr_t Address);
-void Main_handle_Initialiser_Stopped(struct Main_Instance *_instance);
-void Main_handle_Initialiser_Failure(struct Main_Instance *_instance);
-void Main_handle_Connecter_Stopped(struct Main_Instance *_instance);
-void Main_handle_Connecter_Connected(struct Main_Instance *_instance, uint16_t Handle, uint8_t AddressType, bdaddr_t Address);
 void Main_handle_Connecter_Failure(struct Main_Instance *_instance);
-void Main_handle_Encrypter_GenerateConfirmCompleted(struct Main_Instance *_instance, ble_random_number_t Confirm);
-void Main_handle_Encrypter_CheckConfirmCompleted(struct Main_Instance *_instance, uint8_t Correct);
-void Main_handle_Encrypter_GenerateRandomNumberCompleted(struct Main_Instance *_instance, ble_random_number_t Random);
-void Main_handle_Encrypter_GenerateSTKCompleted(struct Main_Instance *_instance, ble_random_number_t STK);
-void Main_handle_SMP_SMPPairingFailed(struct Main_Instance *_instance, uint16_t Handle, uint8_t Reason);
-void Main_handle_SMP_SMPMasterIdentification(struct Main_Instance *_instance, uint16_t Handle, uint16_t EDIV, ble_random_part_t Rand);
-void Main_handle_SMP_SMPPairingConfirm(struct Main_Instance *_instance, uint16_t Handle, ble_random_number_t ConfirmValue);
-void Main_handle_SMP_SMPIdentityAddressInformation(struct Main_Instance *_instance, uint16_t Handle, uint8_t AddressType, bdaddr_t Address);
-void Main_handle_SMP_SMPIdentityInformation(struct Main_Instance *_instance, uint16_t Handle, ble_random_number_t IdentityResolvingKey);
-void Main_handle_SMP_SMPPairingRandom(struct Main_Instance *_instance, uint16_t Handle, ble_random_number_t RandomValue);
-void Main_handle_SMP_SMPSecurityRequest(struct Main_Instance *_instance, uint16_t Handle, uint8_t Bonding, uint8_t MITM, uint8_t SecureConnection, uint8_t Keypress);
-void Main_handle_SMP_SMPPairingResponse(struct Main_Instance *_instance, uint16_t Handle, uint8_t IOCapability, uint8_t OOBDataPresent, uint8_t Bonding, uint8_t MITM, uint8_t SecureConnection, uint8_t Keypress, uint8_t MaximumEncryptionKeySize, uint8_t InitiatorKeyDistribution, uint8_t ResponderKeyDistribution);
-void Main_handle_SMP_SMPEncryptionInformation(struct Main_Instance *_instance, uint16_t Handle, ble_random_number_t LongTermKey);
+void Main_handle_Connecter_Connected(struct Main_Instance *_instance, uint16_t Handle, uint8_t AddressType, bdaddr_t Address);
+void Main_handle_Connecter_Stopped(struct Main_Instance *_instance);
 void Main_handle_Signals_Interrupt(struct Main_Instance *_instance);
+void Main_handle_Encrypter_CheckConfirmCompleted(struct Main_Instance *_instance, uint8_t Correct);
+void Main_handle_Encrypter_GenerateConfirmCompleted(struct Main_Instance *_instance, ble_random_number_t Confirm);
+void Main_handle_Encrypter_GenerateSTKCompleted(struct Main_Instance *_instance, ble_random_number_t STK);
+void Main_handle_Encrypter_GenerateRandomNumberCompleted(struct Main_Instance *_instance, ble_random_number_t Random);
+void Main_handle_Initialiser_DeviceInitialised(struct Main_Instance *_instance, bdaddr_t Address);
+void Main_handle_Initialiser_Failure(struct Main_Instance *_instance);
+void Main_handle_Initialiser_Stopped(struct Main_Instance *_instance);
+void Main_handle_SMP_SMPPairingConfirm(struct Main_Instance *_instance, uint16_t Handle, ble_random_number_t ConfirmValue);
+void Main_handle_SMP_SMPEncryptionInformation(struct Main_Instance *_instance, uint16_t Handle, ble_random_number_t LongTermKey);
+void Main_handle_SMP_SMPMasterIdentification(struct Main_Instance *_instance, uint16_t Handle, uint16_t EDIV, ble_random_part_t Rand);
+void Main_handle_SMP_SMPSecurityRequest(struct Main_Instance *_instance, uint16_t Handle, uint8_t Bonding, uint8_t MITM, uint8_t SecureConnection, uint8_t Keypress);
+void Main_handle_SMP_SMPIdentityAddressInformation(struct Main_Instance *_instance, uint16_t Handle, uint8_t AddressType, bdaddr_t Address);
+void Main_handle_SMP_SMPPairingFailed(struct Main_Instance *_instance, uint16_t Handle, uint8_t Reason);
+void Main_handle_SMP_SMPIdentityInformation(struct Main_Instance *_instance, uint16_t Handle, ble_random_number_t IdentityResolvingKey);
+void Main_handle_SMP_SMPPairingResponse(struct Main_Instance *_instance, uint16_t Handle, uint8_t IOCapability, uint8_t OOBDataPresent, uint8_t Bonding, uint8_t MITM, uint8_t SecureConnection, uint8_t Keypress, uint8_t MaximumEncryptionKeySize, uint8_t InitiatorKeyDistribution, uint8_t ResponderKeyDistribution);
+void Main_handle_SMP_SMPPairingRandom(struct Main_Instance *_instance, uint16_t Handle, ble_random_number_t RandomValue);
 // Declaration of callbacks for incoming messages:
 void register_Main_send_Signals_Quit_listener(void (*_listener)(struct Main_Instance *, int16_t));
 void register_external_Main_send_Signals_Quit_listener(void (*_listener)(struct Main_Instance *, int16_t));
@@ -291,27 +293,30 @@ void register_Main_send_ATT_ATTHandleValueConfirmation_listener(void (*_listener
 void register_external_Main_send_ATT_ATTHandleValueConfirmation_listener(void (*_listener)(struct Main_Instance *, uint16_t));
 
 // Definition of the states:
-#define MAIN_STATES_PAIRING_CONFIRM_SENDMCONFIRM_STATE 0
-#define MAIN_STATES_PAIRING_CONFIRM_GETSCONFIRM_STATE 1
-#define MAIN_STATES_PAIRING_EXCHANGEKEYS_STATE 2
-#define MAIN_STATES_PAIRING_EXCHANGEKEYS_GENERATEOWNKEYS_STATE 3
-#define MAIN_STATES_INITIALISE_STATE 4
-#define MAIN_STATES_PAIRING_CONFIRM_STATE 5
-#define MAIN_STATES_PAIRING_EXCHANGEKEYS_GENERATEOWNKEYS_GENERATEIRK_STATE 6
-#define MAIN_STATES_FAILED_STATE 7
-#define MAIN_STATES_PAIRING_EXCHANGEKEYS_GENERATEOWNKEYS_GENERATELTK_STATE 8
-#define MAIN_STATES_STATE 9
-#define MAIN_STATES_PAIRING_ENCRYPT_STATE 10
-#define MAIN_STATES_PAIRING_EXCHANGEKEYS_GENERATEOWNKEYS_GENERATEEDIVRAND_STATE 11
+#define MAIN_STATES_STATE 0
+#define MAIN_STATES_CONNECT_STATE 1
+#define MAIN_STATES_PAIRING_DONOTHING_STATE 2
+#define MAIN_STATES_PAIRING_ENCRYPT_STATE 3
+#define MAIN_STATES_PAIRING_EXCHANGEKEYS_GENERATEOWNKEYS_GENERATEIRK_STATE 4
+#define MAIN_STATES_QUIT_STATE 5
+#define MAIN_STATES_PAIRING_EXCHANGEKEYS_GENERATEOWNKEYS_SENDALL_STATE 6
+#define MAIN_STATES_PAIRING_EXCHANGEKEYS_GENERATEOWNKEYS_GENERATELTK_STATE 7
+#define MAIN_STATES_PAIRING_EXCHANGEKEYS_GENERATEOWNKEYS_STATE 8
+#define MAIN_STATES_UNINITIALISE_STATE 9
+#define MAIN_STATES_PAIRING_REQUEST_STATE 10
+#define MAIN_STATES_PAIRING_REQUESTSENT2_STATE 11
 #define MAIN_STATES_PAIRING_PAIRFAILED_STATE 12
-#define MAIN_STATES_PAIRING_STATE 13
-#define MAIN_STATES_QUIT_STATE 14
-#define MAIN_STATES_PAIRING_REQUEST_STATE 15
-#define MAIN_STATES_CONNECT_STATE 16
-#define MAIN_STATES_PAIRING_EXCHANGEKEYS_GENERATEOWNKEYS_SENDALL_STATE 17
-#define MAIN_STATES_UNINITIALISE_STATE 18
-#define MAIN_STATES_PAIRING_CONFIRM_GETSRANDOM_STATE 19
-#define MAIN_STATES_PAIRING_EXCHANGEKEYS_WAITFORPEERKEYS_STATE 20
+#define MAIN_STATES_PAIRING_EXCHANGEKEYS_STATE 13
+#define MAIN_STATES_PAIRING_EXCHANGEKEYS_GENERATEOWNKEYS_GENERATEEDIVRAND_STATE 14
+#define MAIN_STATES_PAIRING_CONFIRM_SENDMCONFIRM_STATE 15
+#define MAIN_STATES_PAIRING_CONFIRM_GETSCONFIRM_STATE 16
+#define MAIN_STATES_PAIRING_CONFIRM_GETSRANDOM_STATE 17
+#define MAIN_STATES_FAILED_STATE 18
+#define MAIN_STATES_PAIRING_CONFIRM_STATE 19
+#define MAIN_STATES_PAIRING_STATE 20
+#define MAIN_STATES_PAIRING_REQUESTSENT_STATE 21
+#define MAIN_STATES_INITIALISE_STATE 22
+#define MAIN_STATES_PAIRING_EXCHANGEKEYS_WAITFORPEERKEYS_STATE 23
 
 
 

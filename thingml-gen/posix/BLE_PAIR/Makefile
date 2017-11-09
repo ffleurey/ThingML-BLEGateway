@@ -1,8 +1,8 @@
-CC = cc
+# CC = /*CC*/
 LIBS = -lpthread -l bluetooth
 CFLAGS = -O2 -w
-SRCS = HCISocketProxyImpl.c BLEConnecterImpl.c BLEEncryptionImpl.c ExitHandler.c BLEInitialiserImpl.c Main.c BLE_PAIR_cfg.c runtime.c
-OBJS = HCISocketProxyImpl.o BLEConnecterImpl.o BLEEncryptionImpl.o ExitHandler.o BLEInitialiserImpl.o Main.o BLE_PAIR_cfg.o runtime.o
+SRCS = HCISocketProxyImpl.c BLEConnecterImpl.c Main.c ExitHandler.c BLEEncryptionImpl.c BLEInitialiserImpl.c BLE_PAIR_cfg.c runtime.c
+OBJS = HCISocketProxyImpl.o BLEConnecterImpl.o Main.o ExitHandler.o BLEEncryptionImpl.o BLEInitialiserImpl.o BLE_PAIR_cfg.o runtime.o
 
 all : BLE_PAIR
 
